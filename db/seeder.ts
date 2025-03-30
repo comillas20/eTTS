@@ -1,5 +1,5 @@
 import drizzle from "./drizzle";
-import { eWalletsTable } from "./schema";
+import { eWalletsTable, recordsTable } from "./schema";
 
 async function eWalletsSeeder() {
   await drizzle
@@ -9,6 +9,15 @@ async function eWalletsSeeder() {
       cellNumber: "09215177647",
     })
     .onConflictDoNothing({ target: eWalletsTable.id });
+
+  await drizzle.insert(recordsTable).values({
+    referenceNumber: "1234567890123",
+    cellNumber: "09215177647",
+    amount: 1000,
+    fee: 100,
+    type: "cash-in",
+    date: new Date(),
+  });
 
   console.log("Seeder loaded successfully");
 }
