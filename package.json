@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seeder": "tsx ./db/seeder.ts"
+    "seeder": "tsx ./db/seeder.ts",
+    "db-push": "bunx bun drizzle-kit push"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.3",
