@@ -22,7 +22,8 @@ export const recordsTable = pgTable("records", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   referenceNumber: varchar({ length: 255 }).notNull(),
   cellNumber: varchar({ length: 13 }).notNull(),
-  fee: numeric({ scale: 2 }),
-  date: timestamp(),
-  type: transactionTypeEnum(),
+  amount: numeric({ mode: "number", scale: 2 }).notNull(),
+  fee: numeric({ mode: "number", scale: 2 }).notNull(),
+  date: timestamp().notNull(),
+  type: transactionTypeEnum().notNull(),
 });
