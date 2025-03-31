@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   integer,
   numeric,
@@ -9,9 +10,14 @@ import {
 
 export const eWalletsTable = pgTable("eWallets", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: varchar({ length: 255 }).notNull(),
+  name: varchar({ length: 255 }).unique().notNull(),
+  url: varchar({ length: 255 }).unique().notNull(),
   cellNumber: varchar({ length: 13 }).notNull(),
 });
+
+export const eWalletsRelations = relations(eWalletsTable, ({ many }) => ({
+  records: many(recordsTable),
+}));
 
 export const transactionTypeEnum = pgEnum("transactionType", [
   "cash-in",
@@ -26,4 +32,12 @@ export const recordsTable = pgTable("records", {
   fee: numeric({ mode: "number", scale: 2 }).notNull(),
   date: timestamp().notNull(),
   type: transactionTypeEnum().notNull(),
+  eWalletId: integer(),
 });
+
+export const recordsRelations = relations(recordsTable, ({ one }) => ({
+  eWallet: one(eWalletsTable, {
+    fields: [recordsTable.eWalletId],
+    references: [eWalletsTable.id],
+  }),
+}));
