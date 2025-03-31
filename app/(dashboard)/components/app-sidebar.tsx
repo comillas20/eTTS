@@ -2,7 +2,6 @@
 
 import { CommandIcon } from "lucide-react";
 
-// import { NavWallets } from "@/app/(dashboard)/components/nav-wallets";
 import { NavUser } from "@/app/(dashboard)/components/nav-user";
 import {
   Sidebar,
@@ -14,7 +13,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { NavUtilities } from "./nav-utilities";
-import { fakeLinks, fakeUserData, fakeWalletsData } from "../data";
 import { NavWallets } from "./nav-wallets";
 
 export function AppSidebar() {
@@ -38,11 +36,11 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavWallets wallets={fakeWalletsData} />
-        <NavUtilities utilities={fakeLinks} />
+        <NavWallets />
+        <NavUtilities utilities={[]} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={fakeUserData} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );

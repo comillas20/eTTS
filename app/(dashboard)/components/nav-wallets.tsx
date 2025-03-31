@@ -5,7 +5,7 @@ import {
   PencilIcon,
   PlusIcon,
   Trash2Icon,
-  type LucideIcon,
+  WalletIcon,
 } from "lucide-react";
 
 import {
@@ -24,18 +24,25 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
+import { getWallets } from "../actions";
 
-type NavWalletsProps = {
-  wallets: {
-    label: string;
-    url: string;
-    icon: LucideIcon;
-    isActive?: boolean;
-  }[];
-};
-
-export function NavWallets({ wallets }: NavWalletsProps) {
+export function NavWallets() {
   const isMobile = useIsMobile();
+  // const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["wallets"],
+    queryFn: () => getWallets(),
+  });
+
+  // const mutation = useMutation({
+  //   mutationFn: createWallet,
+  //   onSuccess: () => {
+  //     // Invalidate and refetch
+  //     queryClient.invalidateQueries({ queryKey: ["wallets"] });
+  //   },
+  // });
   return (
     <SidebarGroup>
       <SidebarGroupLabel>e-Wallets</SidebarGroupLabel>
@@ -43,12 +50,12 @@ export function NavWallets({ wallets }: NavWalletsProps) {
         <PlusIcon /> <span className="sr-only">Add Project</span>
       </SidebarGroupAction>
       <SidebarMenu>
-        {wallets.map((wallet) => (
-          <SidebarMenuItem key={wallet.label}>
-            <SidebarMenuButton asChild tooltip={wallet.label}>
+        {query.data?.map((wallet) => (
+          <SidebarMenuItem key={wallet.id}>
+            <SidebarMenuButton asChild tooltip={wallet.name}>
               <a href={wallet.url}>
-                <wallet.icon />
-                <span>{wallet.label}</span>
+                <WalletIcon />
+                <span>{wallet.name}</span>
               </a>
             </SidebarMenuButton>
             <DropdownMenu>
@@ -64,11 +71,11 @@ export function NavWallets({ wallets }: NavWalletsProps) {
                 align={isMobile ? "end" : "start"}>
                 <DropdownMenuItem>
                   <PencilIcon className="text-muted-foreground" />
-                  <span>{`Edit ${wallet.label}`}</span>
+                  <span>{`Edit ${wallet.name}`}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive">
                   <Trash2Icon className="text-destructive" />
-                  <span>{`Delete ${wallet.label}`}</span>
+                  <span>{`Delete ${wallet.name}`}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
