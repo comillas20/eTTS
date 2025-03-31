@@ -1,6 +1,6 @@
-import { drizzle as D } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
 import dotenv from "dotenv";
-
+import * as schema from "./schema";
 dotenv.config();
 
 if (!process.env.DATABASE_URL) {
@@ -12,17 +12,17 @@ export const drizzleSingleton = () => {
     throw new Error("DATABASE_URL environment variable is not set");
   }
 
-  return D(process.env.DATABASE_URL);
+  return drizzle(process.env.DATABASE_URL, { schema });
 };
 
 type DrizzleSingleton = ReturnType<typeof drizzleSingleton>;
 
 const globalForDrizzle = globalThis as unknown as {
-  drizzle: DrizzleSingleton | undefined;
+  db: DrizzleSingleton | undefined;
 };
 
-const drizzle = globalForDrizzle.drizzle ?? drizzleSingleton();
+const db = globalForDrizzle.db ?? drizzleSingleton();
 
-export default drizzle;
+export default db;
 
-if (process.env.NODE_ENV !== "production") globalForDrizzle.drizzle = drizzle;
+if (process.env.NODE_ENV !== "production") globalForDrizzle.db = db;
