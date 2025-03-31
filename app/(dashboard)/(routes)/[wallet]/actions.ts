@@ -1,11 +1,12 @@
 "use server";
 
-import drizzle from "@/db/drizzle";
-import { recordsTable } from "@/db/schema";
+import db from "@/db/drizzle";
 import { format } from "date-fns";
 
-export async function getRecords() {
-  const records = await drizzle.select().from(recordsTable);
+export async function getRecords(walletId: number) {
+  const records = await db.query.recordsTable.findMany({
+    where: (fields, { eq }) => eq(fields.eWalletId, walletId),
+  });
   const dateFormat = "MMM d, yyyy, h:mma";
   const mappedRecords = records.map((record) => ({
     ...record,

@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { flexRender, Table as T } from "@tanstack/react-table";
-import { Record } from "../../data";
+import { Record } from "../../actions";
 
 type FrameProps = {
   tableData: T<Record>;

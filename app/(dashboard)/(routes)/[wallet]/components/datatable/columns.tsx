@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Record } from "../../data";
+import { Record } from "../../actions";
 
 export const columns: ColumnDef<Record>[] = [
   {

@@ -9,7 +9,7 @@ import { Header } from "./datatable/header";
 import { Frame } from "./datatable/frame";
 import { Pagination } from "./datatable/pagination";
 import { columns } from "./datatable/columns";
-import { Record } from "../data";
+import { Record } from "../actions";
 
 type DatatableProps = {
   data: Record[];
