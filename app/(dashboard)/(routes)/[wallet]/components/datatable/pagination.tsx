@@ -2,53 +2,77 @@ import { Table } from "@tanstack/react-table";
 import {
   Pagination as P,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
+  PaginationButton,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Record } from "../../actions";
 
-type PaginationProps<TData> = {
-  table: Table<TData>;
+type PaginationProps = {
+  table: Table<Record>;
 };
 
-export function Pagination<TData>({ table }: PaginationProps<TData>) {
-  return (
-    <div className="flex items-center justify-end px-2">
-      <div className="flex items-center space-x-6">
-        {table.getPageCount() > 0 && (
+export function Pagination({ table }: PaginationProps) {
+  const currentPage = table.getState().pagination.pageIndex;
+  const pageCount = table.getPageCount();
+  const mid = Math.floor((currentPage + 1 + pageCount) / 2);
+  if (pageCount >= 2)
+    return (
+      <div className="flex items-center justify-end px-2">
+        <div className="flex items-center space-x-6">
           <div className="flex w-32 items-center justify-center text-sm font-medium">
-            {`Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount()}`}
+            {`Page ${currentPage + 1} of ${pageCount}`}
           </div>
-        )}
-        <div className="flex items-center space-x-2">
-          <P>
+          <P className="flex items-center space-x-2">
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious href="#" />
+                <PaginationPrevious
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                />
               </PaginationItem>
               <PaginationItem>
-                <PaginationLink href="#">1</PaginationLink>
+                <PaginationButton
+                  isActive={!table.getCanPreviousPage()}
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}>
+                  1
+                </PaginationButton>
               </PaginationItem>
+              {/* Middle, always active except on first page and last page */}
               <PaginationItem>
-                <PaginationLink href="#" isActive>
-                  2
-                </PaginationLink>
+                <PaginationButton
+                  isActive={
+                    table.getCanPreviousPage() && table.getCanNextPage()
+                  }
+                  disabled={
+                    table.getCanPreviousPage() && table.getCanNextPage()
+                  }
+                  onClick={() => table.setPageIndex(currentPage)}>
+                  {mid === 1 ? 2 : mid}
+                </PaginationButton>
               </PaginationItem>
+              {/* Last page */}
+              {pageCount >= 3 && (
+                <PaginationItem>
+                  <PaginationButton
+                    isActive={!table.getCanNextPage()}
+                    onClick={() => table.setPageIndex(pageCount)}
+                    disabled={!table.getCanNextPage()}>
+                    {pageCount}
+                  </PaginationButton>
+                </PaginationItem>
+              )}
               <PaginationItem>
-                <PaginationLink href="#">3</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext href="#" />
+                <PaginationNext
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                />
               </PaginationItem>
             </PaginationContent>
           </P>
         </div>
       </div>
-    </div>
-  );
+    );
 }
