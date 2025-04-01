@@ -23,8 +23,8 @@ export function Datatable({ data }: DatatableProps) {
   });
   return (
     <div className="flex size-full flex-col gap-4">
-      <Header />
-      <Frame tableData={table} />
+      <Header table={table} />
+      <Frame table={table} />
       <Pagination table={table} />
     </div>
   );

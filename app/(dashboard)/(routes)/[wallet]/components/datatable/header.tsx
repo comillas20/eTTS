@@ -12,8 +12,13 @@ import {
   ColumnsIcon,
   PlusIcon,
 } from "lucide-react";
+import { Record } from "../../actions";
+import { Table } from "@tanstack/react-table";
 
-export function Header() {
+type HeaderProps = {
+  table: Table<Record>;
+};
+export function Header({ table }: HeaderProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -33,7 +38,26 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuCheckboxItem>XD</DropdownMenuCheckboxItem>
+            {table
+              .getAllColumns()
+              .filter(
+                (column) =>
+                  typeof column.accessorFn !== "undefined" &&
+                  column.getCanHide(),
+              )
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }>
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
           </DropdownMenuContent>
         </DropdownMenu>
         <Button variant="outline">
