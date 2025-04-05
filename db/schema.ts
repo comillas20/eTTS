@@ -32,6 +32,7 @@ export const recordsTable = pgTable("records", {
   fee: numeric({ mode: "number", scale: 2 }).notNull(),
   date: timestamp().notNull(),
   type: transactionTypeEnum().notNull(),
+  claimedAt: timestamp(),
   eWalletId: integer(),
 });
 
