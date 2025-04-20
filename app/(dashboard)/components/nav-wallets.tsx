@@ -26,6 +26,8 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { getWallets } from "../actions";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function NavWallets() {
   const isMobile = useIsMobile();
@@ -43,6 +45,7 @@ export function NavWallets() {
   //     queryClient.invalidateQueries({ queryKey: ["wallets"] });
   //   },
   // });
+  const pathname = usePathname();
   return (
     <SidebarGroup>
       <SidebarGroupLabel>e-Wallets</SidebarGroupLabel>
@@ -52,11 +55,14 @@ export function NavWallets() {
       <SidebarMenu>
         {query.data?.map((wallet) => (
           <SidebarMenuItem key={wallet.id}>
-            <SidebarMenuButton asChild tooltip={wallet.name}>
-              <a href={wallet.url}>
+            <SidebarMenuButton
+              asChild
+              tooltip={wallet.name}
+              isActive={pathname.startsWith("/" + wallet.url)}>
+              <Link href={"/" + wallet.url}>
                 <WalletIcon />
                 <span>{wallet.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
