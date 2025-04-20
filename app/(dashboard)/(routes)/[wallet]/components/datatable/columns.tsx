@@ -3,10 +3,12 @@ import { Record } from "../../actions";
 
 export const columns: ColumnDef<Record>[] = [
   {
+    id: "Reference",
     accessorKey: "referenceNumber",
     header: "Reference",
   },
   {
+    id: "Mobile number",
     accessorKey: "cellNumber",
     header: "Mobile number",
   },
