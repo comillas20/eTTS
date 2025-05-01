@@ -60,7 +60,7 @@ export function Header({ table }: HeaderProps) {
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="outline">
+        <Button variant="accent">
           <PlusIcon />
           <span className="hidden lg:inline">Add Record</span>
         </Button>
