@@ -16,6 +16,21 @@ export const columns: ColumnDef<Record>[] = [
   {
     accessorKey: "type",
     header: "Type",
+    cell: ({ row }) => {
+      const { claimedAt, type } = row.original;
+
+      if (type === "cash-in") return <Badge>{type}</Badge>;
+      else {
+        return (
+          <div className="flex gap-1">
+            <Badge variant="outline">{type}</Badge>
+            <Badge variant={claimedAt ? "secondary" : "default"}>
+              {claimedAt ?? "Unclaimed"}
+            </Badge>
+          </div>
+        );
+      }
+    },
   },
   {
     accessorKey: "amount",
@@ -40,22 +55,5 @@ export const columns: ColumnDef<Record>[] = [
   {
     accessorKey: "date",
     header: "Date",
-  },
-  {
-    id: "status",
-    accessorKey: "claimedAt",
-    header: "Status",
-    cell: ({ row }) => {
-      const value = row.original.claimedAt;
-
-      return value ? (
-        <div className="flex gap-2">
-          <Badge variant="secondary">Claimed</Badge>
-          <span>{value}</span>
-        </div>
-      ) : (
-        <Badge>Unclaimed</Badge>
-      );
-    },
   },
 ];
