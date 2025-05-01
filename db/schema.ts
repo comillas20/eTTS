@@ -6,6 +6,7 @@ import {
   pgTable,
   timestamp,
   varchar,
+  text,
 } from "drizzle-orm/pg-core";
 
 export const eWalletsTable = pgTable("eWallets", {
@@ -33,6 +34,7 @@ export const recordsTable = pgTable("records", {
   date: timestamp().notNull(),
   type: transactionTypeEnum().notNull(),
   claimedAt: timestamp(),
+  notes: text(),
   eWalletId: integer(),
 });
 
