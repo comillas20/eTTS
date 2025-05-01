@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NavUtilities } from "./nav-utilities";
 import { NavWallets } from "./nav-wallets";
+import Link from "next/link";
 
 export function AppSidebar() {
   return (
@@ -22,7 +23,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <Link href="/">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <CommandIcon className="size-4" />
                 </div>
@@ -30,7 +31,7 @@ export function AppSidebar() {
                   <span className="truncate font-medium">Jinance</span>
                   <span className="truncate text-xs">Finance made easy</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
