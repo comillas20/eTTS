@@ -76,11 +76,11 @@ export function NavWallets() {
                 side={isMobile ? "bottom" : "right"}
                 align={isMobile ? "end" : "start"}>
                 <DropdownMenuItem>
-                  <PencilIcon className="text-muted-foreground" />
+                  <PencilIcon className="text-inherit" />
                   <span>{`Edit ${wallet.name}`}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">
-                  <Trash2Icon className="text-destructive" />
+                <DropdownMenuItem className="text-destructive focus:bg-destructive">
+                  <Trash2Icon className="text-inherit" />
                   <span>{`Delete ${wallet.name}`}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
