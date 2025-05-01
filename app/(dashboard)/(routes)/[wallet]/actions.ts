@@ -11,6 +11,7 @@ export async function getRecords(walletId: number) {
   const mappedRecords = records.map((record) => ({
     ...record,
     date: format(record.date, dateFormat),
+    claimedAt: record.claimedAt ? format(record.claimedAt, dateFormat) : null,
   }));
 
   return mappedRecords;
