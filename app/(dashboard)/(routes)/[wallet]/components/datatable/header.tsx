@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -6,19 +6,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Table } from "@tanstack/react-table";
 import {
   CalendarIcon,
   ChevronDownIcon,
   ColumnsIcon,
   PlusIcon,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Record } from "../../actions";
-import { Table } from "@tanstack/react-table";
 
 type HeaderProps = {
   table: Table<Record>;
 };
 export function Header({ table }: HeaderProps) {
+  const path = usePathname();
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -60,10 +63,13 @@ export function Header({ table }: HeaderProps) {
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="accent">
+
+        <Link
+          href={path + `/create`}
+          className={buttonVariants({ variant: "accent" })}>
           <PlusIcon />
           <span className="hidden lg:inline">Add Record</span>
-        </Button>
+        </Link>
       </div>
     </div>
   );
