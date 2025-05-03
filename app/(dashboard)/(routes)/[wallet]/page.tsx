@@ -1,10 +1,9 @@
 "use server";
 import db from "@/db/drizzle";
+import { notFound } from "next/navigation";
 import { getWallets } from "../../actions";
-import { Datatable } from "./components/datatable";
 import { getRecords } from "./actions";
-import { eWalletsTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { Datatable } from "./components/datatable";
 
 export async function generateStaticParams() {
   const wallets = await getWallets();
@@ -20,12 +19,14 @@ type PageProps = {
 
 export default async function Page({ params }: PageProps) {
   const { wallet } = await params;
-  const walletId = await db
-    .select({ id: eWalletsTable.id })
-    .from(eWalletsTable)
-    .where(eq(eWalletsTable.url, wallet))
-    .limit(1);
 
-  const data = await getRecords(walletId[0].id);
+  const eWallet = await db.query.eWalletsTable.findFirst({
+    columns: { id: true },
+    where: (wallets, { eq }) => eq(wallets.url, wallet),
+  });
+
+  if (!eWallet) return notFound();
+
+  const data = await getRecords(eWallet.id);
   return <Datatable data={data} />;
 }
