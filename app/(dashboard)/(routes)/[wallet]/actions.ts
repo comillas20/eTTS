@@ -12,6 +12,7 @@ export async function getRecords(walletId: number) {
     ...record,
     date: format(record.date, dateFormat),
     claimedAt: record.claimedAt ? format(record.claimedAt, dateFormat) : null,
+    createdAt: format(record.date, dateFormat),
   }));
 
   return mappedRecords;

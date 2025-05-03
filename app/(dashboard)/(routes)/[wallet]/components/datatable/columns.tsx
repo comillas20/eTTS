@@ -53,7 +53,13 @@ export const columns: ColumnDef<Record>[] = [
       }).format(row.original.fee),
   },
   {
+    id: "transaction date",
     accessorKey: "date",
-    header: "Date",
+    header: "Transaction date",
+  },
+  {
+    id: "recorded at",
+    accessorKey: "createdAt",
+    header: "Recorded at",
   },
 ];

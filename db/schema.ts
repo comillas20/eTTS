@@ -36,6 +36,7 @@ export const recordsTable = pgTable("records", {
   claimedAt: timestamp(),
   notes: text(),
   eWalletId: integer(),
+  createdAt: timestamp().notNull().defaultNow(),
 });
 
 export const recordsRelations = relations(recordsTable, ({ one }) => ({
