@@ -19,14 +19,12 @@ export const columns: ColumnDef<Record>[] = [
     cell: ({ row }) => {
       const { claimedAt, type } = row.original;
 
-      if (type === "cash-in") return <Badge>{type}</Badge>;
+      if (type === "cash-in") return <Badge variant="outline">{type}</Badge>;
       else {
         return (
           <div className="flex gap-1">
             <Badge variant="outline">{type}</Badge>
-            <Badge variant={claimedAt ? "secondary" : "default"}>
-              {claimedAt ?? "Unclaimed"}
-            </Badge>
+            <Badge>{claimedAt ?? "Unclaimed"}</Badge>
           </div>
         );
       }
