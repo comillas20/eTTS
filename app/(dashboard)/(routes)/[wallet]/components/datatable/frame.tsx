@@ -42,7 +42,7 @@ export function Frame({ table }: FrameProps) {
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className="data-[state=selected]:bg-primary data-[state=selected]:text-primary-foreground">
+                className="data-[state=selected]:bg-primary/50">
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id} className="capitalize">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
