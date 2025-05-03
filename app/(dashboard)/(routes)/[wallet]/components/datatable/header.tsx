@@ -66,7 +66,7 @@ export function Header({ table }: HeaderProps) {
 
         <Link
           href={path + `/create`}
-          className={buttonVariants({ variant: "accent" })}>
+          className={buttonVariants({ variant: "secondary" })}>
           <PlusIcon />
           <span className="hidden lg:inline">Add Record</span>
         </Link>
