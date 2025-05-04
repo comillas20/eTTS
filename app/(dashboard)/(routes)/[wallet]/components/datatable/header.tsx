@@ -12,18 +12,17 @@ import {
   ChevronDownIcon,
   ColumnsIcon,
   PlusIcon,
-  Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Record } from "../../actions";
+import { MultiDeleteButton } from "./multi-delete-button";
 
 type HeaderProps = {
   table: Table<Record>;
 };
 export function Header({ table }: HeaderProps) {
   const path = usePathname();
-  const selectedRows = table.getSelectedRowModel().rows;
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -33,11 +32,8 @@ export function Header({ table }: HeaderProps) {
         </Button>
       </div>
       <div className="flex items-center gap-2">
-        {selectedRows.length > 0 && (
-          <Button variant="destructive">
-            <Trash2Icon />
-            <span className="hidden lg:inline">{`Delete (${selectedRows.length})`}</span>
-          </Button>
+        {table.getSelectedRowModel().rows.length > 0 && (
+          <MultiDeleteButton table={table} />
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

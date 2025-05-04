@@ -3,7 +3,9 @@
 import db from "@/db/drizzle";
 import { recordsTable } from "@/db/schema";
 import { format } from "date-fns";
+import { eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 export async function getRecords(walletId: number) {
@@ -35,7 +37,17 @@ export async function createRecord(values: CreateRecord) {
   const parsedValues = createRecordsSchema.safeParse(values);
 
   if (parsedValues.error) return parsedValues.error;
-  db.insert(recordsTable).values(parsedValues.data);
+  await db.insert(recordsTable).values(parsedValues.data);
 
   return null;
+}
+
+export async function deleteRecord(recordIds: number[]) {
+  await Promise.all(
+    recordIds.map((recordId) =>
+      db.delete(recordsTable).where(eq(recordsTable.id, recordId)),
+    ),
+  );
+
+  revalidatePath("/[wallet]", "page");
 }

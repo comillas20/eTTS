@@ -5,11 +5,11 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Header } from "./datatable/header";
-import { Frame } from "./datatable/frame";
-import { Pagination } from "./datatable/pagination";
-import { columns } from "./datatable/columns";
 import { Record } from "../actions";
+import { columns } from "./datatable/columns";
+import { Frame } from "./datatable/frame";
+import { Header } from "./datatable/header";
+import { Pagination } from "./datatable/pagination";
 
 type DatatableProps = {
   data: Record[];
@@ -21,6 +21,7 @@ export function Datatable({ data }: DatatableProps) {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
+
   return (
     <div className="flex size-full flex-col gap-4">
       <Header table={table} />
