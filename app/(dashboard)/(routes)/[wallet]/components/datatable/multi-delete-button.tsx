@@ -1,7 +1,3 @@
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Trash2Icon } from "lucide-react";
-import { deleteRecord, Record } from "../../actions";
-import { Table } from "@tanstack/table-core";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +9,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Table } from "@tanstack/table-core";
+import { Trash2Icon } from "lucide-react";
+import { deleteRecord, Record } from "../../actions";
 
 type MultiDeleteButtonProps = {
   table: Table<Record>;
@@ -22,14 +23,13 @@ export function MultiDeleteButton({ table }: MultiDeleteButtonProps) {
   const selectedRows = table.getSelectedRowModel().rows;
   const recordIds = selectedRows.map((row) => row.original.id);
 
-  const onDelete = async () => {
-    await deleteRecord(recordIds);
-
-    // unselect all rows every time deletion succeed
-    table.setRowSelection({});
-
-    // toast here
-  };
+  const queryClient = useQueryClient();
+  const records = useMutation({
+    mutationFn: deleteRecord,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["records"] });
+    },
+  });
 
   if (selectedRows.length > 1)
     return (
@@ -51,7 +51,7 @@ export function MultiDeleteButton({ table }: MultiDeleteButtonProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={onDelete}
+              onClick={() => records.mutate(recordIds)}
               className={buttonVariants({ variant: "destructive" })}>
               Continue
             </AlertDialogAction>
@@ -61,7 +61,7 @@ export function MultiDeleteButton({ table }: MultiDeleteButtonProps) {
     );
   else
     return (
-      <Button variant="destructive" onClick={onDelete}>
+      <Button variant="destructive" onClick={() => records.mutate(recordIds)}>
         <Trash2Icon />
         <span className="hidden lg:inline">{`Delete (${recordIds.length})`}</span>
       </Button>

@@ -2,7 +2,6 @@
 import db from "@/db/drizzle";
 import { notFound } from "next/navigation";
 import { getWallets } from "../../actions";
-import { getRecords } from "./actions";
 import { Datatable } from "./components/datatable";
 
 export async function generateStaticParams() {
@@ -27,6 +26,5 @@ export default async function Page({ params }: PageProps) {
 
   if (!eWallet) return notFound();
 
-  const data = await getRecords(eWallet.id);
-  return <Datatable data={data} />;
+  return <Datatable walletId={eWallet.id} />;
 }

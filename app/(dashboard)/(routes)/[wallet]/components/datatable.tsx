@@ -1,22 +1,29 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Record } from "../actions";
+import { getRecords } from "../actions";
 import { columns } from "./datatable/columns";
 import { Frame } from "./datatable/frame";
 import { Header } from "./datatable/header";
 import { Pagination } from "./datatable/pagination";
 
 type DatatableProps = {
-  data: Record[];
+  walletId: number;
 };
-export function Datatable({ data }: DatatableProps) {
+
+export function Datatable({ walletId }: DatatableProps) {
+  const { data } = useQuery({
+    queryKey: ["records", walletId],
+    queryFn: async () => getRecords(walletId),
+  });
+
   const table = useReactTable({
-    data: data,
+    data: data || [],
     columns: columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
