@@ -1,3 +1,6 @@
+"use client";
+
+import { RangedDateFilter } from "@/app/(dashboard)/components/ranged-date-filter";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,14 +10,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table } from "@tanstack/react-table";
-import {
-  CalendarIcon,
-  ChevronDownIcon,
-  ColumnsIcon,
-  PlusIcon,
-} from "lucide-react";
+import { ChevronDownIcon, ColumnsIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { DateRange } from "react-day-picker";
 import { Record } from "../../actions";
 import { MultiDeleteButton } from "./multi-delete-button";
 
@@ -23,6 +22,8 @@ type HeaderProps = {
 };
 export function Header({ table }: HeaderProps) {
   const path = usePathname();
+
+  const transacDateCol = table.getColumn("transaction date");
 
   return (
     <div className="flex items-center justify-between">
@@ -38,9 +39,14 @@ export function Header({ table }: HeaderProps) {
             }))
           }
         />
-        <Button size="icon" variant="outline">
-          <CalendarIcon />
-        </Button>
+        {transacDateCol && (
+          <RangedDateFilter
+            dates={transacDateCol.getFilterValue() as DateRange}
+            onDateChange={(dates) => {
+              transacDateCol.setFilterValue(dates);
+            }}
+          />
+        )}
       </div>
       <div className="flex items-center gap-2">
         {table.getSelectedRowModel().rows.length > 0 && (

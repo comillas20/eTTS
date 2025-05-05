@@ -18,7 +18,7 @@ type DatatableProps = {
 };
 
 export function Datatable({ walletId }: DatatableProps) {
-  const { data } = useQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ["records", walletId],
     queryFn: async () => getRecords(walletId),
   });
@@ -31,11 +31,12 @@ export function Datatable({ walletId }: DatatableProps) {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
-  return (
-    <div className="flex size-full flex-col gap-4">
-      <Header table={table} />
-      <Frame table={table} />
-      <Pagination table={table} />
-    </div>
-  );
+  if (!isFetching)
+    return (
+      <div className="flex size-full flex-col gap-4">
+        <Header table={table} />
+        <Frame table={table} />
+        <Pagination table={table} />
+      </div>
+    );
 }

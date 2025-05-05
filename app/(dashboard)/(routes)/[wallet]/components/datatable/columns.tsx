@@ -2,6 +2,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Record } from "../../actions";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { format, isAfter, isBefore, isSameDay } from "date-fns";
+import { isDateRange } from "react-day-picker";
+
+const dateFormat = "MMM d, yyyy, h:mma";
 
 export const columns: ColumnDef<Record>[] = [
   {
@@ -47,7 +51,9 @@ export const columns: ColumnDef<Record>[] = [
         return (
           <div className="flex gap-1">
             <Badge variant="outline">{type}</Badge>
-            <Badge>{claimedAt ?? "Unclaimed"}</Badge>
+            <Badge>
+              {claimedAt ? format(claimedAt, dateFormat) : "Unclaimed"}
+            </Badge>
           </div>
         );
       }
@@ -77,10 +83,40 @@ export const columns: ColumnDef<Record>[] = [
     id: "transaction date",
     accessorKey: "date",
     header: "Transaction date",
+    cell: ({ row }) => format(row.original.date, dateFormat),
+    filterFn: (row, columnId, filterValue) => {
+      if (isDateRange(filterValue)) {
+        const { date } = row.original;
+
+        if (filterValue.from && isSameDay(filterValue.from, date)) return true;
+        if (filterValue.to && isSameDay(filterValue.to, date)) return true;
+        if (filterValue.from && filterValue.to)
+          return (
+            isAfter(date, filterValue.from) && isBefore(date, filterValue.to)
+          );
+      }
+
+      return true;
+    },
   },
   {
     id: "recorded at",
     accessorKey: "createdAt",
     header: "Recorded at",
+    cell: ({ row }) => format(row.original.createdAt, dateFormat),
+    filterFn: (row, columnId, filterValue) => {
+      if (isDateRange(filterValue)) {
+        const { date } = row.original;
+
+        if (filterValue.from && isSameDay(filterValue.from, date)) return true;
+        if (filterValue.to && isSameDay(filterValue.to, date)) return true;
+        if (filterValue.from && filterValue.to)
+          return (
+            isAfter(date, filterValue.from) && isBefore(date, filterValue.to)
+          );
+      }
+
+      return true;
+    },
   },
 ];
