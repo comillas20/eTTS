@@ -34,7 +34,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { createRecord } from "../../actions";
+import { createRecord } from "../actions";
 
 const formSchema = createInsertSchema(recordsTable, {
   referenceNumber: (schema) => schema.min(1, "Invalid ref no."),
