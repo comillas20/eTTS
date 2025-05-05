@@ -38,7 +38,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <NavWallets />
-        <NavUtilities utilities={[]} />
+        <NavUtilities />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

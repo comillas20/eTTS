@@ -9,27 +9,28 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
-export function NavUtilities({
-  utilities,
-}: {
-  utilities: {
-    name: string;
-    url: string;
-    icon: LucideIcon;
-  }[];
-}) {
+type Navigation = {
+  name: string;
+  url: string;
+  icon: LucideIcon;
+};
+
+const navigations: Navigation[] = [];
+
+export function NavUtilities() {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Utilities</SidebarGroupLabel>
       <SidebarMenu>
-        {utilities.map((utility) => (
-          <SidebarMenuItem key={utility.name}>
+        {navigations.map((navigation) => (
+          <SidebarMenuItem key={navigation.name}>
             <SidebarMenuButton asChild>
-              <a href={utility.url}>
-                <utility.icon />
-                <span>{utility.name}</span>
-              </a>
+              <Link href={navigation.url}>
+                <navigation.icon />
+                <span>{navigation.name}</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
