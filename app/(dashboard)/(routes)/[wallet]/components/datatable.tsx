@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -27,6 +28,7 @@ export function Datatable({ walletId }: DatatableProps) {
     columns: columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   });
 
   return (

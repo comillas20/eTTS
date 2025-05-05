@@ -23,10 +23,21 @@ type HeaderProps = {
 };
 export function Header({ table }: HeaderProps) {
   const path = usePathname();
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Input className="w-80" placeholder="Search" />
+        <Input
+          className="w-80"
+          placeholder="Search"
+          value={(table.getState().globalFilter as string) || ""}
+          onChange={({ target }) =>
+            table.setState((prev) => ({
+              ...prev,
+              globalFilter: target.value,
+            }))
+          }
+        />
         <Button size="icon" variant="outline">
           <CalendarIcon />
         </Button>
