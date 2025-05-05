@@ -22,7 +22,7 @@ export default async function Page({ params }: PageProps) {
       <div>
         <h3>Create record</h3>
         <p className="text-sm">
-          Create a new <strong className="text-accent">{name}</strong> record
+          Create a new <strong className="text-secondary">{name}</strong> record
         </p>
       </div>
       <RecordForm walletId={id} />
