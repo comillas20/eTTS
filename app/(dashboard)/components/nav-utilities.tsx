@@ -10,6 +10,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { FileTextIcon } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 type Navigation = {
   name: string;
@@ -17,16 +19,23 @@ type Navigation = {
   icon: LucideIcon;
 };
 
-const navigations: Navigation[] = [];
+const navigations: Navigation[] = [
+  {
+    name: "Overview",
+    url: "/",
+    icon: FileTextIcon,
+  },
+];
 
 export function NavUtilities() {
+  const pathname = usePathname();
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Utilities</SidebarGroupLabel>
       <SidebarMenu>
         {navigations.map((navigation) => (
           <SidebarMenuItem key={navigation.name}>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild isActive={pathname === navigation.url}>
               <Link href={navigation.url}>
                 <navigation.icon />
                 <span>{navigation.name}</span>
