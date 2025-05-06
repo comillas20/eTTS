@@ -1,15 +1,34 @@
+"use server";
+
 import { Trash2Icon } from "lucide-react";
 import { OverviewHeader } from "./components/overview-header";
 import { StatusCard } from "./components/status-card";
+import { getFilteredRecords } from "./actions";
 
-// type PageProps = {
-//   params: Promise<{
-//     searchParams: { [key: string]: string | undefined };
-//   }>;
-//   wallet: Promise<string>;
-// };
+type PageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-export default async function Page() {
+export default async function Page({ searchParams }: PageProps) {
+  const { year, month, wallet } = await searchParams;
+
+  const result = await getFilteredRecords({
+    walletId:
+      wallet && typeof wallet === "string" && !isNaN(parseInt(wallet, 10))
+        ? parseInt(wallet, 10)
+        : undefined,
+    month:
+      month && typeof month === "string" && !isNaN(parseInt(month, 10))
+        ? parseInt(month, 10)
+        : undefined,
+    year:
+      year && typeof year === "string" && !isNaN(parseInt(year, 10))
+        ? parseInt(year, 10)
+        : undefined,
+  });
+
+  console.log(result);
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <OverviewHeader />
