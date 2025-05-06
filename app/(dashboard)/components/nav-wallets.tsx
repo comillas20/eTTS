@@ -9,16 +9,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { getEWalletsQuery } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getWallets } from "../actions";
 
 export function NavWallets() {
-  const query = useQuery({
-    queryKey: ["wallets"],
-    queryFn: getWallets,
-  });
+  const query = useQuery(getEWalletsQuery());
 
   const pathname = usePathname();
   return (
