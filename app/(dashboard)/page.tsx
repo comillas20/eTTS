@@ -23,6 +23,7 @@ export default async function Page() {
           }).format(2000)}
           icon={Trash2Icon}
           description=""
+          variant="secondary"
         />
         <StatusCard
           title="Cash-in"
@@ -53,6 +54,7 @@ export default async function Page() {
           }).format(2000)}
           icon={Trash2Icon}
           description=""
+          variant="destructive"
         />
       </div>
     </main>
