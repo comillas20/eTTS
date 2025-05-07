@@ -1,9 +1,10 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { Record } from "../../actions";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ColumnDef } from "@tanstack/react-table";
 import { format, isAfter, isBefore, isSameDay } from "date-fns";
 import { isDateRange } from "react-day-picker";
+import { Record } from "../../actions";
+import { NoteEditor } from "./note-editor";
 
 const dateFormat = "MMM d, yyyy, h:mma";
 
@@ -83,7 +84,12 @@ export const columns: ColumnDef<Record>[] = [
     id: "transaction date",
     accessorKey: "date",
     header: "Transaction date",
-    cell: ({ row }) => format(row.original.date, dateFormat),
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        {format(row.original.date, dateFormat)}
+        {row.original.notes && <NoteEditor record={row.original} />}
+      </div>
+    ),
     filterFn: (row, columnId, filterValue) => {
       if (isDateRange(filterValue)) {
         const { date } = row.original;

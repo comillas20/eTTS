@@ -22,3 +22,15 @@ export async function deleteRecord(recordIds: number[]) {
 
   revalidatePath("/[wallet]", "page");
 }
+
+type UpdateNotes = {
+  id: number;
+  notes: string | null;
+};
+export async function updateNotes(record: UpdateNotes) {
+  const { id, notes } = record;
+  await db
+    .update(recordsTable)
+    .set({ notes: notes })
+    .where(eq(recordsTable.id, id));
+}
