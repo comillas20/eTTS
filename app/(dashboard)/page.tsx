@@ -1,81 +1,49 @@
 "use server";
 
-import { Trash2Icon } from "lucide-react";
-import { OverviewHeader } from "./components/overview-header";
-import { StatusCard } from "./components/status-card";
+import { Suspense } from "react";
 import { getFilteredRecords } from "./actions";
+import { OverviewCards } from "./components/overview-cards";
+import { OverviewHeader } from "./components/overview-header";
 
 type PageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export default async function Page({ searchParams }: PageProps) {
-  const { year, month, wallet } = await searchParams;
+  const params = await searchParams;
 
-  const result = await getFilteredRecords({
-    walletId:
-      wallet && typeof wallet === "string" && !isNaN(parseInt(wallet, 10))
-        ? parseInt(wallet, 10)
-        : undefined,
-    month:
-      month && typeof month === "string" && !isNaN(parseInt(month, 10))
-        ? parseInt(month, 10)
-        : undefined,
-    year:
-      year && typeof year === "string" && !isNaN(parseInt(year, 10))
-        ? parseInt(year, 10)
-        : undefined,
-  });
+  const walletId =
+    params.wallet &&
+    typeof params.wallet === "string" &&
+    !isNaN(parseInt(params.wallet, 10))
+      ? parseInt(params.wallet, 10)
+      : undefined;
+
+  const month =
+    params.month &&
+    typeof params.month === "string" &&
+    !isNaN(parseInt(params.month, 10))
+      ? parseInt(params.month, 10)
+      : undefined;
+
+  const year =
+    params.year &&
+    typeof params.year === "string" &&
+    !isNaN(parseInt(params.year, 10))
+      ? parseInt(params.year, 10)
+      : undefined;
+
+  const result = await getFilteredRecords({ walletId, month, year });
 
   console.log(result);
-
+  // TODO: Try getting the data here (years & wallets), pass it in the overview header and do magic there
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <OverviewHeader />
-      <div className="grid auto-rows-min gap-4 md:grid-cols-4">
-        <StatusCard
-          title="Profit"
-          content={Intl.NumberFormat("en-US", {
-            currency: "PHP",
-            style: "currency",
-            currencyDisplay: "symbol",
-          }).format(2000)}
-          icon={Trash2Icon}
-          description=""
-          variant="secondary"
-        />
-        <StatusCard
-          title="Cash-in"
-          content={Intl.NumberFormat("en-US", {
-            currency: "PHP",
-            style: "currency",
-            currencyDisplay: "symbol",
-          }).format(2000)}
-          icon={Trash2Icon}
-          description=""
-        />
-        <StatusCard
-          title="Cash-out"
-          content={Intl.NumberFormat("en-US", {
-            currency: "PHP",
-            style: "currency",
-            currencyDisplay: "symbol",
-          }).format(2000)}
-          icon={Trash2Icon}
-          description=""
-        />
-        <StatusCard
-          title="Losses"
-          content={Intl.NumberFormat("en-US", {
-            currency: "PHP",
-            style: "currency",
-            currencyDisplay: "symbol",
-          }).format(2000)}
-          icon={Trash2Icon}
-          description=""
-          variant="destructive"
-        />
-      </div>
+      <Suspense fallback={<div className="h-4 animate-pulse"></div>}>
+        <OverviewHeader walletId={walletId} month={month} year={year} />
+      </Suspense>
+
+      <OverviewCards data={result} />
     </main>
   );
 }
