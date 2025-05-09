@@ -53,11 +53,12 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
 
   // check external data
   const validWalletId = eWalletQuery.data?.find((e) => e.id === walletId);
-  const validMonth = month
-    ? month >= 0 && month < 12
-      ? month
-      : getMonth(now)
-    : getMonth(now);
+  const validMonth =
+    typeof month === "number"
+      ? month >= 0 && month < 12
+        ? month
+        : getMonth(now)
+      : getMonth(now);
   const validYear = years.find((y) => y === year) || getYear(now);
 
   // const { searchParams } = new URL(window.location.href);
