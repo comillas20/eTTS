@@ -1,12 +1,11 @@
 "use server";
 
-import { Suspense } from "react";
+import { recordsTable } from "@/db/schema";
+import { getMonth, getYear, isSameMonth } from "date-fns";
 import { getFilteredRecords } from "./actions";
 import { OverviewCards } from "./components/overview-cards";
-import { OverviewHeader } from "./components/overview-header";
 import { OverviewChartArea } from "./components/overview-chart-area";
-import { getMonth, getYear, isSameMonth } from "date-fns";
-import { recordsTable } from "@/db/schema";
+import { OverviewHeader } from "./components/overview-header";
 
 type PageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -43,13 +42,10 @@ export default async function Page({ searchParams }: PageProps) {
 
   const result = await getFilteredRecords({ walletId, month, year });
   const chartData = aggregateTransactions(result);
-  // TODO: Try getting the data here (years & wallets), pass it in the overview header and do magic there
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <Suspense fallback={<div className="h-4 animate-pulse"></div>}>
-        <OverviewHeader walletId={walletId} month={month} year={year} />
-      </Suspense>
-
+      <OverviewHeader walletId={walletId} month={month} year={year} />
       <OverviewCards
         data={result.filter((res) =>
           isSameMonth(res.date, new Date(year, month)),
@@ -84,11 +80,11 @@ function aggregateTransactions(
       };
     }
 
-    // Add the transaction amount to the appropriate category
+    // Increment the cashIn or cashOut count based on the record type
     if (record.type === "cash-in") {
-      dailyData[dateString].cashIn += record.amount;
+      dailyData[dateString].cashIn += 1;
     } else if (record.type === "cash-out") {
-      dailyData[dateString].cashOut += record.amount;
+      dailyData[dateString].cashOut += 1;
     }
   }
 
