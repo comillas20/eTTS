@@ -1,6 +1,5 @@
 "use server";
 
-import { recordsTable } from "@/db/schema";
 import { getMonth, getYear, isSameMonth } from "date-fns";
 import { getFilteredRecords } from "./actions";
 import { OverviewCards } from "./components/overview-cards";
@@ -41,7 +40,6 @@ export default async function Page({ searchParams }: PageProps) {
       : currentYear;
 
   const result = await getFilteredRecords({ walletId, month, year });
-  const chartData = aggregateTransactions(result);
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -51,43 +49,7 @@ export default async function Page({ searchParams }: PageProps) {
           isSameMonth(res.date, new Date(year, month)),
         )}
       />
-      <OverviewChartArea data={chartData} />
+      <OverviewChartArea data={result} />
     </main>
   );
-}
-
-type ChartData = {
-  date: string;
-  cashIn: number;
-  cashOut: number;
-};
-
-function aggregateTransactions(
-  records: (typeof recordsTable.$inferSelect)[],
-): ChartData[] {
-  const dailyData: Record<string, ChartData> = {};
-
-  for (const record of records) {
-    // Get the date string in YYYY-MM-DD format for grouping
-    const dateString = record.date.toISOString().split("T")[0];
-
-    if (!dailyData[dateString]) {
-      // If this date is not yet in our aggregated data, initialize it
-      dailyData[dateString] = {
-        date: dateString,
-        cashIn: 0,
-        cashOut: 0,
-      };
-    }
-
-    // Increment the cashIn or cashOut count based on the record type
-    if (record.type === "cash-in") {
-      dailyData[dateString].cashIn += 1;
-    } else if (record.type === "cash-out") {
-      dailyData[dateString].cashOut += 1;
-    }
-  }
-
-  // Convert the object into an array of values
-  return Object.values(dailyData);
 }

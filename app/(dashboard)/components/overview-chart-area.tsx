@@ -5,6 +5,7 @@ import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { recordsTable } from "@/db/schema";
 
 const chartConfig = {
   transactions: {
@@ -41,12 +43,9 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 type OverviewChartAreaProps = {
-  data: {
-    date: string;
-    cashIn: number;
-    cashOut: number;
-  }[];
+  data: (typeof recordsTable.$inferSelect)[];
 };
+
 export function OverviewChartArea({ data }: OverviewChartAreaProps) {
   const isMobile = useIsMobile();
   const [timeRange, setTimeRange] = React.useState("30d");
@@ -57,7 +56,8 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
     }
   }, [isMobile]);
 
-  const filteredData = data.filter((item) => {
+  const chartData = aggregateRecords(data);
+  const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);
     const referenceDate = new Date("2024-06-30");
     let daysToSubtract = 90;
@@ -73,7 +73,7 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
 
   return (
     <Card className="@container/card">
-      <CardHeader className="relative">
+      <CardHeader>
         <CardTitle>Transactions</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
@@ -81,7 +81,7 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
           </span>
           <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
-        <div className="absolute top-4 right-4">
+        <CardAction className="flex h-full items-center">
           <ToggleGroup
             type="single"
             value={timeRange}
@@ -116,7 +116,7 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </CardAction>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
@@ -197,4 +197,40 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
       </CardContent>
     </Card>
   );
+}
+
+type ChartData = {
+  date: string;
+  cashIn: number;
+  cashOut: number;
+};
+
+function aggregateRecords(
+  records: (typeof recordsTable.$inferSelect)[],
+): ChartData[] {
+  const dailyData: Record<string, ChartData> = {};
+
+  for (const record of records) {
+    // Get the date string in YYYY-MM-DD format for grouping
+    const dateString = record.date.toISOString().split("T")[0];
+
+    if (!dailyData[dateString]) {
+      // If this date is not yet in our aggregated data, initialize it
+      dailyData[dateString] = {
+        date: dateString,
+        cashIn: 0,
+        cashOut: 0,
+      };
+    }
+
+    // Increment the cashIn or cashOut count based on the record type
+    if (record.type === "cash-in") {
+      dailyData[dateString].cashIn += 1;
+    } else if (record.type === "cash-out") {
+      dailyData[dateString].cashOut += 1;
+    }
+  }
+
+  // Convert the object into an array of values
+  return Object.values(dailyData);
 }
