@@ -6,9 +6,6 @@ type OverviewCardsProps = {
   data: (typeof recordsTable.$inferSelect)[];
 };
 export function OverviewCards({ data }: OverviewCardsProps) {
-  const fees = data.map((record) => record.fee);
-  const profit = fees.reduce((acc, fee) => acc + fee, 0);
-
   const cashInData = data
     .filter((record) => record.type === "cash-in")
     .map((record) => record.fee);
@@ -20,18 +17,7 @@ export function OverviewCards({ data }: OverviewCardsProps) {
   const cashOut = cashOutData.reduce((acc, fee) => acc + fee, 0);
 
   return (
-    <div className="grid auto-rows-min gap-4 md:grid-cols-4">
-      <StatusCard
-        title="Profit"
-        content={Intl.NumberFormat("en-US", {
-          currency: "PHP",
-          style: "currency",
-          currencyDisplay: "symbol",
-        }).format(profit)}
-        icon={HandCoinsIcon}
-        description=""
-        variant="secondary"
-      />
+    <div className="grid auto-rows-min gap-4 md:grid-cols-3">
       <StatusCard
         title="Cash-in"
         content={Intl.NumberFormat("en-US", {
@@ -51,6 +37,7 @@ export function OverviewCards({ data }: OverviewCardsProps) {
         }).format(cashOut)}
         icon={HandCoinsIcon}
         description={`${cashOutData.length} transactions`}
+        variant="secondary"
       />
       <StatusCard
         title="Losses"

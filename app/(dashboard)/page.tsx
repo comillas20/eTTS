@@ -49,7 +49,11 @@ export default async function Page({ searchParams }: PageProps) {
           isSameMonth(res.date, new Date(year, month)),
         )}
       />
-      <OverviewChartArea data={result} />
+      <OverviewChartArea
+        data={result.filter((result) => result.date.getMonth() === month)}
+        // relies on the fact that we only getting the previous 3 months relative to @month
+        // so there is no need to account for year
+      />
     </main>
   );
 }
