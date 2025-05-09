@@ -29,28 +29,25 @@ export async function getYears() {
 
 type FilteredRecords = {
   walletId?: number;
-  month?: number;
-  year?: number;
+  month: number;
+  year: number;
 };
 
-export async function getFilteredRecords(filters?: FilteredRecords) {
+export async function getFilteredRecords(filters: FilteredRecords) {
   const now = new Date();
 
-  const currentMonth = getMonth(now) + 1; // JavaScript months are 0-indexed
+  const currentMonth = getMonth(now); // JavaScript months are 0-indexed
   const currentYear = getYear(now);
 
-  const walletId = filters ? filters.walletId : undefined;
-  const month = filters && filters.month ? filters.month : currentMonth;
-  const year = filters && filters.year ? filters.year : currentYear;
+  const { walletId, month, year } = filters;
 
-  const range = 30;
+  const range = 90;
 
   let targetDate: Date;
   if (month === currentMonth && year === currentYear) {
     targetDate = now;
   } else {
-    // Get the last day of the selected month
-    targetDate = new Date(year, month, 0); // Day 0 of the next month goes back to the last day of the current month
+    targetDate = new Date(year, month + 1, 0); // Day 0 of the next month goes back to the last day of the current month
   }
 
   return await db
