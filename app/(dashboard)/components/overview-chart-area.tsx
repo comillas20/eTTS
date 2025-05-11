@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import {
   Card,
@@ -25,8 +25,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { recordsTable } from "@/db/schema";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { compareAsc, max } from "date-fns";
 
 const chartConfig = {
   transactions: {
@@ -34,11 +35,9 @@ const chartConfig = {
   },
   cashIn: {
     label: "Cash-in",
-    color: "hsl(var(--chart-1))",
   },
   cashOut: {
     label: "Cash-out",
-    color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig;
 
@@ -57,19 +56,21 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
   }, [isMobile]);
 
   const chartData = aggregateRecords(data);
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date);
-    const referenceDate = new Date("2024-06-30");
-    let daysToSubtract = 90;
-    if (timeRange === "30d") {
-      daysToSubtract = 30;
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7;
-    }
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-    return date >= startDate;
-  });
+  const filteredData = chartData
+    .filter((item, _, arr) => {
+      const date = new Date(item.date);
+      const referenceDate = max(arr.map((a) => a.date));
+      let daysToSubtract = 90;
+      if (timeRange === "30d") {
+        daysToSubtract = 30;
+      } else if (timeRange === "7d") {
+        daysToSubtract = 7;
+      }
+      const startDate = new Date(referenceDate);
+      startDate.setDate(startDate.getDate() - daysToSubtract);
+      return date >= startDate;
+    })
+    .sort((a, b) => compareAsc(new Date(a.date), new Date(b.date)));
 
   return (
     <Card className="@container/card">
@@ -122,33 +123,7 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full">
-          <AreaChart data={filteredData}>
-            <defs>
-              <linearGradient id="fillCashIn" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--chart-1)"
-                  stopOpacity={1.0}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--chart-1)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillCashOut" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--chart-2)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--chart-2)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
+          <BarChart accessibilityLayer data={filteredData}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="date"
@@ -174,25 +149,13 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
                       day: "numeric",
                     });
                   }}
-                  indicator="dot"
+                  indicator="dashed"
                 />
               }
             />
-            <Area
-              dataKey="cashIn"
-              type="natural"
-              fill="url(#fillCashIn)"
-              stroke="var(--chart-1)"
-              stackId="a"
-            />
-            <Area
-              dataKey="cashOut"
-              type="natural"
-              fill="url(#fillCashOut)"
-              stroke="var(--chart-2)"
-              stackId="a"
-            />
-          </AreaChart>
+            <Bar dataKey="cashIn" fill="var(--chart-1)" radius={4} />
+            <Bar dataKey="cashOut" fill="var(--chart-2)" radius={4} />
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>
