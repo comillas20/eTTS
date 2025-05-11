@@ -1,6 +1,10 @@
 import { recordsTable } from "@/db/schema";
+import {
+  BanknoteArrowDownIcon,
+  BanknoteArrowUpIcon,
+  HandCoinsIcon,
+} from "lucide-react";
 import { StatusCard } from "./status-card";
-import { HandCoinsIcon, Trash2Icon } from "lucide-react";
 
 type OverviewCardsProps = {
   data: (typeof recordsTable.$inferSelect)[];
@@ -19,13 +23,24 @@ export function OverviewCards({ data }: OverviewCardsProps) {
   return (
     <div className="grid auto-rows-min gap-4 md:grid-cols-3">
       <StatusCard
+        title="Total"
+        content={Intl.NumberFormat("en-US", {
+          currency: "PHP",
+          style: "currency",
+          currencyDisplay: "symbol",
+        }).format(cashIn + cashOut)}
+        icon={HandCoinsIcon}
+        description={`${data.length} total transactions`}
+        variant="primary"
+      />
+      <StatusCard
         title="Cash-in"
         content={Intl.NumberFormat("en-US", {
           currency: "PHP",
           style: "currency",
           currencyDisplay: "symbol",
         }).format(cashIn)}
-        icon={HandCoinsIcon}
+        icon={BanknoteArrowUpIcon}
         description={`${cashInData.length} transactions`}
       />
       <StatusCard
@@ -35,20 +50,8 @@ export function OverviewCards({ data }: OverviewCardsProps) {
           style: "currency",
           currencyDisplay: "symbol",
         }).format(cashOut)}
-        icon={HandCoinsIcon}
+        icon={BanknoteArrowDownIcon}
         description={`${cashOutData.length} transactions`}
-        variant="secondary"
-      />
-      <StatusCard
-        title="Losses"
-        content={Intl.NumberFormat("en-US", {
-          currency: "PHP",
-          style: "currency",
-          currencyDisplay: "symbol",
-        }).format(2000)}
-        icon={Trash2Icon}
-        description=""
-        variant="destructive"
       />
     </div>
   );

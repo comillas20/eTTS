@@ -5,9 +5,10 @@ import { LucideIcon } from "lucide-react";
 const statusCardVariants = cva("", {
   variants: {
     variant: {
-      default: "text-primary border-primary",
-      destructive: "text-destructive border-destructive",
+      default: "",
+      primary: "text-primary border-primary",
       secondary: "text-secondary border-secondary",
+      destructive: "text-destructive border-destructive",
     },
   },
   defaultVariants: {
