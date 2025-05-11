@@ -24,7 +24,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { recordsTable, transactionTypeEnum } from "@/db/schema";
+import { eWalletsTable, recordsTable, transactionTypeEnum } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, set } from "date-fns";
@@ -33,6 +33,7 @@ import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { createRecord } from "../actions";
 
@@ -45,9 +46,9 @@ const formSchema = createInsertSchema(recordsTable, {
 type RecordForm = z.infer<typeof formSchema>;
 
 type RecordFormProps = {
-  walletId: number;
+  wallet: typeof eWalletsTable.$inferSelect;
 };
-export function RecordForm({ walletId }: RecordFormProps) {
+export function RecordForm({ wallet }: RecordFormProps) {
   const form = useForm<RecordForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,7 +59,7 @@ export function RecordForm({ walletId }: RecordFormProps) {
       type: "cash-in",
       date: new Date(),
       claimedAt: null,
-      eWalletId: walletId,
+      eWalletId: wallet.id,
       notes: "",
       createdAt: undefined,
     },
@@ -66,7 +67,10 @@ export function RecordForm({ walletId }: RecordFormProps) {
 
   const onSubmit = async (values: RecordForm) => {
     const result = await createRecord(values);
-    alert(result);
+    if (!result)
+      toast("A record has been created", {
+        action: { label: "View", onClick: () => router.push(`/${wallet.url}`) },
+      });
   };
 
   const router = useRouter();
@@ -88,6 +92,7 @@ export function RecordForm({ walletId }: RecordFormProps) {
     form.trigger();
   };
 
+  const type = form.watch("type");
   return (
     <div className="grid gap-y-16 lg:grid-cols-2 lg:gap-x-4">
       <Form {...form}>
@@ -274,7 +279,8 @@ export function RecordForm({ walletId }: RecordFormProps) {
                           className={cn(
                             "pl-3 text-left font-normal",
                             !field.value && "text-muted-foreground",
-                          )}>
+                          )}
+                          disabled={type === "cash-in"}>
                           {field.value ? (
                             format(field.value, "PPPp")
                           ) : (

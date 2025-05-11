@@ -17,6 +17,8 @@ export async function createRecord(values: CreateRecord) {
   const parsedValues = createRecordsSchema.safeParse(values);
 
   if (parsedValues.error) return parsedValues.error;
+
+  if (parsedValues.data.type === "cash-in") parsedValues.data.claimedAt = null;
   await db.insert(recordsTable).values(parsedValues.data);
 
   return null;
