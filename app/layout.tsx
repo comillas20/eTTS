@@ -9,7 +9,7 @@ const inter = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Jinance",
+  title: "eTTS",
   description: "Personal use, along with code practice",
 };
 
