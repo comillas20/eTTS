@@ -1,3 +1,5 @@
+"use server";
+
 import db from "@/db/drizzle";
 import { eWalletsTable } from "@/db/schema";
 import { createInsertSchema } from "drizzle-zod";
