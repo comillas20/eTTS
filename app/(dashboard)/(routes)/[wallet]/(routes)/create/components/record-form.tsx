@@ -29,13 +29,15 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, set } from "date-fns";
 import { createInsertSchema } from "drizzle-zod";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { createRecord } from "../actions";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { FileDownIcon } from "lucide-react";
 
 const formSchema = createInsertSchema(recordsTable, {
   referenceNumber: (schema) => schema.min(1, "Invalid ref no."),
@@ -65,12 +67,20 @@ export function RecordForm({ wallet }: RecordFormProps) {
     },
   });
 
-  const onSubmit = async (values: RecordForm) => {
-    const result = await createRecord(values);
-    if (!result)
+  const queryClient = useQueryClient();
+  const records = useMutation({
+    mutationFn: createRecord,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["records"] });
+
       toast("A record has been created", {
         action: { label: "View", onClick: () => router.push(`/${wallet.url}`) },
       });
+    },
+  });
+
+  const onSubmit = async (values: RecordForm) => {
+    records.mutate(values);
   };
 
   const router = useRouter();
@@ -355,11 +365,13 @@ export function RecordForm({ wallet }: RecordFormProps) {
               variant="outline"
               onClick={() => router.back()}
               disabled={form.formState.isSubmitting}>
+              <XIcon />
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={!form.formState.isDirty || form.formState.isSubmitting}>
+              <PlusIcon />
               Create
             </Button>
           </div>
@@ -382,6 +394,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
           <Button
             onClick={() => extractData(inboxMessage)}
             disabled={!inboxMessage}>
+            <FileDownIcon />
             Extract
           </Button>
         </div>
