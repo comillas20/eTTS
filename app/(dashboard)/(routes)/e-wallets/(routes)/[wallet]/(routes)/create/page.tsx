@@ -1,6 +1,15 @@
 import db from "@/db/drizzle";
 import { notFound } from "next/navigation";
 import { RecordForm } from "./components/record-form";
+import { getWallets } from "@/app/(dashboard)/actions";
+
+export async function generateStaticParams() {
+  const wallets = await getWallets();
+
+  return wallets.map((wallet) => ({
+    wallet: wallet.url,
+  }));
+}
 
 type PageProps = {
   params: Promise<{ wallet: string }>;
