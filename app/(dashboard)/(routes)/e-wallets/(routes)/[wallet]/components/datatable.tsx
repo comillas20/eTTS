@@ -29,6 +29,13 @@ export function Datatable({ walletId }: DatatableProps) {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    meta: {
+      headerRowProps() {
+        return {
+          className: "hover:bg-muted/10",
+        };
+      },
+    },
   });
 
   if (!isFetching)

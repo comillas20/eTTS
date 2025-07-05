@@ -15,7 +15,7 @@ export function DatatableFrame<TData>({ table }: FrameProps<TData>) {
   return (
     <div className="overflow-hidden rounded-lg border md:min-h-min">
       <Table>
-        <TableHeader className="bg-primary text-primary-foreground hover:bg-inherit">
+        <TableHeader className="bg-primary text-primary-foreground">
           {table.getHeaderGroups().map((headerGroup) => {
             const meta = table.options.meta?.headerRowProps;
             let props: React.ComponentProps<"tr"> | undefined;
