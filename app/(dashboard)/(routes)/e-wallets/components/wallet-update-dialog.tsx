@@ -33,8 +33,8 @@ import { z } from "zod";
 import { updateWallet } from "../actions";
 
 const formSchema = createUpdateSchema(eWalletsTable, {
-  name: (schema) => schema.min(1, "E-wallet name is required"),
-  cellNumber: (schema) => schema.min(11, "Invalid phone no.").or(z.literal("")),
+  name: (schema) => schema.trim().min(1, "E-wallet name is required"),
+  cellNumber: (schema) => schema.trim().min(11, "Invalid phone no."),
 });
 
 type UpdateWalletForm = z.infer<typeof formSchema>;

@@ -8,8 +8,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const updateWalletSchema = createUpdateSchema(eWalletsTable, {
-  name: (schema) => schema.min(1, "E-wallet name is required"),
-  cellNumber: (schema) => schema.min(11, "Invalid phone no.").or(z.literal("")),
+  name: (schema) => schema.trim().min(1, "E-wallet name is required"),
+  cellNumber: (schema) =>
+    schema.trim().min(11, "Invalid phone no.").or(z.literal("")),
   url: (schema) => schema.min(1, "E-wallet name is required"), // user does not need to know about url field
 });
 
