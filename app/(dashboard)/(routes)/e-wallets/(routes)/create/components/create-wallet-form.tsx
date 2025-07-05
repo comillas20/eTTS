@@ -22,23 +22,20 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { createWallet } from "../actions";
 
-const formSchema = createInsertSchema(eWalletsTable, {
+export const formSchema = createInsertSchema(eWalletsTable, {
   name: (schema) => schema.min(1, "E-wallet name is required"),
   cellNumber: (schema) => schema.min(11, "Invalid phone no.").or(z.literal("")),
 });
 
-type WalletForm = z.infer<typeof formSchema>;
+type CreateWalletForm = z.infer<typeof formSchema>;
 
-type WalletFormProps = {
-  wallet?: typeof eWalletsTable.$inferSelect;
-};
-export function WalletForm({ wallet }: WalletFormProps) {
-  const form = useForm<WalletForm>({
+export function CreateWalletForm() {
+  const form = useForm<CreateWalletForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: wallet ? wallet.name : "",
-      url: wallet ? wallet.url : "",
-      cellNumber: wallet ? wallet.cellNumber : "",
+      name: "",
+      url: "",
+      cellNumber: "",
     },
   });
 
@@ -53,12 +50,15 @@ export function WalletForm({ wallet }: WalletFormProps) {
       if (data instanceof Error) toast.error(data.message);
       else
         toast("Wallet has been created successfully", {
-          action: { label: "View", onClick: () => router.push(`/${data.url}`) },
+          action: {
+            label: "View",
+            onClick: () => router.push(`/e-wallets/${data.url}`),
+          },
         });
     },
   });
 
-  const onSubmit = async (values: WalletForm) => {
+  const onSubmit = async (values: CreateWalletForm) => {
     walletM.mutate(values);
   };
 

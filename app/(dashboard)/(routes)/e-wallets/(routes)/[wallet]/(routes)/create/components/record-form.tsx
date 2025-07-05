@@ -74,7 +74,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
       queryClient.invalidateQueries({ queryKey: ["records"] });
 
       toast("A record has been created", {
-        action: { label: "View", onClick: () => router.push(`/${wallet.url}`) },
+        action: { label: "View", onClick: () => router.push(`/e-wallets/${wallet.url}`) },
       });
     },
   });

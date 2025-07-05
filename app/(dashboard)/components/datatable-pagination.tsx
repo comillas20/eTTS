@@ -1,19 +1,18 @@
-import { Table } from "@tanstack/react-table";
 import {
   Pagination as P,
+  PaginationButton,
   PaginationContent,
   PaginationItem,
-  PaginationButton,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Record } from "../../actions";
+import { Table } from "@tanstack/react-table";
 
-type PaginationProps = {
-  table: Table<Record>;
+type PaginationProps<TData> = {
+  table: Table<TData>;
 };
 
-export function Pagination({ table }: PaginationProps) {
+export function Pagination<TData>({ table }: PaginationProps<TData>) {
   const currentPage = table.getState().pagination.pageIndex;
   const pageCount = table.getPageCount();
   const mid = Math.floor((currentPage + 1 + pageCount) / 2);

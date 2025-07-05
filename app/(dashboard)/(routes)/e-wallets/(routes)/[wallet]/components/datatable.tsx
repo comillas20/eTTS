@@ -1,5 +1,6 @@
 "use client";
 
+import { DatatableFrame } from "@/app/(dashboard)/components/datatable-frame";
 import { useQuery } from "@tanstack/react-query";
 import {
   getCoreRowModel,
@@ -9,9 +10,8 @@ import {
 } from "@tanstack/react-table";
 import { getRecords } from "../actions";
 import { columns } from "./datatable/columns";
-import { Frame } from "./datatable/frame";
 import { Header } from "./datatable/header";
-import { Pagination } from "./datatable/pagination";
+import { Pagination } from "@/app/(dashboard)/components/datatable-pagination";
 
 type DatatableProps = {
   walletId: number;
@@ -35,7 +35,7 @@ export function Datatable({ walletId }: DatatableProps) {
     return (
       <div className="flex size-full flex-col gap-4">
         <Header table={table} />
-        <Frame table={table} />
+        <DatatableFrame table={table} />
         <Pagination table={table} />
       </div>
     );

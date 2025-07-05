@@ -1,6 +1,6 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import { WalletIcon, type LucideIcon } from "lucide-react";
 
 import {
   SidebarGroup,
@@ -24,6 +24,11 @@ const navigations: Navigation[] = [
     name: "Overview",
     url: "/",
     icon: FileTextIcon,
+  },
+  {
+    name: "E-wallets",
+    url: "/e-wallets",
+    icon: WalletIcon,
   },
 ];
 

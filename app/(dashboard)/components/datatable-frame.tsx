@@ -7,25 +7,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { flexRender, Table as T } from "@tanstack/react-table";
-import { Record } from "../../actions";
 
-type FrameProps = {
-  table: T<Record>;
+type FrameProps<TData> = {
+  table: T<TData>;
 };
-export function Frame({ table }: FrameProps) {
+export function DatatableFrame<TData>({ table }: FrameProps<TData>) {
   return (
     <div className="overflow-hidden rounded-lg border md:min-h-min">
       <Table>
-        <TableHeader className="bg-primary">
+        <TableHeader className="bg-primary text-primary-foreground hover:bg-inherit">
           {table.getHeaderGroups().map((headerGroup) => {
             const meta = table.options.meta?.headerRowProps;
             let props: React.ComponentProps<"tr"> | undefined;
             if (meta) props = meta(headerGroup);
             return (
-              <TableRow
-                key={headerGroup.id}
-                className="text-primary-foreground hover:bg-inherit"
-                {...props}>
+              <TableRow key={headerGroup.id} {...props}>
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta?.columnHeaderProps;
                   let props: React.ComponentProps<"th"> | undefined;

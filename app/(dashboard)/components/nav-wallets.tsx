@@ -29,7 +29,7 @@ export function NavWallets() {
                 asChild
                 tooltip={wallet.name}
                 isActive={pathname.startsWith("/" + wallet.url)}>
-                <Link href={"/" + wallet.url}>
+                <Link href={"/e-wallets/" + wallet.url}>
                   <WalletIcon />
                   <span>{wallet.name}</span>
                 </Link>

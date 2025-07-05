@@ -6,7 +6,16 @@ import { getMonth, getYear, subDays } from "date-fns";
 import { and, eq, or, sql } from "drizzle-orm";
 
 export async function getWallets() {
-  return await db.select().from(eWalletsTable);
+  return await db.query.eWalletsTable.findMany({
+    with: {
+      records: {
+        columns: {
+          type: true,
+          claimedAt: true,
+        },
+      },
+    },
+  });
 }
 
 type WalletInsert = typeof eWalletsTable.$inferInsert;
