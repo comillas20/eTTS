@@ -12,6 +12,7 @@ import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { WalletUpdateDialog } from "./components/wallet-update-dialog";
 import { WalletPieChart } from "./components/wallet-pie-chart";
+import { WalletDeleteDialog } from "./components/wallet-delete-dialog";
 
 export default async function Page() {
   const wallets = await getWallets();
@@ -29,8 +30,9 @@ export default async function Page() {
             <CardHeader>
               <CardTitle>{wallet.name}</CardTitle>
               <CardDescription>{wallet.cellNumber}</CardDescription>
-              <CardAction>
+              <CardAction className="space-x-2">
                 <WalletUpdateDialog initialData={wallet} />
+                <WalletDeleteDialog id={wallet.id} />
               </CardAction>
             </CardHeader>
             <CardContent>
