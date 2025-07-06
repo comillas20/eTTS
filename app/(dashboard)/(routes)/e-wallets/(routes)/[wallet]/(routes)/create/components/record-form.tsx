@@ -27,17 +27,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { eWalletsTable, recordsTable, transactionTypeEnum } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
 import { createInsertSchema } from "drizzle-zod";
-import { CalendarIcon, PlusIcon, XIcon } from "lucide-react";
+import { CalendarIcon, FileDownIcon, PlusIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { createRecord } from "../actions";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileDownIcon } from "lucide-react";
 
 const formSchema = createInsertSchema(recordsTable, {
   referenceNumber: (schema) => schema.min(1, "Invalid ref no."),
@@ -74,7 +73,10 @@ export function RecordForm({ wallet }: RecordFormProps) {
       queryClient.invalidateQueries({ queryKey: ["records"] });
 
       toast("A record has been created", {
-        action: { label: "View", onClick: () => router.push(`/e-wallets/${wallet.url}`) },
+        action: {
+          label: "View",
+          onClick: () => router.push(`/e-wallets/${wallet.url}`),
+        },
       });
     },
   });
@@ -103,6 +105,22 @@ export function RecordForm({ wallet }: RecordFormProps) {
   };
 
   const type = form.watch("type");
+  const amount = form.watch("amount");
+
+  useEffect(() => {
+    const T = setTimeout(() => {
+      if (!form.getFieldState("fee").isDirty && amount > 0) {
+        form.setValue("fee", feeCalculator(amount, type), {
+          shouldValidate: true,
+        });
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(T);
+    };
+  }, [form, type, amount]);
+
   return (
     <div className="grid gap-y-16 lg:grid-cols-2 lg:gap-x-4">
       <Form {...form}>
@@ -426,4 +444,18 @@ export function getDataFromText(text: string): GetDataFromTextReturnType {
     cellNumber: cellNumber ? cellNumber[0] : undefined,
     referenceNumber: referenceNumber ? referenceNumber[0] : undefined,
   };
+}
+
+function feeCalculator(amount: number, type: "cash-in" | "cash-out") {
+  const rate = 0.02;
+  const ladder = 500;
+
+  if (type === "cash-out") {
+    const M = Math.floor(amount / ladder) * ladder;
+    const initialFee = M * rate;
+    const diff = amount - M;
+    const belowInitialFee = initialFee >= diff;
+
+    return belowInitialFee ? initialFee : initialFee + ladder * rate;
+  } else return Math.ceil(amount / ladder) * ladder * rate;
 }
