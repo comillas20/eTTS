@@ -23,3 +23,19 @@ export async function createRecord(values: CreateRecord) {
 
   return null;
 }
+
+const createRecordsSchemaArray = createRecordsSchema.array();
+type CreateRecords = z.infer<typeof createRecordsSchemaArray>;
+export async function createRecords(data: CreateRecords) {
+  const parsedValues = createRecordsSchemaArray.safeParse(data);
+
+  if (parsedValues.error) return parsedValues.error;
+
+  parsedValues.data.forEach((record) => {
+    if (record.type === "cash-in") record.claimedAt = null;
+  });
+
+  await db.insert(recordsTable).values(parsedValues.data);
+
+  return null;
+}
