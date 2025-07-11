@@ -35,7 +35,11 @@ export const recordsTable = pgTable("records", {
   type: transactionTypeEnum().notNull(),
   claimedAt: timestamp(),
   notes: text(),
-  eWalletId: integer(),
+  eWalletId: integer()
+    .notNull()
+    .references(() => eWalletsTable.id, {
+      onDelete: "cascade",
+    }),
   createdAt: timestamp().notNull().defaultNow(),
 });
 
