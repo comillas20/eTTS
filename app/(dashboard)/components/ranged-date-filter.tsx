@@ -22,7 +22,7 @@ export function RangedDateFilter({
       <PopoverTrigger asChild>
         <Button variant="outline">
           {dates ? <CalendarCheckIcon /> : <CalendarIcon />}
-          <span className="hidden lg:inline">Transaction date filter</span>
+          <span className="hidden lg:inline">Transaction dates</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-fit flex-col p-0">
