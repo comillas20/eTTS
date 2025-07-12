@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 export async function getRecords(walletId: number) {
   return await db.query.recordsTable.findMany({
     where: (fields, { eq }) => eq(fields.eWalletId, walletId),
+    orderBy: (fields, { desc }) => [desc(fields.date)],
   });
 }
 
