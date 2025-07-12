@@ -19,21 +19,26 @@ const dataSchema = createInsertSchema(recordsTable, {
 }).array();
 
 export function getDataFromJSON(data: string, walletId: number) {
-  const parsedJSON = JSON.parse(data);
-  const validated = dataSchema.safeParse(parsedJSON);
+  try {
+    const parsedJSON = JSON.parse(data);
+    const validated = dataSchema.safeParse(parsedJSON);
 
-  if (validated.error) {
-    return [];
+    if (validated.error) {
+      return null;
+    }
+
+    const transformed = validated.data.map((record) => ({
+      ...record,
+      date: new Date(record.date),
+      claimedAt: record.claimedAt ? new Date(record.claimedAt) : null,
+      eWalletId: walletId,
+    }));
+
+    return transformed;
+  } catch (error) {
+    console.error("Error parsing JSON:", error);
+    return null;
   }
-
-  const transformed = validated.data.map((record) => ({
-    ...record,
-    date: new Date(record.date),
-    claimedAt: record.claimedAt ? new Date(record.claimedAt) : null,
-    eWalletId: walletId,
-  }));
-
-  return transformed;
 }
 
 type JSONData = ReturnType<typeof getDataFromJSON>;
@@ -51,7 +56,7 @@ export function RecordFromJson({ wallet }: RecordFromJsonProps) {
       if (!value) return;
 
       const parsedData = getDataFromJSON(value, wallet.id);
-      if (!parsedData) {
+      if (!parsedData || parsedData.length === 0) {
         setMessage("Invalid JSON data");
         return;
       }
@@ -97,8 +102,10 @@ export function RecordFromJson({ wallet }: RecordFromJsonProps) {
         </Button>
         <Button
           type="submit"
-          onClick={() => records.mutate(data)}
-          disabled={!data.length || records.isPending}>
+          onClick={() => {
+            if (data) records.mutate(data);
+          }}
+          disabled={!data || !data.length || records.isPending}>
           <PlusIcon />
           Create
         </Button>
