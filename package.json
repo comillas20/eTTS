@@ -1,5 +1,5 @@
 {
-  "name": "eTTS",
+  "name": "etts",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:seed": "tsx ./db/seeder.ts",
-    "db:push": "bunx bun drizzle-kit push"
+    "db:push": "npx drizzle-kit push"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
