@@ -153,6 +153,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
                     type="number"
                     placeholder="If ref no. is not available"
                     {...field}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />

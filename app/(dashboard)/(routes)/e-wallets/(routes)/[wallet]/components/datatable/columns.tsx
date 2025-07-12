@@ -40,6 +40,8 @@ export const columns: ColumnDef<Record>[] = [
     id: "mobile number",
     accessorKey: "cellNumber",
     header: "Mobile number",
+    cell: ({ row }) =>
+      row.original.cellNumber ?? <Badge variant="outline">N/A</Badge>,
   },
   {
     accessorKey: "type",
