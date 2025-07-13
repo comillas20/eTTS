@@ -1,36 +1,14 @@
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import { format, isAfter, isBefore, isSameDay } from "date-fns";
+import { NotebookPenIcon } from "lucide-react";
 import { isDateRange } from "react-day-picker";
 import { Record } from "../../actions";
-import { NoteEditor } from "./note-editor";
+import { RowActions } from "./row-actions";
 
 const dateFormat = "MMM d, yyyy, h:mma";
 
 export const columns: ColumnDef<Record>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     id: "reference",
     accessorKey: "referenceNumber",
@@ -89,7 +67,7 @@ export const columns: ColumnDef<Record>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         {format(row.original.date, dateFormat)}
-        {row.original.notes && <NoteEditor record={row.original} />}
+        {row.original.notes && <NotebookPenIcon className="size-4" />}
       </div>
     ),
     filterFn: (row, columnId, filterValue) => {
@@ -108,23 +86,9 @@ export const columns: ColumnDef<Record>[] = [
     },
   },
   {
-    id: "recorded at",
-    accessorKey: "createdAt",
-    header: "Recorded at",
-    cell: ({ row }) => format(row.original.createdAt, dateFormat),
-    filterFn: (row, columnId, filterValue) => {
-      if (isDateRange(filterValue)) {
-        const { date } = row.original;
-
-        if (filterValue.from && isSameDay(filterValue.from, date)) return true;
-        if (filterValue.to && isSameDay(filterValue.to, date)) return true;
-        if (filterValue.from && filterValue.to)
-          return (
-            isAfter(date, filterValue.from) && isBefore(date, filterValue.to)
-          );
-      }
-
-      return true;
-    },
+    id: "actions",
+    cell: ({ row, table }) => (
+      <RowActions record={row.original} table={table} />
+    ),
   },
 ];

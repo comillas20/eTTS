@@ -20,11 +20,10 @@ export default async function Page({ params }: PageProps) {
   const { wallet } = await params;
 
   const eWallet = await db.query.eWalletsTable.findFirst({
-    columns: { id: true },
     where: (wallets, { eq }) => eq(wallets.url, wallet),
   });
 
   if (!eWallet) return notFound();
 
-  return <Datatable walletId={eWallet.id} />;
+  return <Datatable wallet={eWallet} />;
 }

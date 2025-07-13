@@ -1,6 +1,8 @@
 "use client";
 
 import { DatatableFrame } from "@/app/(dashboard)/components/datatable-frame";
+import { Pagination } from "@/app/(dashboard)/components/datatable-pagination";
+import { eWalletsTable } from "@/db/schema";
 import { useQuery } from "@tanstack/react-query";
 import {
   getCoreRowModel,
@@ -11,17 +13,18 @@ import {
 import { getRecords } from "../actions";
 import { columns } from "./datatable/columns";
 import { Header } from "./datatable/header";
-import { Pagination } from "@/app/(dashboard)/components/datatable-pagination";
 
 type DatatableProps = {
-  walletId: number;
+  wallet: typeof eWalletsTable.$inferSelect;
 };
 
-export function Datatable({ walletId }: DatatableProps) {
+export function Datatable({ wallet }: DatatableProps) {
   const { data, isFetching } = useQuery({
-    queryKey: ["records", walletId],
-    queryFn: async () => getRecords(walletId),
+    queryKey: ["records", wallet.id],
+    queryFn: async () => getRecords(wallet.id),
   });
+
+  // const router = useRouter();
 
   const table = useReactTable({
     data: data || [],
@@ -35,6 +38,7 @@ export function Datatable({ walletId }: DatatableProps) {
           className: "hover:bg-muted/10",
         };
       },
+      wallet: wallet,
     },
   });
 

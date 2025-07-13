@@ -14,12 +14,8 @@ export async function getRecords(walletId: number) {
 
 export type Record = Awaited<ReturnType<typeof getRecords>>[number];
 
-export async function deleteRecord(recordIds: number[]) {
-  await Promise.all(
-    recordIds.map((recordId) =>
-      db.delete(recordsTable).where(eq(recordsTable.id, recordId)),
-    ),
-  );
+export async function deleteRecord(recordId: number) {
+  await db.delete(recordsTable).where(eq(recordsTable.id, recordId));
 
   revalidatePath("/[wallet]", "page");
 }
