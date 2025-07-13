@@ -10,7 +10,7 @@ import {
 import { getEWalletsQuery } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
 import { getMonth, getYear } from "date-fns";
-import { getYears } from "../actions";
+import { getMonthYears } from "../actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
@@ -38,30 +38,35 @@ type OverviewHeaderProps = {
 export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
   const now = new Date();
 
-  const yearsQuery = useQuery({
-    queryKey: ["years"],
-    queryFn: getYears,
-    placeholderData: [getYear(now)],
+  const monthYearsQuery = useQuery({
+    queryKey: ["month-years"],
+    queryFn: getMonthYears,
   });
 
   const years =
-    yearsQuery.data && yearsQuery.data.length > 0
-      ? yearsQuery.data
+    monthYearsQuery.data && monthYearsQuery.data.length > 0
+      ? Array.from(new Set(monthYearsQuery.data.map((y) => y.year)))
       : [getYear(now)];
 
   const eWalletQuery = useQuery(getEWalletsQuery());
 
   // check external data
   const validWalletId = eWalletQuery.data?.find((e) => e.id === walletId);
+
+  const validYear = years.find((y) => y === year) || years[0];
+
+  // available months based on selected year (validYear)
+  const availableMonths = monthYearsQuery.data
+    ?.filter((y) => y.year === validYear)
+    .map((y) => y.month) || [getMonth(now)];
+
   const validMonth =
     typeof month === "number"
-      ? month >= 0 && month < 12
+      ? availableMonths.includes(month)
         ? month
-        : getMonth(now)
-      : getMonth(now);
-  const validYear = years.find((y) => y === year) || getYear(now);
+        : availableMonths[0]
+      : availableMonths[0];
 
-  // const { searchParams } = new URL(window.location.href);
   const searchParams = useSearchParams();
 
   const router = useRouter();
@@ -88,10 +93,15 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
   const onYearChange = useCallback(
     (value: string) => {
       const params = new URLSearchParams(searchParams.toString());
+      const firstAvailableMonth = monthYearsQuery.data
+        ? monthYearsQuery.data.find((y) => y.year === parseInt(value, 10))
+            ?.month || getMonth(new Date())
+        : getMonth(new Date());
       params.set("year", value);
+      params.set("month", String(firstAvailableMonth));
       router.push(`?${params.toString()}`);
     },
-    [searchParams, router],
+    [searchParams, router, monthYearsQuery.data],
   );
 
   return (
@@ -118,9 +128,9 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {months.map((month, index) => (
-              <SelectItem key={month} value={String(index)}>
-                {month}
+            {availableMonths.map((monthIndex) => (
+              <SelectItem key={monthIndex} value={String(monthIndex)}>
+                {months[monthIndex]}
               </SelectItem>
             ))}
           </SelectContent>

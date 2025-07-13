@@ -25,15 +25,33 @@ export async function createWallet(values: WalletInsert) {
   return wallet.rowCount;
 }
 
-export async function getYears() {
-  const years = await db
+export async function getMonthYears() {
+  // const years = await db
+  //   .select({
+  //     year: sql<number>`CAST(EXTRACT(YEAR FROM ${recordsTable.date}) AS INTEGER)`,
+  //   })
+  //   .from(recordsTable)
+  //   .groupBy(sql`EXTRACT(YEAR FROM ${recordsTable.date})`);
+
+  const monthYears = await db
     .select({
       year: sql<number>`CAST(EXTRACT(YEAR FROM ${recordsTable.date}) AS INTEGER)`,
+      month: sql<number>`CAST(EXTRACT(MONTH FROM ${recordsTable.date}) AS INTEGER)`,
     })
     .from(recordsTable)
-    .groupBy(sql`EXTRACT(YEAR FROM ${recordsTable.date})`);
+    .groupBy(
+      sql`EXTRACT(YEAR FROM ${recordsTable.date})`,
+      sql`EXTRACT(MONTH FROM ${recordsTable.date})`,
+    )
+    .orderBy(
+      sql`EXTRACT(YEAR FROM ${recordsTable.date}) DESC`,
+      sql`EXTRACT(MONTH FROM ${recordsTable.date}) DESC`,
+    );
 
-  return years.map((row) => row.year);
+  return monthYears.map((row) => ({
+    year: row.year,
+    month: row.month - 1, // Convert to 0-indexed month
+  }));
 }
 
 type FilteredRecords = {
