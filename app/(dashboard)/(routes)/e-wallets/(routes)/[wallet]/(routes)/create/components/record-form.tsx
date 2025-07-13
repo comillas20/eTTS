@@ -42,7 +42,7 @@ const formSchema = createInsertSchema(recordsTable, {
   referenceNumber: (schema) => schema.min(1, "Invalid ref no."),
   cellNumber: (schema) => schema.min(11, "Invalid phone no.").or(z.literal("")),
   amount: (schema) => schema.min(1, "Amount cannot be below 1"),
-  fee: (schema) => schema.min(1, "Fee cannot be below 1"),
+  fee: (schema) => schema.min(0, "Fee cannot be negative"),
 });
 type RecordForm = z.infer<typeof formSchema>;
 
