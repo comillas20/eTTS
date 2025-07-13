@@ -14,6 +14,7 @@ import { createRecords } from "../actions";
 
 const dataSchema = createInsertSchema(recordsTable, {
   date: z.string().datetime({ local: true }),
+  cellNumber: (schema) => schema.min(11, "Invalid phone no.").nullable(),
   claimedAt: z.string().datetime({ local: true }).nullable(),
   eWalletId: z.number().optional(),
 }).array();
