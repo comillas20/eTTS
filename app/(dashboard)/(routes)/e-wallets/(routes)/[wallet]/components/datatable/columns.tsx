@@ -1,7 +1,16 @@
+import { DatatableColumnHeaderFilter } from "@/app/(dashboard)/components/datatable-column-header-filter";
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { format, isAfter, isBefore, isSameDay } from "date-fns";
-import { NotebookPenIcon } from "lucide-react";
+import {
+  BanknoteArrowDownIcon,
+  BanknoteArrowUpIcon,
+  BracketsIcon,
+  NotebookPenIcon,
+  PhoneIcon,
+  PhoneMissedIcon,
+  SlidersHorizontalIcon,
+} from "lucide-react";
 import { isDateRange } from "react-day-picker";
 import { Record } from "../../actions";
 import { RowActions } from "./row-actions";
@@ -17,13 +26,83 @@ export const columns: ColumnDef<Record>[] = [
   {
     id: "mobile number",
     accessorKey: "cellNumber",
-    header: "Mobile number",
+    header: ({ column }) => (
+      <DatatableColumnHeaderFilter
+        options={[
+          {
+            label: "All",
+            icon: BracketsIcon,
+            isSelected: !column.getIsFiltered(),
+            onSelect() {
+              column.setFilterValue(undefined);
+            },
+          },
+          {
+            label: "With mobile number",
+            icon: PhoneIcon,
+            isSelected:
+              typeof column.getFilterValue() === "boolean" &&
+              !!column.getFilterValue(),
+            onSelect() {
+              column.setFilterValue(true);
+            },
+          },
+          {
+            label: "Without mobile number",
+            icon: PhoneMissedIcon,
+            isSelected:
+              typeof column.getFilterValue() === "boolean" &&
+              !column.getFilterValue(),
+            onSelect() {
+              column.setFilterValue(false);
+            },
+          },
+        ]}
+        header={{ title: "Mobile number", icon: SlidersHorizontalIcon }}
+      />
+    ),
     cell: ({ row }) =>
       row.original.cellNumber ?? <Badge variant="outline">N/A</Badge>,
+    filterFn: (row, columnId, filterValue) => {
+      if (typeof filterValue === "boolean") {
+        return filterValue
+          ? row.original.cellNumber !== null
+          : row.original.cellNumber === null;
+      }
+
+      return true;
+    },
   },
   {
     accessorKey: "type",
-    header: "Type",
+    header: ({ column }) => {
+      const facets = Array.from(
+        column.getFacetedUniqueValues().keys(),
+      ) as string[];
+
+      return (
+        <DatatableColumnHeaderFilter
+          header={{ title: "Type", icon: SlidersHorizontalIcon }}
+          options={[
+            {
+              label: "All",
+              icon: BracketsIcon,
+              isSelected: column.getFilterValue() === undefined,
+              onSelect: () => column.setFilterValue(undefined),
+            },
+            ...facets.map((type) => ({
+              label: type.charAt(0).toUpperCase() + type.slice(1),
+              icon:
+                type === "cash-in"
+                  ? BanknoteArrowUpIcon
+                  : BanknoteArrowDownIcon,
+              isSelected: column.getFilterValue() === type,
+              onSelect: () => column.setFilterValue(type),
+            })),
+          ]}
+        />
+      );
+    },
     cell: ({ row }) => {
       const { claimedAt, type } = row.original;
 

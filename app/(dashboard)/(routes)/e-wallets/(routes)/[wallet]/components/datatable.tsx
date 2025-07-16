@@ -6,6 +6,8 @@ import { eWalletsTable } from "@/db/schema";
 import { useQuery } from "@tanstack/react-query";
 import {
   getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
@@ -32,6 +34,8 @@ export function Datatable({ wallet }: DatatableProps) {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     meta: {
       headerRowProps() {
         return {
