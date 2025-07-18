@@ -15,7 +15,7 @@ type PaginationProps<TData> = {
 export function Pagination<TData>({ table }: PaginationProps<TData>) {
   const currentPage = table.getState().pagination.pageIndex;
   const pageCount = table.getPageCount();
-  const mid = Math.floor((currentPage + 1 + pageCount) / 2);
+  const mid = Math.ceil((currentPage + 1 + pageCount) / 2);
   if (pageCount >= 2)
     return (
       <div className="flex items-center justify-end px-2">
@@ -40,24 +40,22 @@ export function Pagination<TData>({ table }: PaginationProps<TData>) {
                 </PaginationButton>
               </PaginationItem>
               {/* Middle, always active except on first page and last page */}
-              <PaginationItem>
-                <PaginationButton
-                  isActive={
-                    table.getCanPreviousPage() && table.getCanNextPage()
-                  }
-                  disabled={
-                    table.getCanPreviousPage() && table.getCanNextPage()
-                  }
-                  onClick={() => table.setPageIndex(currentPage)}>
-                  {mid === 1 ? 2 : mid}
-                </PaginationButton>
-              </PaginationItem>
+              {mid !== 1 && mid !== pageCount && (
+                <PaginationItem>
+                  <PaginationButton
+                    isActive={true}
+                    disabled={mid === 1 || mid === pageCount}
+                    onClick={() => table.setPageIndex(mid - 1)}>
+                    {mid}
+                  </PaginationButton>
+                </PaginationItem>
+              )}
               {/* Last page */}
               {pageCount >= 3 && (
                 <PaginationItem>
                   <PaginationButton
                     isActive={!table.getCanNextPage()}
-                    onClick={() => table.setPageIndex(pageCount)}
+                    onClick={() => table.setPageIndex(pageCount - 1)}
                     disabled={!table.getCanNextPage()}>
                     {pageCount}
                   </PaginationButton>
