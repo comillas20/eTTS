@@ -1,5 +1,3 @@
-"use server";
-
 import { getMonth, getYear, isSameMonth } from "date-fns";
 import { getFilteredRecords } from "./actions";
 import { OverviewCards } from "./components/overview-cards";

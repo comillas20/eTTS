@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMonth, getYear } from "date-fns";
 import { getMonthYears } from "../actions";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 const months = [
   "Jaunary",
@@ -103,6 +103,11 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
     },
     [searchParams, router, monthYearsQuery.data],
   );
+
+  // resolving the possible discrepancies with search params and the latest data
+  useEffect(() => {
+    onYearChange(String(validYear));
+  }, [onYearChange, validYear]);
 
   return (
     <div className="flex justify-between gap-4">
