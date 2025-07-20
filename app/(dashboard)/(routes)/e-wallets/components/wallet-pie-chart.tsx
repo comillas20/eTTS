@@ -27,6 +27,7 @@ const chartConfig = {
 type PieChartData = {
   type: string;
   transactions: number;
+  fill: string;
 };
 
 type WalletPieChartProps = {

@@ -38,8 +38,16 @@ export default async function Page() {
             <CardContent>
               <WalletPieChart
                 data={[
-                  { type: "cashIn", transactions: cashIn.length },
-                  { type: "cashOut", transactions: cashOut.length },
+                  {
+                    type: "cashIn",
+                    transactions: cashIn.length,
+                    fill: "var(--chart-1)",
+                  },
+                  {
+                    type: "cashOut",
+                    transactions: cashOut.length,
+                    fill: "var(--chart-2)",
+                  },
                 ]}
               />
             </CardContent>
