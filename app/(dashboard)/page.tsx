@@ -1,4 +1,11 @@
-import { getMonth, getYear, isSameMonth } from "date-fns";
+import {
+  getMonth,
+  getYear,
+  isAfter,
+  isSameMonth,
+  lastDayOfMonth,
+  subDays,
+} from "date-fns";
 import { getFilteredRecords } from "./actions";
 import { OverviewCards } from "./components/overview-cards";
 import { OverviewChartArea } from "./components/overview-chart-area";
@@ -48,9 +55,13 @@ export default async function Page({ searchParams }: PageProps) {
         )}
       />
       <OverviewChartArea
-        data={result.filter((result) => result.date.getMonth() === month)}
-        // relies on the fact that we only getting the previous 3 months relative to @month
-        // so there is no need to account for year
+        data={result.filter((result) =>
+          isAfter(
+            result.date,
+            subDays(lastDayOfMonth(new Date(year, month)), 90),
+          ),
+        )}
+        // Filter records to only include those from the specified month and 90 days ago, relative
       />
     </main>
   );
