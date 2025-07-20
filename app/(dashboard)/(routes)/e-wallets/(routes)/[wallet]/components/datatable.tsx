@@ -21,12 +21,10 @@ type DatatableProps = {
 };
 
 export function Datatable({ wallet }: DatatableProps) {
-  const { data, isFetching } = useQuery({
+  const { data } = useQuery({
     queryKey: ["records", wallet.id],
     queryFn: async () => getRecords(wallet.id),
   });
-
-  // const router = useRouter();
 
   const table = useReactTable({
     data: data || [],
@@ -46,12 +44,11 @@ export function Datatable({ wallet }: DatatableProps) {
     },
   });
 
-  if (!isFetching)
-    return (
-      <div className="flex size-full flex-col gap-4">
-        <Header table={table} />
-        <DatatableFrame table={table} />
-        <Pagination table={table} />
-      </div>
-    );
+  return (
+    <div className="flex size-full flex-col gap-4">
+      <Header table={table} />
+      <DatatableFrame table={table} />
+      <Pagination table={table} />
+    </div>
+  );
 }

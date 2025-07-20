@@ -1,4 +1,3 @@
-"use server";
 import db from "@/db/drizzle";
 import { notFound } from "next/navigation";
 import { getWallets } from "@/app/(dashboard)/actions";
