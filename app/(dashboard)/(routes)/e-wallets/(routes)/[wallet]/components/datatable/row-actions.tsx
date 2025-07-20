@@ -8,6 +8,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Table } from "@tanstack/react-table";
 import {
   MoreHorizontalIcon,
@@ -15,10 +16,10 @@ import {
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { deleteRecord, Record } from "../../actions";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
+import { deleteRecord, Record } from "../../actions";
+import { UpdateDialog } from "./update-dialog";
 
 type RowActionsProps = {
   record: Record;
@@ -26,7 +27,6 @@ type RowActionsProps = {
 };
 
 export function RowActions({ record, table }: RowActionsProps) {
-  const router = useRouter();
   const wallet = table.options.meta?.wallet;
 
   const queryClient = useQueryClient();
@@ -39,42 +39,48 @@ export function RowActions({ record, table }: RowActionsProps) {
     },
   });
 
+  const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <MoreHorizontalIcon className="size-4" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuSub>
-          <DropdownMenuItem asChild>
-            <DropdownMenuSubTrigger>
-              <NotebookIcon /> View notes
-            </DropdownMenuSubTrigger>
-          </DropdownMenuItem>
-          <DropdownMenuSubContent className="aspect-square min-w-72 p-4">
-            <h4>Notes</h4>
-            <pre className="text-wrap">
-              {record.notes || "No notes available."}
-            </pre>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        {wallet && (
+    <>
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger>
+          <MoreHorizontalIcon className="size-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuSub>
+            <DropdownMenuItem asChild>
+              <DropdownMenuSubTrigger>
+                <NotebookIcon /> View notes
+              </DropdownMenuSubTrigger>
+            </DropdownMenuItem>
+            <DropdownMenuSubContent className="aspect-square min-w-72 p-4">
+              <h4>Notes</h4>
+              <pre className="text-wrap">
+                {record.notes || "No notes available."}
+              </pre>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          {wallet && (
+            <DropdownMenuItem onSelect={() => setOpenUpdateDialog(true)}>
+              <PenIcon />
+              Edit record
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
           <DropdownMenuItem
-            onSelect={() =>
-              router.push(`/e-wallets/${wallet.url}/${record.id}/update`)
-            }>
-            <PenIcon />
-            Edit record
+            variant="destructive"
+            onSelect={() => recordM.mutate(record.id)}>
+            <Trash2Icon />
+            Delete
           </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          variant="destructive"
-          onSelect={() => recordM.mutate(record.id)}>
-          <Trash2Icon />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <UpdateDialog
+        open={openUpdateDialog}
+        onOpenChange={setOpenUpdateDialog}
+        record={record}
+      />
+    </>
   );
 }

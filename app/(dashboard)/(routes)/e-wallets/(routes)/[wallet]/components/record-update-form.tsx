@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { DialogClose } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -23,15 +24,13 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { eWalletsTable, recordsTable, transactionTypeEnum } from "@/db/schema";
+import { recordsTable, transactionTypeEnum } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
 import { createUpdateSchema } from "drizzle-zod";
 import { CalendarIcon, SaveIcon, XIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -48,10 +47,10 @@ const formSchema = createUpdateSchema(recordsTable, {
 type RecordUpdateForm = z.infer<typeof formSchema>;
 
 type RecordUpdateFormProps = {
-  wallet: typeof eWalletsTable.$inferSelect;
   record: typeof recordsTable.$inferSelect;
+  onSave?: () => void;
 };
-export function RecordUpdateForm({ wallet, record }: RecordUpdateFormProps) {
+export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
   const form = useForm<RecordUpdateForm>({
     resolver: zodResolver(formSchema),
     defaultValues: record,
@@ -62,13 +61,9 @@ export function RecordUpdateForm({ wallet, record }: RecordUpdateFormProps) {
     mutationFn: updateRecord,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["records"] });
+      if (onSave) onSave();
 
-      toast("The record has been updated", {
-        action: {
-          label: "View",
-          onClick: () => router.push(`/e-wallets/${wallet.url}`),
-        },
-      });
+      toast("The record has been updated");
     },
   });
 
@@ -76,27 +71,10 @@ export function RecordUpdateForm({ wallet, record }: RecordUpdateFormProps) {
     records.mutate(values);
   };
 
-  const router = useRouter();
-
   const type = form.watch("type");
-  const amount = form.watch("amount");
-
-  useEffect(() => {
-    const T = setTimeout(() => {
-      if (!form.getFieldState("fee").isDirty && amount && amount > 0 && type) {
-        form.setValue("fee", feeCalculator(amount, type), {
-          shouldValidate: true,
-        });
-      }
-    }, 1000);
-
-    return () => {
-      clearTimeout(T);
-    };
-  }, [form, type, amount]);
 
   return (
-    <div className="grid gap-y-16 lg:grid-cols-2 lg:gap-x-4">
+    <div className="space-y-16">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -353,14 +331,15 @@ export function RecordUpdateForm({ wallet, record }: RecordUpdateFormProps) {
           />
 
           <div className="flex items-center justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={form.formState.isSubmitting}>
-              <XIcon />
-              Cancel
-            </Button>
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={form.formState.isSubmitting}>
+                <XIcon />
+                Cancel
+              </Button>
+            </DialogClose>
             <Button
               type="submit"
               disabled={!form.formState.isDirty || form.formState.isSubmitting}>
@@ -372,18 +351,4 @@ export function RecordUpdateForm({ wallet, record }: RecordUpdateFormProps) {
       </Form>
     </div>
   );
-}
-
-function feeCalculator(amount: number, type: "cash-in" | "cash-out") {
-  const rate = 0.02;
-  const ladder = 500;
-
-  if (type === "cash-out") {
-    const M = Math.floor(amount / ladder) * ladder;
-    const initialFee = M * rate;
-    const diff = amount - M;
-    const belowInitialFee = initialFee >= diff;
-
-    return belowInitialFee ? initialFee : initialFee + ladder * rate;
-  } else return Math.ceil(amount / ladder) * ladder * rate;
 }
