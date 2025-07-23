@@ -1,10 +1,8 @@
 "use client";
 
-import { NavUser } from "@/app/(dashboard)/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -41,9 +39,6 @@ export function AppSidebar() {
         <NavWallets />
         <NavUtilities />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
     </Sidebar>
   );
 }
