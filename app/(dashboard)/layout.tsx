@@ -11,6 +11,7 @@ import { auth } from "@/lib/auth"; // path to your Better Auth server instance
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NavUser } from "./components/nav-user";
+import { ThemeToggle } from "./components/theme-toggle";
 
 export default async function Layout({
   children,
@@ -38,7 +39,10 @@ export default async function Layout({
             orientation="vertical"
             className="mr-2 data-[orientation=vertical]:h-4"
           />
-          <NavUser />
+          <div className="flex gap-4">
+            <ThemeToggle />
+            <NavUser />
+          </div>
         </header>
         <div className="flex-1 p-4 pt-0">{children}</div>
       </SidebarInset>
