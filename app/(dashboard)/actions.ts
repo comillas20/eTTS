@@ -2,8 +2,8 @@
 
 import db from "@/db/drizzle";
 import { eWalletsTable, recordsTable } from "@/db/schema";
-import { getMonth, getYear, subDays } from "date-fns";
-import { and, eq, or, sql } from "drizzle-orm";
+import { getYear, lastDayOfMonth, subDays } from "date-fns";
+import { and, eq, gte, lt, or, sql } from "drizzle-orm";
 
 export async function getWallets() {
   return await db.query.eWalletsTable.findMany({
@@ -56,40 +56,47 @@ export async function getMonthYears() {
 
 type FilteredRecords = {
   walletId?: number;
-  month: number;
-  year: number;
+  month?: number;
+  year?: number;
 };
 
 export async function getFilteredRecords(filters: FilteredRecords) {
-  const now = new Date();
-
-  const currentMonth = getMonth(now); // JavaScript months are 0-indexed
-  const currentYear = getYear(now);
-
   const { walletId, month, year } = filters;
 
   const range = 90;
 
   let targetDate: Date;
-  if (month === currentMonth && year === currentYear) {
-    targetDate = now;
-  } else {
-    targetDate = new Date(year, month + 1, 0); // Day 0 of the next month goes back to the last day of the current month
-  }
 
-  return await db
-    .select()
-    .from(recordsTable)
-    .where(
-      and(
-        walletId ? eq(recordsTable.eWalletId, walletId) : undefined,
-        or(
-          sql`${recordsTable.date}::date = ${targetDate.toISOString().split("T")[0]}`,
-          and(
-            sql`${recordsTable.date}::date >= ${subDays(targetDate, range).toISOString().split("T")[0]}`,
-            sql`${recordsTable.date}::date < ${targetDate.toISOString().split("T")[0]}`,
-          ),
+  // Note to self: You cant do !month because month = 0 becomes false, and we dont want that
+  if (typeof month !== "number") {
+    const mostRecent = await db.query.recordsTable.findFirst({
+      where: walletId ? eq(recordsTable.eWalletId, walletId) : undefined,
+      orderBy: (recordsTable, { desc }) => [desc(recordsTable.date)],
+      columns: {
+        date: true,
+      },
+    });
+
+    // something went wrong
+    if (!mostRecent) return [];
+
+    targetDate = lastDayOfMonth(mostRecent.date);
+  } else
+    targetDate = lastDayOfMonth(new Date(year || getYear(new Date()), month));
+
+  const results = await db.query.recordsTable.findMany({
+    where: and(
+      walletId ? eq(recordsTable.eWalletId, walletId) : undefined,
+      or(
+        eq(recordsTable.date, targetDate),
+        and(
+          gte(recordsTable.date, subDays(targetDate, range)),
+          lt(recordsTable.date, targetDate),
         ),
       ),
-    );
+    ),
+    orderBy: (recordsTable, { desc }) => [desc(recordsTable.date)],
+  });
+
+  return results || [];
 }

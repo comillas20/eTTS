@@ -10,9 +10,9 @@ import {
 import { getEWalletsQuery } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
 import { getMonth, getYear } from "date-fns";
-import { getMonthYears } from "../actions";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
+import { getMonthYears } from "../actions";
 
 const months = [
   "Jaunary",
@@ -103,27 +103,6 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
     },
     [searchParams, router, monthYearsQuery.data],
   );
-
-  // resolving the possible discrepancies with search params and the latest data
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    const year = params.get("year");
-    const month = params.get("month");
-
-    if (!month) {
-      const firstAvailableMonth = monthYearsQuery.data
-        ? monthYearsQuery.data.find(
-            (y) => y.year === parseInt(String(validYear), 10),
-          )?.month || getMonth(new Date())
-        : getMonth(new Date());
-      params.set("month", String(firstAvailableMonth));
-    }
-
-    if (!year) params.set("year", String(validYear));
-
-    if (!month || !year) router.push(`?${params.toString()}`);
-  }, [monthYearsQuery.data, router, searchParams, validYear]);
 
   return (
     <div className="flex justify-between gap-4">
