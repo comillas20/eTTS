@@ -1,10 +1,13 @@
 import db from "@/db/drizzle";
 import { notFound } from "next/navigation";
-import { getWallets } from "@/app/(dashboard)/actions";
 import { Datatable } from "./components/datatable";
 
 export async function generateStaticParams() {
-  const wallets = await getWallets();
+  const wallets = await db.query.eWalletsTable.findMany({
+    columns: {
+      url: true,
+    },
+  });
 
   return wallets.map((wallet) => ({
     wallet: wallet.url,
