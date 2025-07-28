@@ -85,6 +85,9 @@ export function RecordFromJson({ wallet }: RecordFromJsonProps) {
           onClick: () => router.push(`/e-wallets/${wallet.url}`),
         },
       });
+
+      setMessage("");
+      setData([]);
     },
   });
 
