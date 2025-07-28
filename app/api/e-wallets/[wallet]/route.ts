@@ -37,7 +37,7 @@ export async function GET(request: Request, { params }: RouteProps) {
     where: eq(eWalletsTable.url, walletUrl),
   });
 
-  if (!wallet) return null;
+  if (!wallet) return new NextResponse("Wallet not found", { status: 404 });
 
   try {
     const records = await db.query.recordsTable.findMany({
@@ -79,5 +79,6 @@ export async function GET(request: Request, { params }: RouteProps) {
     return new NextResponse(webStream, { headers });
   } catch (e) {
     console.error(e);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
