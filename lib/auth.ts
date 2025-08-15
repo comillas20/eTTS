@@ -8,7 +8,9 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    disableSignUp: false,
+    // disables sign-up if the env variable does not exists or has a value other than "false"
+    // apparently, it prevents any registration submittions if set to true
+    disableSignUp: true,
     minPasswordLength: 8,
     maxPasswordLength: 128,
     autoSignIn: true,
