@@ -63,20 +63,24 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp().defaultNow(),
 });
 
+// Add more e-wallets here as needed
+export const eWalletTypeEnum = pgEnum("eWalletType", ["g-cash", "other"]);
+
 export const eWalletsTable = pgTable(
   "eWallets",
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    name: varchar({ length: 255 }).notNull(),
-    url: varchar({ length: 255 }).notNull(),
+    name: varchar({ length: 20 }).notNull(),
+    url: varchar({ length: 20 }).notNull(),
     cellNumber: varchar({ length: 13 }).notNull(),
-    accountId: text()
+    type: eWalletTypeEnum().notNull(),
+    userId: text()
       .notNull()
-      .references(() => account.id, { onDelete: "cascade" }),
+      .references(() => user.id),
   },
   (table) => [
-    uniqueIndex("accountId_name").on(table.accountId, table.name),
-    uniqueIndex("accountId_url").on(table.accountId, table.url),
+    uniqueIndex("userId_name").on(table.userId, table.name),
+    uniqueIndex("userId_url").on(table.userId, table.url),
   ],
 );
 

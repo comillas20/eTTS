@@ -21,7 +21,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { eWalletsTable } from "@/db/schema";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { eWalletsTable, eWalletTypeEnum } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createUpdateSchema } from "drizzle-zod";
@@ -33,7 +40,11 @@ import { z } from "zod";
 import { updateWallet } from "../actions";
 
 const formSchema = createUpdateSchema(eWalletsTable, {
-  name: (schema) => schema.trim().min(1, "E-wallet name is required"),
+  name: (schema) =>
+    schema
+      .trim()
+      .min(1, "E-wallet name is required")
+      .max(20, "E-wallet name is too long"),
   cellNumber: (schema) => schema.trim().min(11, "Invalid phone no."),
 });
 
@@ -91,7 +102,7 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
                 <FormItem>
                   <FormLabel>E-wallet name</FormLabel>
                   <FormDescription>
-                    The e-wallet name (e.g. G-cash, Paymaya, etc.)
+                    Your custom e-wallet name (e.g. My G-cash)
                   </FormDescription>
                   <FormControl>
                     <Input
@@ -105,6 +116,33 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
                       }}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type of e-wallet</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="capitalize">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {eWalletTypeEnum.enumValues.map((type) => (
+                        <SelectItem
+                          key={type}
+                          value={type}
+                          className="capitalize">
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
