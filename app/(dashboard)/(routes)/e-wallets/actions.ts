@@ -37,3 +37,15 @@ export async function updateWallet(values: UpdateWallet) {
   revalidatePath("/e-wallets");
   return wallet[0];
 }
+
+export async function deleteWallet(
+  id: typeof eWalletsTable.$inferSelect.id,
+): Promise<{ error: string | null }> {
+  if (typeof id !== "number") return { error: "ID should be a number" };
+
+  await db.delete(eWalletsTable).where(eq(eWalletsTable.id, id));
+
+  revalidatePath("/e-wallets");
+
+  return { error: null };
+}

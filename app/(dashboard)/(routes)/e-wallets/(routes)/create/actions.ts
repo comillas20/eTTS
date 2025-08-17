@@ -30,7 +30,7 @@ export async function createWallet(values: CreateWallet) {
   const parsedValues = createWalletSchema.safeParse(values);
 
   if (parsedValues.error) return parsedValues.error;
-  console.log(parsedValues.data);
+
   const wallet = await db
     .insert(eWalletsTable)
     .values(parsedValues.data)
