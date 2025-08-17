@@ -1,13 +1,14 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   integer,
   numeric,
   pgEnum,
   pgTable,
-  timestamp,
-  varchar,
   text,
-  boolean,
+  timestamp,
+  uniqueIndex,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -62,16 +63,26 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp().defaultNow(),
 });
 
-export const eWalletsTable = pgTable("eWallets", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: varchar({ length: 255 }).unique().notNull(),
-  url: varchar({ length: 255 }).unique().notNull(),
-  cellNumber: varchar({ length: 13 }).notNull(),
-});
+// Add more e-wallets here as needed
+export const eWalletTypeEnum = pgEnum("eWalletType", ["g-cash", "other"]);
 
-export const eWalletsRelations = relations(eWalletsTable, ({ many }) => ({
-  records: many(recordsTable),
-}));
+export const eWalletsTable = pgTable(
+  "eWallets",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar({ length: 20 }).notNull(),
+    url: varchar({ length: 20 }).notNull(),
+    cellNumber: varchar({ length: 13 }).notNull(),
+    type: eWalletTypeEnum().notNull(),
+    userId: text()
+      .notNull()
+      .references(() => user.id),
+  },
+  (table) => [
+    uniqueIndex("userId_name").on(table.userId, table.name),
+    uniqueIndex("userId_url").on(table.userId, table.url),
+  ],
+);
 
 export const transactionTypeEnum = pgEnum("transactionType", [
   "cash-in",
@@ -95,6 +106,12 @@ export const recordsTable = pgTable("records", {
     }),
   createdAt: timestamp().notNull().defaultNow(),
 });
+
+// The sole purpose of Drizzle relations is to let us query relational data in a simplier way.
+
+export const eWalletsRelations = relations(eWalletsTable, ({ many }) => ({
+  records: many(recordsTable),
+}));
 
 export const recordsRelations = relations(recordsTable, ({ one }) => ({
   eWallet: one(eWalletsTable, {
