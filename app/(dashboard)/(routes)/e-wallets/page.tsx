@@ -10,10 +10,11 @@ import {
 } from "@/components/ui/card";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
-import { WalletUpdateDialog } from "./components/wallet-update-dialog";
-import { WalletPieChart } from "./components/wallet-pie-chart";
-import { WalletDeleteDialog } from "./components/wallet-delete-dialog";
 import { RecordBackUpDownload } from "./components/record-back-up-download";
+import { RecordRestore } from "./components/record-restore";
+import { WalletDeleteDialog } from "./components/wallet-delete-dialog";
+import { WalletPieChart } from "./components/wallet-pie-chart";
+import { WalletUpdateDialog } from "./components/wallet-update-dialog";
 
 export default async function Page() {
   const wallets = await getWallets();
@@ -33,6 +34,7 @@ export default async function Page() {
               <CardDescription>{wallet.cellNumber}</CardDescription>
               <CardAction className="space-x-2">
                 <RecordBackUpDownload wallet={wallet} />
+                <RecordRestore id={wallet.id} />
                 <WalletUpdateDialog initialData={wallet} />
                 <WalletDeleteDialog id={wallet.id} />
               </CardAction>
