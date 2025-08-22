@@ -34,7 +34,7 @@ export default async function Page() {
               <CardDescription>{wallet.cellNumber}</CardDescription>
               <CardAction className="space-x-2">
                 <RecordBackUpDownload wallet={wallet} />
-                <RecordRestore id={wallet.id} />
+                <RecordRestore wallet={wallet} />
                 <WalletUpdateDialog initialData={wallet} />
                 <WalletDeleteDialog id={wallet.id} />
               </CardAction>

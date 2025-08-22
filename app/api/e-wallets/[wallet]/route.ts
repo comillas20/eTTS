@@ -2,11 +2,16 @@
 
 import db from "@/db/drizzle";
 import { auth } from "@/lib/auth";
+import { runScript } from "@/scripts/g-cash/script";
+import { mkdir, writeFile } from "fs/promises";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
+import path from "path";
 import { Readable } from "stream";
 import { createGzip } from "zlib";
+import z from "zod";
 
 export async function generateStaticParams() {
   const wallets = await db.query.eWalletsTable.findMany();
@@ -77,5 +82,77 @@ export async function GET(request: Request, { params }: RouteProps) {
   } catch (e) {
     console.error(e);
     return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
+
+const ACCEPTED_EXTENSIONS = ["csv", "pdf"];
+
+export async function POST(request: Request, { params }: RouteProps) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) redirect("/login");
+
+  const { wallet: walletUrl } = await params;
+
+  const wallet = await db.query.eWalletsTable.findFirst({
+    where: (wallets, { and, eq }) =>
+      and(eq(wallets.url, walletUrl), eq(wallets.userId, session.user.id)),
+  });
+
+  if (!wallet) return new NextResponse("Wallet not found", { status: 404 });
+
+  try {
+    const formData = await request.formData();
+
+    const fileSchema = z.object({
+      file: z.instanceof(File).refine((file) => {
+        const ext = file.name.split(".").pop()?.toLowerCase() || "";
+        return ACCEPTED_EXTENSIONS.includes(ext);
+      }, "Invalid file type"),
+    });
+
+    const parsedFormData = fileSchema.safeParse({ file: formData.get("file") });
+
+    if (!parsedFormData.success) {
+      return new NextResponse(
+        JSON.stringify({ error: parsedFormData.error.issues }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    const uploadedFile = parsedFormData.data.file;
+
+    const arrayBuffer = await uploadedFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const fileExt = uploadedFile.name.split(".").pop()?.toLowerCase() || "dat";
+    const filename = `record-${Intl.NumberFormat("en-US", {
+      minimumIntegerDigits: 4,
+    }).format(wallet.id)}_backup_${Date.now()}.${fileExt}`;
+
+    const saveDir = path.resolve(process.cwd(), "public", "records");
+    const savePath = path.resolve(saveDir, filename);
+
+    // Ensure the directory exists
+    await mkdir(saveDir, { recursive: true });
+
+    await writeFile(savePath, buffer);
+
+    await runScript(savePath);
+
+    revalidatePath("/e-wallets");
+
+    return new NextResponse(
+      JSON.stringify({ message: "File uploaded successfully" }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  } catch (error) {
+    console.error("File upload error:", error);
+    return new NextResponse(
+      JSON.stringify({ error: "Internal Server Error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
   }
 }

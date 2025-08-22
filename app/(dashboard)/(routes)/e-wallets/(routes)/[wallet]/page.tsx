@@ -1,5 +1,7 @@
 import db from "@/db/drizzle";
-import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import { Datatable } from "./components/datatable";
 
 export async function generateStaticParams() {
@@ -21,8 +23,15 @@ type PageProps = {
 export default async function Page({ params }: PageProps) {
   const { wallet } = await params;
 
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) redirect("/login");
+
   const eWallet = await db.query.eWalletsTable.findFirst({
-    where: (wallets, { eq }) => eq(wallets.url, wallet),
+    where: (wallets, { and, eq }) =>
+      and(eq(wallets.url, wallet), eq(wallets.userId, session.user.id)),
   });
 
   if (!eWallet) return notFound();

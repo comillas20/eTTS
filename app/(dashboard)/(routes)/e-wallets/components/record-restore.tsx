@@ -11,33 +11,56 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { eWalletsTable } from "@/db/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CloudUploadIcon } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import z from "zod";
 
 type RecordRestoreProps = {
-  id: typeof eWalletsTable.$inferSelect.id;
+  wallet: typeof eWalletsTable.$inferSelect;
 };
 
-export function RecordRestore({ id }: RecordRestoreProps) {
+const fileSchema = z.object({
+  file: z.instanceof(File),
+});
+
+export function RecordRestore({ wallet }: RecordRestoreProps) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
+  const form = useForm({
+    resolver: zodResolver(fileSchema),
+  });
+
   const walletM = useMutation({
-    mutationFn: async (id: number) => {
-      return { id: id };
+    mutationFn: async (data: z.infer<typeof fileSchema>) => {
+      const formData = new FormData();
+      formData.append("file", data.file);
+
+      await fetch(`/api/e-wallets/${wallet.url}`, {
+        method: "POST",
+        body: formData,
+      });
     },
-    onSuccess: (data) => {
+
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
 
-      if (data instanceof Error) toast.error(data.message);
-      else {
-        toast("Records has been restored successfully");
-        setOpen(false);
-      }
+      toast("Records has been restored successfully");
+      setOpen(false);
     },
   });
 
@@ -55,19 +78,44 @@ export function RecordRestore({ id }: RecordRestoreProps) {
             Create records in bulk or restore data from a backup file.
           </DialogDescription>
         </DialogHeader>
-        <div>
-          <Input type="file" />
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button
-            onClick={() => walletM.mutate(id)}
-            disabled={walletM.isPending}>
-            Continue
-          </Button>
-        </DialogFooter>
+        <Form {...form}>
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit((data) => walletM.mutate(data))}>
+            <FormField
+              name="file"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Upload file</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          field.onChange(e.target.files[0]);
+                        } else {
+                          field.onChange(undefined);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={walletM.isPending}>
+                Continue
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
