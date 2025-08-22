@@ -3,16 +3,17 @@
 echo "--- Starting Python Dependency Setup ---"
 
 # Check if the virtual environment directory exists
-if [ ! -d ".venv" ]; then
-    echo "Creating a new virtual environment..."
-    python3 -m venv .venv
+if [ -d ".venv" ]; then
+    echo "Virtual environment '.venv' already exists. Deleting..."
+    rm -rf .venv && python3 -m venv .venv
+fi
 
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to create virtual environment. Please ensure 'python3' is installed and in your PATH."
-        exit 1
-    fi
-else
-    echo "Virtual environment '.venv' already exists. Skipping creation."
+echo "Creating a new virtual environment..."
+python3 -m venv .venv
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to create virtual environment. Please ensure 'python3' is installed and in your PATH."
+    exit 1
 fi
 
 # Activate the virtual environment

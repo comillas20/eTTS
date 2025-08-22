@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "db:seed": "tsx ./db/seeder.ts",
-    "db:push": "npx drizzle-kit push"
+    "db:push": "npx drizzle-kit push",
+    "py:install:windows": "scripts\\py-install.bat",
+    "py:install:linux": "source .venv/bin/activate && python3 -m pip install \"$@\" && python3 -m pip freeze > requirements.txt",
+    "py:install": "test -f /dev/null && npm run py:install:linux -- \"$@\" || npm run py:install:windows -- ",
+    "py:rebuild:windows": "scripts\\dep-installations\\windows.bat",
+    "py:rebuild:linux": "scripts\\dep-installations\\linux.sh",
+    "py:rebuild": "test -f /dev/null && npm run py:rebuild:linux || npm run py:rebuild:windows"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
