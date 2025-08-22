@@ -28,8 +28,6 @@ export async function runScript(filePath: string) {
     await chmod(scriptPath, 0o755);
 
     const saveDir = path.resolve(process.cwd(), "scripts", "g-cash");
-
-    // Ensure the directory exists
     await mkdir(saveDir, { recursive: true });
 
     const script = spawn(pythonExecutable, [pythonScript], {
@@ -77,11 +75,12 @@ export async function runScript(filePath: string) {
           );
 
       try {
-        await unlink(jsonPath);
-        await unlink(filePath);
-        console.log(`Deleted JSON file at ${jsonPath}`);
+        unlink(jsonPath).then(() =>
+          console.log(`Deleted JSON file at ${jsonPath}`),
+        );
+        unlink(filePath).then(() => console.log(`Deleted PDF at ${filePath}`));
       } catch (err) {
-        console.error(`Failed to delete JSON file at ${jsonPath}:`, err);
+        console.error(`Failed to delete file at ${jsonPath}:`, err);
       }
     });
   } catch (error) {
@@ -147,7 +146,7 @@ function getRecordsFromJSON(
       const amount = record.credit ?? record.debit ?? 0;
       const type =
         transactionTypeEnum.enumValues[record.credit != null ? 1 : 0];
-      console.log(record.referenceNumber, record.description);
+
       return {
         referenceNumber: record.referenceNumber,
         amount: amount,
