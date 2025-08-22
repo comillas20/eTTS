@@ -1,9 +1,7 @@
 "use server";
 
 import db from "@/db/drizzle";
-import { eWalletsTable, recordsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
-import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
@@ -29,19 +27,18 @@ export async function GET(request: Request, { params }: RouteProps) {
 
   if (!session) redirect("/login");
 
-  // Authorization check here, if ever
-
   const { wallet: walletUrl } = await params;
 
   const wallet = await db.query.eWalletsTable.findFirst({
-    where: eq(eWalletsTable.url, walletUrl),
+    where: (wallets, { and, eq }) =>
+      and(eq(wallets.url, walletUrl), eq(wallets.userId, session.user.id)),
   });
 
   if (!wallet) return new NextResponse("Wallet not found", { status: 404 });
 
   try {
     const records = await db.query.recordsTable.findMany({
-      where: eq(recordsTable.eWalletId, wallet.id),
+      where: (records, { eq }) => eq(records.eWalletId, wallet.id),
       columns: {
         eWalletId: false,
       },
