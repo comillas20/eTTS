@@ -14,6 +14,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,6 +36,7 @@ type RecordRestoreProps = {
 
 const fileSchema = z.object({
   file: z.instanceof(File),
+  filePassword: z.string().optional(),
 });
 
 export function RecordRestore({ wallet }: RecordRestoreProps) {
@@ -43,23 +45,30 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
 
   const form = useForm({
     resolver: zodResolver(fileSchema),
+    defaultValues: {
+      filePassword: "",
+    },
   });
 
   const walletM = useMutation({
     mutationFn: async (data: z.infer<typeof fileSchema>) => {
       const formData = new FormData();
       formData.append("file", data.file);
+      formData.append("password", data.filePassword || "");
 
-      await fetch(`/api/e-wallets/${wallet.url}`, {
+      const res = await fetch(`/api/e-wallets/${wallet.url}`, {
         method: "POST",
         body: formData,
       });
+
+      return await res.json();
     },
 
-    onSuccess: () => {
+    onSuccess: (data: Response) => {
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
 
       toast("Records has been restored successfully");
+      console.log(data);
       setOpen(false);
     },
   });
@@ -98,6 +107,27 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
                           field.onChange(undefined);
                         }
                       }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="filePassword"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>File password</FormLabel>
+                  <FormDescription>
+                    If your file has a password, enter them, otherwise leave it
+                    blank
+                  </FormDescription>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      {...field}
+                      placeholder="Enter password if any"
                     />
                   </FormControl>
                   <FormMessage />

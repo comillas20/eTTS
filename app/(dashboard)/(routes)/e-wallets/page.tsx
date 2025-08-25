@@ -15,9 +15,13 @@ import { RecordRestore } from "./components/record-restore";
 import { WalletDeleteDialog } from "./components/wallet-delete-dialog";
 import { WalletPieChart } from "./components/wallet-pie-chart";
 import { WalletUpdateDialog } from "./components/wallet-update-dialog";
+import { headers } from "next/headers";
 
 export default async function Page() {
   const wallets = await getWallets();
+  const h = await headers();
+  console.log(h.get("body"));
+
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-4">
       {wallets.map((wallet) => {

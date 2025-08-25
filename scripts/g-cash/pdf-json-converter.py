@@ -1,19 +1,18 @@
 import pandas as pd
 import numpy as np
-import math
 from pypdf import PdfReader, PdfWriter
 import sys, os, tabula, io
 
-def remove_pdf_password(input_pdf_path, pdf_password):
+def remove_pdf_password(source_pdf_path, pdf_password):
     """
     Removes password protection from a PDF file and saves an unprotected copy.
 
     Args:
-        input_pdf_path (str): The path to the password-protected PDF file.
+        source_pdf_path (str): The path to the password-protected PDF file.
         pdf_password (str): The password to decrypt the PDF.
     """
     try:
-        reader = PdfReader(input_pdf_path)
+        reader = PdfReader(source_pdf_path)
 
         if reader.is_encrypted:
             print("[Decryption attempt]")
@@ -26,7 +25,7 @@ def remove_pdf_password(input_pdf_path, pdf_password):
         return reader
 
     except FileNotFoundError:
-        print(f"Error: Input PDF file not found at '{input_pdf_path}'")
+        print(f"Error: Source PDF file not found at '{source_pdf_path}'")
         return False
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
@@ -125,14 +124,14 @@ def get_input(prompt):
     return sys.stdin.readline().strip()
 
 if __name__ == "__main__":
-    original_path = get_input("[ORIGINAL]")
+    source_path = get_input("[SOURCE_FILE_PATH]")
 
-    if not os.path.exists(original_path):
-        print(f"Error: The file '{original_path}' does not exist. Please check the path and try again.", file=sys.stderr)
+    if not os.path.exists(source_path):
+        print(f"Error: The file '{source_path}' does not exist. Please check the path and try again.", file=sys.stderr)
     else:
-        password = get_input("[PASSWORD]")
+        password = get_input("[FILE_PASSWORD]")
 
-        file_name, file_extension = os.path.splitext(original_path)
+        file_name, file_extension = os.path.splitext(source_path)
 
         # Ensure 'output' directory exists
         output_dir = "output"
@@ -148,5 +147,5 @@ if __name__ == "__main__":
             counter += 1
             output_path = f"{output_path_base} ({counter}).json"
 
-        pdf_reader = remove_pdf_password(original_path, password)
+        pdf_reader = remove_pdf_password(source_path, password)
         convert_pdf_to_json(pdf_reader, output_path)

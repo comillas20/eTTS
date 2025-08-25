@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { eWalletsTable, recordsTable, transactionTypeEnum } from "@/db/schema";
-import { cn } from "@/lib/utils";
+import { cn, feeCalculator } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
@@ -445,18 +445,4 @@ export function getDataFromText(text: string): GetDataFromTextReturnType {
     cellNumber: cellNumber ? cellNumber[0] : undefined,
     referenceNumber: referenceNumber ? referenceNumber[0] : undefined,
   };
-}
-
-function feeCalculator(amount: number, type: "cash-in" | "cash-out") {
-  const rate = 0.02;
-  const ladder = 500;
-
-  if (type === "cash-out") {
-    const M = Math.floor(amount / ladder) * ladder;
-    const initialFee = M * rate;
-    const diff = amount - M;
-    const belowInitialFee = initialFee >= diff;
-
-    return belowInitialFee ? initialFee : initialFee + ladder * rate;
-  } else return Math.ceil(amount / ladder) * ladder * rate;
 }

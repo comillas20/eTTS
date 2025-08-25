@@ -4,7 +4,6 @@ import db from "@/db/drizzle";
 import { auth } from "@/lib/auth";
 import { runScript } from "@/scripts/g-cash/script";
 import { mkdir, writeFile } from "fs/promises";
-import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
@@ -106,14 +105,17 @@ export async function POST(request: Request, { params }: RouteProps) {
   try {
     const formData = await request.formData();
 
-    const fileSchema = z.object({
+    const formDataSchema = z.object({
       file: z.instanceof(File).refine((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase() || "";
         return ACCEPTED_EXTENSIONS.includes(ext);
       }, "Invalid file type"),
+      password: z.string().optional(),
     });
 
-    const parsedFormData = fileSchema.safeParse({ file: formData.get("file") });
+    const file = formData.get("file");
+    const password = formData.get("password");
+    const parsedFormData = formDataSchema.safeParse({ file, password });
 
     if (!parsedFormData.success) {
       return new NextResponse(
@@ -140,18 +142,31 @@ export async function POST(request: Request, { params }: RouteProps) {
 
     await writeFile(savePath, buffer);
 
-    await runScript(savePath);
+    switch (wallet.type) {
+      case "g-cash":
+        if (!parsedFormData.data.password)
+          return new NextResponse("Password required", { status: 400 });
 
-    revalidatePath("/e-wallets");
+        const records = await runScript({
+          scriptName: "pdf-json-converter.py",
+          sourceFilePath: savePath,
+          filePassword: parsedFormData.data.password,
+        });
 
-    return new NextResponse(
-      JSON.stringify({ message: "File uploaded successfully" }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
-    );
+        return new NextResponse(JSON.stringify({ records }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      default:
+        return new NextResponse(JSON.stringify({ error: "How?" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+    }
   } catch (error) {
     console.error("File upload error:", error);
     return new NextResponse(
-      JSON.stringify({ error: "Internal Server Error" }),
+      JSON.stringify({ error: "Internal Server Error XD" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
