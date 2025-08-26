@@ -89,23 +89,32 @@ export const transactionTypeEnum = pgEnum("transactionType", [
   "cash-out",
 ]);
 
-export const recordsTable = pgTable("records", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  referenceNumber: varchar({ length: 255 }).notNull(),
-  cellNumber: varchar({ length: 13 }),
-  amount: numeric({ mode: "number", scale: 2 }).notNull(),
-  fee: numeric({ mode: "number", scale: 2 }).notNull(),
-  date: timestamp().notNull(),
-  type: transactionTypeEnum().notNull(),
-  claimedAt: timestamp(),
-  notes: text(),
-  eWalletId: integer()
-    .notNull()
-    .references(() => eWalletsTable.id, {
-      onDelete: "cascade",
-    }),
-  createdAt: timestamp().notNull().defaultNow(),
-});
+export const recordsTable = pgTable(
+  "records",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    referenceNumber: varchar({ length: 255 }).notNull(),
+    cellNumber: varchar({ length: 13 }),
+    amount: numeric({ mode: "number", scale: 2 }).notNull(),
+    fee: numeric({ mode: "number", scale: 2 }).notNull(),
+    date: timestamp().notNull(),
+    type: transactionTypeEnum().notNull(),
+    claimedAt: timestamp(),
+    notes: text(),
+    eWalletId: integer()
+      .notNull()
+      .references(() => eWalletsTable.id, {
+        onDelete: "cascade",
+      }),
+    createdAt: timestamp().notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("eWalletId_referenceNumber").on(
+      table.eWalletId,
+      table.referenceNumber,
+    ),
+  ],
+);
 
 // The sole purpose of Drizzle relations is to let us query relational data in a simplier way.
 
