@@ -1,5 +1,6 @@
 "use client";
 
+import { createRecords } from "@/app/(dashboard)/actions/records";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,9 +22,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { eWalletsTable } from "@/db/schema";
+import { eWalletsTable, recordsTable } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createInsertSchema } from "drizzle-zod";
 import { CloudUploadIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -64,11 +66,30 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
       return await res.json();
     },
 
-    onSuccess: (data: Response) => {
+    onSuccess: async (data: Response) => {
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
 
-      toast("Records has been restored successfully");
-      console.log(data);
+      const recordSchema = createInsertSchema(recordsTable, {
+        date: z.number(),
+        claimedAt: z.number().optional(),
+      }).array();
+
+      if (typeof data !== "object" || !("records" in data)) return;
+      const parsedData = recordSchema.safeParse(data.records);
+      if (parsedData.success) {
+        await createRecords(
+          parsedData.data.map((d) => ({
+            ...d,
+            cellNumber: d.cellNumber || null,
+            date: new Date(d.date),
+            claimedAt: d.claimedAt ? new Date(d.claimedAt) : undefined,
+          })),
+        );
+        toast("Records has been restored successfully");
+      } else {
+        toast("Record restoration failed");
+      }
+
       setOpen(false);
     },
   });
