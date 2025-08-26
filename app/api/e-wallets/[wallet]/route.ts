@@ -100,7 +100,8 @@ export async function POST(request: Request, { params }: RouteProps) {
       and(eq(wallets.url, walletUrl), eq(wallets.userId, session.user.id)),
   });
 
-  if (!wallet) return new NextResponse("Wallet not found", { status: 404 });
+  if (!wallet)
+    return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
 
   try {
     const formData = await request.formData();
@@ -118,9 +119,9 @@ export async function POST(request: Request, { params }: RouteProps) {
     const parsedFormData = formDataSchema.safeParse({ file, password });
 
     if (!parsedFormData.success) {
-      return new NextResponse(
-        JSON.stringify({ error: parsedFormData.error.issues }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
+      return NextResponse.json(
+        { error: parsedFormData.error.issues },
+        { status: 400 },
       );
     }
 
@@ -153,21 +154,15 @@ export async function POST(request: Request, { params }: RouteProps) {
           filePassword: parsedFormData.data.password,
         });
 
-        return new NextResponse(JSON.stringify({ records }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
+        return NextResponse.json({ records }, { status: 200 });
       default:
-        return new NextResponse(JSON.stringify({ error: "How?" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
+        return NextResponse.json({ error: "How?" }, { status: 400 });
     }
   } catch (error) {
     console.error("File upload error:", error);
-    return new NextResponse(
-      JSON.stringify({ error: "Internal Server Error XD" }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+    return NextResponse.json(
+      { error: "Internal Server Error XD" },
+      { status: 500 },
     );
   }
 }
