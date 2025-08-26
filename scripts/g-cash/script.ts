@@ -3,7 +3,7 @@ import { transactionTypeEnum } from "@/db/schema";
 import { feeCalculator } from "@/lib/utils";
 import { spawn } from "child_process";
 import { existsSync, readFileSync } from "fs";
-import { chmod, mkdir } from "fs/promises";
+import { chmod, mkdir, unlink } from "fs/promises";
 import path from "path";
 import { z } from "zod";
 
@@ -86,7 +86,6 @@ type ScriptOptions = {
   sourceFilePath: string;
   scriptName: string;
   filePassword: string;
-  // outputHandler: (output: Awaited<ReturnType<typeof formatRecords>>) => void;
 };
 
 export async function runScript(options: ScriptOptions) {
@@ -150,11 +149,18 @@ export async function runScript(options: ScriptOptions) {
 
       script.on("close", async (code) => {
         console.log(`Python script exited with code ${code}`);
-        const partialRecords = getJsonData(
-          path.resolve(saveDir, "output", "decrypted.json"),
+        const outputFilePath = path.resolve(
+          saveDir,
+          "output",
+          "decrypted.json",
         );
+        const partialRecords = getJsonData(outputFilePath);
         if (!partialRecords) return null;
         const records = await formatRecords(partialRecords);
+
+        unlink(outputFilePath);
+        unlink(sourceFilePath);
+
         resolve(records);
       });
     } catch (error) {
