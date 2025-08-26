@@ -40,7 +40,7 @@ export default async function Page() {
                 <WalletDeleteDialog id={wallet.id} />
               </CardAction>
             </CardHeader>
-            <CardContent>
+            <CardContent key={wallet.records.length}>
               <WalletPieChart
                 data={[
                   {

@@ -3,6 +3,7 @@
 import db from "@/db/drizzle";
 import { recordsTable } from "@/db/schema";
 import { createInsertSchema } from "drizzle-zod";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const createRecordsSchema = createInsertSchema(recordsTable, {
@@ -35,7 +36,8 @@ export async function createRecords(data: CreateRecords) {
     if (record.type === "cash-in") record.claimedAt = null;
   });
 
-  await db.insert(recordsTable).values(parsedValues.data);
+  await db.insert(recordsTable).values(parsedValues.data).onConflictDoNothing();
+  revalidatePath("/e-wallets");
 
   return null;
 }
