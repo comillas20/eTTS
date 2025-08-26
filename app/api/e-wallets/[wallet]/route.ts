@@ -149,6 +149,7 @@ export async function POST(request: Request, { params }: RouteProps) {
           return new NextResponse("Password required", { status: 400 });
 
         const records = await runScript({
+          wallet: wallet,
           scriptName: "pdf-json-converter.py",
           sourceFilePath: savePath,
           filePassword: parsedFormData.data.password,

@@ -1,5 +1,4 @@
-import db from "@/db/drizzle";
-import { transactionTypeEnum } from "@/db/schema";
+import { eWalletsTable, transactionTypeEnum } from "@/db/schema";
 import { feeCalculator } from "@/lib/utils";
 import { spawn } from "child_process";
 import { existsSync, readFileSync } from "fs";
@@ -57,39 +56,15 @@ function getJsonData(path: string) {
   }
 }
 
-async function formatRecords(data: PartialRecord[]) {
-  const wallet = await db.query.eWalletsTable.findFirst({
-    where: (wallets, { eq }) => eq(wallets.url, "g-cash"),
-  });
-
-  if (!wallet) throw new Error("G-Cash wallet not found");
-
-  return data.map((record) => {
-    const amount = record.credit ?? record.debit ?? 0;
-    const type: (typeof transactionTypeEnum.enumValues)[number] = record.credit
-      ? "cash-out"
-      : "cash-in";
-    return {
-      referenceNumber: record.referenceNumber,
-      date: new Date(record.date),
-      type,
-      amount,
-      fee: feeCalculator(amount, type),
-      eWalletId: wallet.id,
-      cellNumber: getCellNumber(record.description, wallet.cellNumber),
-      claimedAt: type === "cash-out" ? new Date(record.date) : undefined,
-    };
-  });
-}
-
 type ScriptOptions = {
+  wallet: typeof eWalletsTable.$inferSelect;
   sourceFilePath: string;
   scriptName: string;
   filePassword: string;
 };
 
 export async function runScript(options: ScriptOptions) {
-  const { scriptName, filePassword, sourceFilePath } = options;
+  const { wallet, scriptName, filePassword, sourceFilePath } = options;
   if (!filePassword) return new Error("File password is required");
 
   const prompts = [
@@ -155,8 +130,23 @@ export async function runScript(options: ScriptOptions) {
           "decrypted.json",
         );
         const partialRecords = getJsonData(outputFilePath);
+
         if (!partialRecords) return null;
-        const records = await formatRecords(partialRecords);
+        const records = partialRecords.map((record) => {
+          const amount = record.credit ?? record.debit ?? 0;
+          const type: (typeof transactionTypeEnum.enumValues)[number] =
+            record.credit ? "cash-out" : "cash-in";
+          return {
+            referenceNumber: record.referenceNumber,
+            date: new Date(record.date),
+            type,
+            amount,
+            fee: feeCalculator(amount, type),
+            eWalletId: wallet.id,
+            cellNumber: getCellNumber(record.description, wallet.cellNumber),
+            claimedAt: type === "cash-out" ? new Date(record.date) : undefined,
+          };
+        });
 
         unlink(outputFilePath);
         unlink(sourceFilePath);
