@@ -11,7 +11,7 @@ const partialRecordSchema = z.object({
   referenceNumber: z.string().refine((val) => val !== "N/A"),
   debit: z.number().nullable(),
   credit: z.number().nullable(),
-  date: z.number(),
+  date: z.string(),
   description: z.string(),
 });
 
@@ -67,17 +67,17 @@ async function formatRecords(data: PartialRecord[]) {
   return data.map((record) => {
     const amount = record.credit ?? record.debit ?? 0;
     const type: (typeof transactionTypeEnum.enumValues)[number] = record.credit
-      ? "cash-in"
-      : "cash-out";
+      ? "cash-out"
+      : "cash-in";
     return {
       referenceNumber: record.referenceNumber,
-      date: record.date,
+      date: new Date(record.date),
       type,
       amount,
       fee: feeCalculator(amount, type),
       eWalletId: wallet.id,
       cellNumber: getCellNumber(record.description, wallet.cellNumber),
-      claimedAt: type === "cash-out" ? record.date : undefined,
+      claimedAt: type === "cash-out" ? new Date(record.date) : undefined,
     };
   });
 }

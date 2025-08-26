@@ -70,21 +70,21 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
 
       const recordSchema = createInsertSchema(recordsTable, {
-        date: z.number(),
-        claimedAt: z.number().optional(),
+        date: z.string(),
+        claimedAt: z.string().optional(),
       }).array();
 
       if (typeof data !== "object" || !("records" in data)) return;
       const parsedData = recordSchema.safeParse(data.records);
       if (parsedData.success) {
-        await createRecords(
-          parsedData.data.map((d) => ({
-            ...d,
-            cellNumber: d.cellNumber || null,
-            date: new Date(d.date),
-            claimedAt: d.claimedAt ? new Date(d.claimedAt) : undefined,
-          })),
-        );
+        const modifiedRecords = parsedData.data.map((d) => ({
+          ...d,
+          cellNumber: d.cellNumber || null,
+          date: new Date(d.date),
+          claimedAt: d.claimedAt ? new Date(d.claimedAt) : null,
+        }));
+
+        await createRecords(modifiedRecords);
         toast("Records has been restored successfully");
       } else {
         toast("Record restoration failed");

@@ -66,7 +66,11 @@ def convert_pdf_to_json(reader, output_json_path):
         combined_df = pd.concat(dfs, ignore_index=True)
 
         if 'Date and Time' in combined_df.columns:
-            combined_df['date'] = pd.to_datetime(combined_df['Date and Time'], errors='coerce')
+            combined_df['date'] = pd.to_datetime(
+                combined_df['Date and Time'],
+                format='%Y-%m-%d %I:%M %p',
+                errors='coerce'
+            ).dt.tz_localize('Asia/Manila')
         else:
             combined_df['date'] = pd.NaT
 
@@ -103,15 +107,9 @@ def convert_pdf_to_json(reader, output_json_path):
 
         # 3. Save file to JSON
         print(f"Saving DataFrame to JSON: {output_json_path}...")
-        # 'orient' parameter controls the JSON format:
-        # 'records': List of dictionaries, one per row (common and readable). Default.
-        # 'columns': Dictionary of lists, one list per column.
-        # 'index': Dictionary of dictionaries, indexed by row label.
-        # 'split': Dictionary with 'index', 'columns', 'data' keys.
-        # 'values': Just a list of lists (rows).
-        # 'table': JSON Table Schema format.
+
         final_df = combined_df[['date', 'referenceNumber', 'debit', 'credit', 'description']]
-        final_df.to_json(output_json_path, orient='records', indent=4) # indent for pretty printing
+        final_df.to_json(output_json_path, orient='records', date_format='iso', indent=4)
         decrypted_pdf_stream.close()
         print("JSON file created and saved successfully!")
 
