@@ -1,7 +1,7 @@
 "use client";
 
 import { DatatableFrame } from "@/app/(dashboard)/components/datatable-frame";
-import { Pagination } from "@/app/(dashboard)/components/datatable-pagination";
+import { DatatablePagination } from "@/app/(dashboard)/components/datatable-pagination";
 import { eWalletsTable } from "@/db/schema";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -48,7 +48,7 @@ export function Datatable({ wallet }: DatatableProps) {
     <div className="flex size-full flex-col gap-4">
       <Header table={table} />
       <DatatableFrame table={table} />
-      <Pagination table={table} />
+      <DatatablePagination table={table} />
     </div>
   );
 }
