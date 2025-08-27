@@ -26,7 +26,12 @@ import { eWalletsTable, recordsTable } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createInsertSchema } from "drizzle-zod";
-import { CloudUploadIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CloudUploadIcon,
+  Loader2Icon,
+  XIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -157,11 +162,20 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
             />
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={walletM.isPending}>
+                  <XIcon />
                   Cancel
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={walletM.isPending}>
+                {walletM.isPending ? (
+                  <Loader2Icon className="animate-spin" />
+                ) : (
+                  <ArrowRightIcon />
+                )}
                 Continue
               </Button>
             </DialogFooter>

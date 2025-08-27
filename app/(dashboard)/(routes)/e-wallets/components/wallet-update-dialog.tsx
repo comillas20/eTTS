@@ -32,7 +32,7 @@ import { eWalletsTable, eWalletTypeEnum } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createUpdateSchema } from "drizzle-zod";
-import { PencilIcon, XIcon } from "lucide-react";
+import { Loader2Icon, PencilIcon, SaveIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -178,7 +178,12 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
                 disabled={
                   !form.formState.isDirty || form.formState.isSubmitting
                 }>
-                <PencilIcon /> Update
+                {form.formState.isSubmitting ? (
+                  <Loader2Icon className="animate-spin" />
+                ) : (
+                  <SaveIcon />
+                )}
+                Update
               </Button>
             </DialogFooter>
           </form>

@@ -30,7 +30,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
 import { createInsertSchema } from "drizzle-zod";
-import { CalendarIcon, FileDownIcon, PlusIcon, XIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  FileDownIcon,
+  Loader2Icon,
+  PlusIcon,
+  XIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -390,7 +396,11 @@ export function RecordForm({ wallet }: RecordFormProps) {
             <Button
               type="submit"
               disabled={!form.formState.isDirty || form.formState.isSubmitting}>
-              <PlusIcon />
+              {form.formState.isSubmitting ? (
+                <Loader2Icon className="animate-spin" />
+              ) : (
+                <PlusIcon />
+              )}
               Create
             </Button>
           </div>

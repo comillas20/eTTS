@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { eWalletsTable } from "@/db/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2Icon } from "lucide-react";
+import { ArrowRightIcon, Loader2Icon, Trash2Icon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { deleteWallet } from "../actions";
@@ -57,10 +57,18 @@ export function WalletDeleteDialog({ id }: WalletDeleteDialogProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={walletM.isPending}>
+            <XIcon />
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => walletM.mutate(id)}
             disabled={walletM.isPending}>
+            {walletM.isPending ? (
+              <Loader2Icon className="animate-spin" />
+            ) : (
+              <ArrowRightIcon />
+            )}
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>

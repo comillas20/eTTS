@@ -22,7 +22,7 @@ import { eWalletsTable, eWalletTypeEnum } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createInsertSchema } from "drizzle-zod";
-import { PlusIcon, XIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -160,7 +160,11 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
           <Button
             type="submit"
             disabled={!form.formState.isDirty || form.formState.isSubmitting}>
-            <PlusIcon />
+            {form.formState.isSubmitting ? (
+              <Loader2Icon className="animate-spin" />
+            ) : (
+              <PlusIcon />
+            )}
             Create
           </Button>
         </div>

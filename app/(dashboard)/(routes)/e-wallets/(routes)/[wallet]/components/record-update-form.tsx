@@ -30,7 +30,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
 import { createUpdateSchema } from "drizzle-zod";
-import { CalendarIcon, SaveIcon, XIcon } from "lucide-react";
+import { CalendarIcon, Loader2Icon, SaveIcon, XIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -343,7 +343,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
             <Button
               type="submit"
               disabled={!form.formState.isDirty || form.formState.isSubmitting}>
-              <SaveIcon />
+              {form.formState.isSubmitting ? (
+                <Loader2Icon className="animate-spin" />
+              ) : (
+                <SaveIcon />
+              )}
               Update
             </Button>
           </div>
