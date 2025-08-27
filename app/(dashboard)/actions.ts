@@ -25,20 +25,14 @@ export async function createWallet(values: WalletInsert) {
   return wallet.rowCount;
 }
 
-export async function getMonthYears() {
-  // const years = await db
-  //   .select({
-  //     year: sql<number>`CAST(EXTRACT(YEAR FROM ${recordsTable.date}) AS INTEGER)`,
-  //   })
-  //   .from(recordsTable)
-  //   .groupBy(sql`EXTRACT(YEAR FROM ${recordsTable.date})`);
-
+export async function getMonthYears(walletId?: number) {
   const monthYears = await db
     .select({
       year: sql<number>`CAST(EXTRACT(YEAR FROM ${recordsTable.date}) AS INTEGER)`,
       month: sql<number>`CAST(EXTRACT(MONTH FROM ${recordsTable.date}) AS INTEGER)`,
     })
     .from(recordsTable)
+    .where(walletId ? eq(recordsTable.eWalletId, walletId) : undefined)
     .groupBy(
       sql`EXTRACT(YEAR FROM ${recordsTable.date})`,
       sql`EXTRACT(MONTH FROM ${recordsTable.date})`,

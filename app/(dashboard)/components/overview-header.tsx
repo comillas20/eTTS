@@ -39,8 +39,8 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
   const now = new Date();
 
   const monthYearsQuery = useQuery({
-    queryKey: ["month-years"],
-    queryFn: getMonthYears,
+    queryKey: ["month-years", walletId],
+    queryFn: async () => getMonthYears(walletId),
   });
 
   const years =
