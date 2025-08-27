@@ -68,19 +68,16 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
         body: formData,
       });
 
-      return await res.json();
-    },
-
-    onSuccess: async (data: Response) => {
-      queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
+      const rawData = await res.json();
 
       const recordSchema = createInsertSchema(recordsTable, {
         date: z.string(),
         claimedAt: z.string().optional(),
       }).array();
 
-      if (typeof data !== "object" || !("records" in data)) return;
-      const parsedData = recordSchema.safeParse(data.records);
+      if (typeof rawData !== "object" || !("records" in rawData))
+        return { message: "Something went wrong, please try again." };
+      const parsedData = recordSchema.safeParse(rawData.records);
       if (parsedData.success) {
         const modifiedRecords = parsedData.data.map((d) => ({
           ...d,
@@ -90,10 +87,16 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
         }));
 
         await createRecords(modifiedRecords);
-        toast("Records has been restored successfully");
-      } else {
-        toast("Record restoration failed");
-      }
+
+        queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
+        queryClient.invalidateQueries({ queryKey: ["records"] });
+
+        return { message: "Records has been restored successfully" };
+      } else return { message: "Something went wrong, please try again." };
+    },
+
+    onSuccess: async (data) => {
+      toast(data.message);
 
       setOpen(false);
     },
