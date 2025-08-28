@@ -62,7 +62,7 @@ export function WalletDeleteDialog({ id }: WalletDeleteDialogProps) {
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => walletM.mutate({ id })}
+            onClick={() => walletM.mutate(id)}
             disabled={walletM.isPending}>
             {walletM.isPending ? (
               <Loader2Icon className="animate-spin" />

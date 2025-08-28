@@ -10,19 +10,6 @@ import z from "zod";
 type InsertWallet = typeof eWalletsTable.$inferInsert;
 type SelectWallet = typeof eWalletsTable.$inferSelect;
 
-export async function getWallets() {
-  return await db.query.eWalletsTable.findMany({
-    with: {
-      records: {
-        columns: {
-          type: true,
-          claimedAt: true,
-        },
-      },
-    },
-  });
-}
-
 export async function createWallet(values: InsertWallet) {
   const schema = createInsertSchema(eWalletsTable, {
     name: (schema) => schema.trim().min(1).max(20),
@@ -49,6 +36,19 @@ export async function createWallet(values: InsertWallet) {
     data: result,
     error: null,
   };
+}
+
+export async function getWallets() {
+  return await db.query.eWalletsTable.findMany({
+    with: {
+      records: {
+        columns: {
+          type: true,
+          claimedAt: true,
+        },
+      },
+    },
+  });
 }
 
 export async function updateWallet(values: SelectWallet) {
@@ -79,8 +79,8 @@ export async function updateWallet(values: SelectWallet) {
   };
 }
 
-export async function deleteWallet({ id }: Pick<SelectWallet, "id">) {
-  if (typeof id !== typeof eWalletsTable.$inferSelect.id)
+export async function deleteWallet(id: number) {
+  if (typeof id !== "number")
     return { success: false as const, error: "ID should be a number" };
 
   await db.delete(eWalletsTable).where(eq(eWalletsTable.id, id));

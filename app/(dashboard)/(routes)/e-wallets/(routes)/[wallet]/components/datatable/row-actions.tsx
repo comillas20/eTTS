@@ -72,7 +72,7 @@ export function RowActions({ record, table }: RowActionsProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onSelect={() => recordM.mutate(record)}>
+            onSelect={() => recordM.mutate(record.id)}>
             <Trash2Icon />
             Delete
           </DropdownMenuItem>

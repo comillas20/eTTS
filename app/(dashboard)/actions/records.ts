@@ -55,8 +55,8 @@ export async function createRecords(values: InsertRecord[]) {
   };
 }
 
-export async function getRecords({ id }: Pick<SelectRecord, "id">) {
-  if (typeof id !== typeof recordsTable.$inferSelect.id)
+export async function getRecords(id: number) {
+  if (typeof id !== "number")
     return {
       success: false as const,
       data: null,
@@ -121,7 +121,7 @@ export async function updateNotes(record: Pick<SelectRecord, "id" | "notes">) {
   return { success: true as const, error: parsedValues.error };
 }
 
-export async function deleteRecord({ id }: Pick<SelectRecord, "id">) {
+export async function deleteRecord(id: number) {
   if (typeof id !== "number")
     return { success: false as const, error: "ID should be a number" };
 
