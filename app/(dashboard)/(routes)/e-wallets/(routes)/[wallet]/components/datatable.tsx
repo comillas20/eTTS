@@ -23,7 +23,7 @@ type DatatableProps = {
 export function Datatable({ wallet }: DatatableProps) {
   const { data } = useQuery({
     queryKey: ["records", wallet.id],
-    queryFn: async () => getRecords(wallet),
+    queryFn: async () => getRecords(wallet.id),
   });
 
   const records = data && data.success ? data.data : [];
