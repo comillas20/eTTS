@@ -1,4 +1,3 @@
-import { deleteRecord } from "@/app/(dashboard)/actions/records";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { recordsTable } from "@/db/schema";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Table } from "@tanstack/react-table";
 import {
   MoreHorizontalIcon,
@@ -19,7 +17,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { DeleteDialog } from "./delete-dialog";
 import { UpdateDialog } from "./update-dialog";
 
 type Record = typeof recordsTable.$inferSelect;
@@ -31,17 +29,8 @@ type RowActionsProps = {
 export function RowActions({ record, table }: RowActionsProps) {
   const wallet = table.options.meta?.wallet;
 
-  const queryClient = useQueryClient();
-  const recordM = useMutation({
-    mutationFn: deleteRecord,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["records"] });
-
-      toast("The record has been deleted");
-    },
-  });
-
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   return (
     <>
@@ -72,7 +61,7 @@ export function RowActions({ record, table }: RowActionsProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onSelect={() => recordM.mutate(record.id)}>
+            onSelect={() => setOpenDeleteDialog(true)}>
             <Trash2Icon />
             Delete
           </DropdownMenuItem>
@@ -81,6 +70,11 @@ export function RowActions({ record, table }: RowActionsProps) {
       <UpdateDialog
         open={openUpdateDialog}
         onOpenChange={setOpenUpdateDialog}
+        record={record}
+      />
+      <DeleteDialog
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
         record={record}
       />
     </>
