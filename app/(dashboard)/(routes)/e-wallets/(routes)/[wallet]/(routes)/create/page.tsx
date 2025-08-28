@@ -1,7 +1,7 @@
+import { getWallets } from "@/app/(dashboard)/actions/wallets";
 import db from "@/db/drizzle";
 import { notFound } from "next/navigation";
 import { RecordForm } from "./components/record-form";
-import { getWallets } from "@/app/(dashboard)/actions";
 import { RecordFromJson } from "./components/record-from-json";
 
 export async function generateStaticParams() {

@@ -1,5 +1,6 @@
 "use client";
 
+import { getRecords } from "@/app/(dashboard)/actions/records";
 import { DatatableFrame } from "@/app/(dashboard)/components/datatable-frame";
 import { DatatablePagination } from "@/app/(dashboard)/components/datatable-pagination";
 import { eWalletsTable } from "@/db/schema";
@@ -12,7 +13,6 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { getRecords } from "../actions";
 import { columns } from "./datatable/columns";
 import { Header } from "./datatable/header";
 
@@ -23,11 +23,13 @@ type DatatableProps = {
 export function Datatable({ wallet }: DatatableProps) {
   const { data } = useQuery({
     queryKey: ["records", wallet.id],
-    queryFn: async () => getRecords(wallet.id),
+    queryFn: async () => getRecords(wallet),
   });
 
+  const records = data && data.success ? data.data : [];
+
   const table = useReactTable({
-    data: data || [],
+    data: records,
     columns: columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

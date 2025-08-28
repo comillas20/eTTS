@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteWallet } from "@/app/(dashboard)/actions/wallets";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +18,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowRightIcon, Loader2Icon, Trash2Icon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { deleteWallet } from "../actions";
 
 type WalletDeleteDialogProps = {
   id: typeof eWalletsTable.$inferSelect.id;
@@ -62,7 +62,7 @@ export function WalletDeleteDialog({ id }: WalletDeleteDialogProps) {
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => walletM.mutate(id)}
+            onClick={() => walletM.mutate({ id })}
             disabled={walletM.isPending}>
             {walletM.isPending ? (
               <Loader2Icon className="animate-spin" />

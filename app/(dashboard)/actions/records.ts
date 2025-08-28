@@ -2,42 +2,130 @@
 
 import db from "@/db/drizzle";
 import { recordsTable } from "@/db/schema";
-import { createInsertSchema } from "drizzle-zod";
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { eq } from "drizzle-orm";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import z from "zod";
 
-const createRecordsSchema = createInsertSchema(recordsTable, {
-  referenceNumber: (schema) => schema.min(1, "Invalid ref no."),
-  cellNumber: (schema) => schema.min(11, "Invalid phone no.").nullable(),
-  amount: (schema) => schema.min(1, "Amount cannot be below 1"),
-  fee: (schema) => schema.min(0, "Fee cannot be negative"),
-});
+type InsertRecord = typeof recordsTable.$inferInsert;
+type SelectRecord = typeof recordsTable.$inferSelect;
 
-type CreateRecord = z.infer<typeof createRecordsSchema>;
-export async function createRecord(values: CreateRecord) {
-  const parsedValues = createRecordsSchema.safeParse(values);
+export async function createRecord(values: InsertRecord) {
+  const schema = createInsertSchema(recordsTable);
+  const parsedValues = schema.safeParse(values);
 
-  if (parsedValues.error) return parsedValues.error;
+  if (parsedValues.error)
+    return { success: false as const, data: null, error: parsedValues.error };
 
   if (parsedValues.data.type === "cash-in") parsedValues.data.claimedAt = null;
-  await db.insert(recordsTable).values(parsedValues.data);
 
-  return null;
+  const result = await db
+    .insert(recordsTable)
+    .values(parsedValues.data)
+    .returning({ id: recordsTable.id })
+    .onConflictDoNothing();
+
+  return {
+    success: true as const,
+    data: result[0],
+    error: null,
+  };
 }
 
-const createRecordsSchemaArray = createRecordsSchema.array();
-type CreateRecords = z.infer<typeof createRecordsSchemaArray>;
-export async function createRecords(data: CreateRecords) {
-  const parsedValues = createRecordsSchemaArray.safeParse(data);
+export async function createRecords(values: InsertRecord[]) {
+  const schema = createInsertSchema(recordsTable).array();
+  const parsedValues = schema.safeParse(values);
 
-  if (parsedValues.error) return parsedValues.error;
+  if (parsedValues.error)
+    return { success: false as const, data: null, error: parsedValues.error };
 
   parsedValues.data.forEach((record) => {
     if (record.type === "cash-in") record.claimedAt = null;
   });
 
-  await db.insert(recordsTable).values(parsedValues.data).onConflictDoNothing();
-  revalidatePath("/e-wallets");
+  const result = await db
+    .insert(recordsTable)
+    .values(parsedValues.data)
+    .returning({ id: recordsTable.id })
+    .onConflictDoNothing();
 
-  return null;
+  return {
+    success: true as const,
+    data: result,
+    error: null,
+  };
+}
+
+export async function getRecords({ id }: Pick<SelectRecord, "id">) {
+  if (typeof id !== typeof recordsTable.$inferSelect.id)
+    return {
+      success: false as const,
+      data: null,
+      error: "ID should be a number",
+    };
+
+  const result = await db.query.recordsTable.findMany({
+    where: (fields, { eq }) => eq(fields.eWalletId, id),
+    orderBy: (fields, { desc }) => [desc(fields.date)],
+  });
+
+  return {
+    success: true as const,
+    data: result,
+    error: null,
+  };
+}
+
+export async function updateRecord(values: SelectRecord) {
+  // I used createSelectSchema instead of the update/insert counterpart
+  // because I want the id to also be verified
+  // and that all properties be required
+
+  const schema = createSelectSchema(recordsTable);
+  const parsedValues = schema.safeParse(values);
+
+  if (parsedValues.error)
+    return { success: false as const, data: null, error: parsedValues.error };
+
+  const { id, ...rest } = parsedValues.data;
+
+  const result = await db
+    .update(recordsTable)
+    .set(rest)
+    .where(eq(recordsTable.id, id))
+    .returning();
+
+  return {
+    success: true as const,
+    data: result[0],
+    error: null,
+  };
+}
+
+export async function updateNotes(record: Pick<SelectRecord, "id" | "notes">) {
+  const schema = z.object({
+    id: z.number(),
+    notes: z.string().nullable(),
+  });
+
+  const parsedValues = schema.safeParse(record);
+
+  if (parsedValues.error)
+    return { success: false as const, error: parsedValues.error };
+
+  const { id, notes } = parsedValues.data;
+  await db
+    .update(recordsTable)
+    .set({ notes: notes })
+    .where(eq(recordsTable.id, id));
+
+  return { success: true as const, error: parsedValues.error };
+}
+
+export async function deleteRecord({ id }: Pick<SelectRecord, "id">) {
+  if (typeof id !== "number")
+    return { success: false as const, error: "ID should be a number" };
+
+  await db.delete(recordsTable).where(eq(recordsTable.id, id));
+
+  return { success: true as const, error: null };
 }

@@ -1,4 +1,4 @@
-import { getWallets } from "@/app/(dashboard)/actions";
+import { getWallets } from "@/app/(dashboard)/actions/wallets";
 import { Button } from "@/components/ui/button";
 import {
   Card,

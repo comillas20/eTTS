@@ -1,5 +1,6 @@
 import { DatatableColumnHeaderFilter } from "@/app/(dashboard)/components/datatable-column-header-filter";
 import { Badge } from "@/components/ui/badge";
+import { recordsTable } from "@/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { format, isAfter, isBefore, isSameDay } from "date-fns";
 import {
@@ -12,9 +13,9 @@ import {
   SlidersHorizontalIcon,
 } from "lucide-react";
 import { isDateRange } from "react-day-picker";
-import { Record } from "../../actions";
 import { RowActions } from "./row-actions";
 
+type Record = typeof recordsTable.$inferSelect;
 const dateFormat = "MMM d, yyyy, h:mma";
 
 export const columns: ColumnDef<Record>[] = [

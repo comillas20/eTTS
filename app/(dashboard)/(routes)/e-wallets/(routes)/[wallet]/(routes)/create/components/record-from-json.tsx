@@ -1,5 +1,6 @@
 "use client";
 
+import { createRecords } from "@/app/(dashboard)/actions/records";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { eWalletsTable, recordsTable } from "@/db/schema";
@@ -10,7 +11,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createRecords } from "../actions";
 
 const dataSchema = createInsertSchema(recordsTable, {
   date: z.string().datetime({ local: true }),

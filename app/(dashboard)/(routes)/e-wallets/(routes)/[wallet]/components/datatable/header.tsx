@@ -9,16 +9,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { recordsTable } from "@/db/schema";
 import { Table } from "@tanstack/react-table";
 import { ChevronDownIcon, ColumnsIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DateRange } from "react-day-picker";
-import { Record } from "../../actions";
 
 type HeaderProps = {
-  table: Table<Record>;
+  table: Table<typeof recordsTable.$inferSelect>;
 };
+
 export function Header({ table }: HeaderProps) {
   const path = usePathname();
 

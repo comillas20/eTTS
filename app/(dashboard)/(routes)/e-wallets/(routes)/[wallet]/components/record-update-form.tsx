@@ -1,5 +1,6 @@
 "use client";
 
+import { updateRecord } from "@/app/(dashboard)/actions/records";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { DialogClose } from "@/components/ui/dialog";
@@ -29,14 +30,13 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
-import { createUpdateSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { CalendarIcon, Loader2Icon, SaveIcon, XIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateRecord } from "../actions";
 
-const formSchema = createUpdateSchema(recordsTable, {
+const formSchema = createSelectSchema(recordsTable, {
   id: z.number(),
   referenceNumber: (schema) => schema.min(1, "Invalid ref no."),
   cellNumber: (schema) => schema.min(11, "Invalid phone no.").or(z.literal("")),
@@ -67,16 +67,14 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
     },
   });
 
-  const onSubmit = async (values: RecordUpdateForm) => {
-    records.mutate(values);
-  };
-
   const type = form.watch("type");
 
   return (
     <div className="space-y-16">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit((values) => records.mutate(values))}
+          className="space-y-4">
           <FormField
             control={form.control}
             name="referenceNumber"

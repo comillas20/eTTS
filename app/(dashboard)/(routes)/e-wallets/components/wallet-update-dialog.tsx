@@ -1,5 +1,6 @@
 "use client";
 
+import { updateWallet } from "@/app/(dashboard)/actions/wallets";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,23 +30,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { eWalletsTable, eWalletTypeEnum } from "@/db/schema";
+import { isCellnumber } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createUpdateSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { Loader2Icon, PencilIcon, SaveIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateWallet } from "../actions";
 
-const formSchema = createUpdateSchema(eWalletsTable, {
+const formSchema = createSelectSchema(eWalletsTable, {
   name: (schema) =>
     schema
       .trim()
       .min(1, "E-wallet name is required")
       .max(20, "E-wallet name is too long"),
-  cellNumber: (schema) => schema.trim().min(11, "Invalid phone no."),
+  cellNumber: (schema) =>
+    schema.trim().refine((check) => isCellnumber(check), "Invalid cell number"),
 });
 
 type UpdateWalletForm = z.infer<typeof formSchema>;
@@ -75,10 +77,6 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
     },
   });
 
-  const onSubmit = async (values: UpdateWalletForm) => {
-    walletM.mutate({ id: initialData.id, ...values });
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -94,7 +92,9 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form
+            onSubmit={form.handleSubmit((values) => walletM.mutate(values))}
+            className="space-y-8">
             <FormField
               control={form.control}
               name="name"

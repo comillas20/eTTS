@@ -1,29 +1,9 @@
 "use server";
 
 import db from "@/db/drizzle";
-import { eWalletsTable, recordsTable } from "@/db/schema";
+import { recordsTable } from "@/db/schema";
 import { getYear, lastDayOfMonth, subDays } from "date-fns";
 import { and, eq, gte, lt, or, sql } from "drizzle-orm";
-
-export async function getWallets() {
-  return await db.query.eWalletsTable.findMany({
-    with: {
-      records: {
-        columns: {
-          type: true,
-          claimedAt: true,
-        },
-      },
-    },
-  });
-}
-
-type WalletInsert = typeof eWalletsTable.$inferInsert;
-export async function createWallet(values: WalletInsert) {
-  const wallet = await db.insert(eWalletsTable).values(values);
-
-  return wallet.rowCount;
-}
 
 export async function getMonthYears(walletId?: number) {
   const monthYears = await db

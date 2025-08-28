@@ -1,3 +1,4 @@
+import { deleteRecord } from "@/app/(dashboard)/actions/records";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +9,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { recordsTable } from "@/db/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Table } from "@tanstack/react-table";
 import {
@@ -18,9 +20,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { deleteRecord, Record } from "../../actions";
 import { UpdateDialog } from "./update-dialog";
 
+type Record = typeof recordsTable.$inferSelect;
 type RowActionsProps = {
   record: Record;
   table: Table<Record>;
@@ -70,7 +72,7 @@ export function RowActions({ record, table }: RowActionsProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onSelect={() => recordM.mutate(record.id)}>
+            onSelect={() => recordM.mutate(record)}>
             <Trash2Icon />
             Delete
           </DropdownMenuItem>

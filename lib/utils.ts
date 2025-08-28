@@ -18,3 +18,8 @@ export function feeCalculator(amount: number, type: "cash-in" | "cash-out") {
     return belowInitialFee ? initialFee : initialFee + ladder * rate;
   } else return Math.ceil(amount / ladder) * ladder * rate;
 }
+
+export function isCellnumber(cellNumber: string) {
+  const phRegex = /^(?:\+639|09)\d{9}$/;
+  return phRegex.test(cellNumber);
+}

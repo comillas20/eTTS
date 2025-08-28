@@ -1,5 +1,6 @@
 "use client";
 
+import { createRecord } from "@/app/(dashboard)/actions/records";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -42,7 +43,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createRecord } from "../actions";
 
 const formSchema = createInsertSchema(recordsTable, {
   referenceNumber: (schema) => schema.min(1, "Invalid ref no."),
@@ -50,11 +50,12 @@ const formSchema = createInsertSchema(recordsTable, {
   amount: (schema) => schema.min(1, "Amount cannot be below 1"),
   fee: (schema) => schema.min(0, "Fee cannot be negative"),
 });
-type RecordForm = z.infer<typeof formSchema>;
 
+type RecordForm = z.infer<typeof formSchema>;
 type RecordFormProps = {
   wallet: typeof eWalletsTable.$inferSelect;
 };
+
 export function RecordForm({ wallet }: RecordFormProps) {
   const form = useForm<RecordForm>({
     resolver: zodResolver(formSchema),
@@ -68,7 +69,6 @@ export function RecordForm({ wallet }: RecordFormProps) {
       claimedAt: null,
       eWalletId: wallet.id,
       notes: "",
-      createdAt: undefined,
     },
   });
 
@@ -86,10 +86,6 @@ export function RecordForm({ wallet }: RecordFormProps) {
       });
     },
   });
-
-  const onSubmit = async (values: RecordForm) => {
-    records.mutate(values);
-  };
 
   const router = useRouter();
 
@@ -130,7 +126,9 @@ export function RecordForm({ wallet }: RecordFormProps) {
   return (
     <div className="grid gap-y-16 lg:grid-cols-2 lg:gap-x-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit((values) => records.mutate(values))}
+          className="space-y-4">
           <FormField
             control={form.control}
             name="referenceNumber"
