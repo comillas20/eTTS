@@ -16,7 +16,7 @@ type UpdateDialogProps = {
 
 export function UpdateDialog({ record, ...props }: UpdateDialogProps) {
   return (
-    <Dialog {...props}>
+    <Dialog {...props} modal={false}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Update record</DialogTitle>
