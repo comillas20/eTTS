@@ -36,7 +36,10 @@ export default async function Page() {
               <CardAction className="space-x-2">
                 <RecordBackUpDownload wallet={wallet} />
                 <RecordRestore wallet={wallet} />
-                <WalletUpdateDialog initialData={wallet} />
+                <WalletUpdateDialog
+                  key={JSON.stringify(wallet)}
+                  initialData={wallet}
+                />
                 <WalletDeleteDialog id={wallet.id} />
               </CardAction>
             </CardHeader>

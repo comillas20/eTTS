@@ -5,6 +5,7 @@ import { eWalletsTable } from "@/db/schema";
 import { isCellnumber } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
+import { revalidatePath } from "next/cache";
 import z from "zod";
 
 type InsertWallet = typeof eWalletsTable.$inferInsert;
@@ -72,6 +73,7 @@ export async function updateWallet(values: SelectWallet) {
     .where(eq(eWalletsTable.id, values.id))
     .returning({ url: eWalletsTable.url });
 
+  revalidatePath("/e-wallets");
   return {
     success: true as const,
     data: result[0],
@@ -85,5 +87,6 @@ export async function deleteWallet(id: number) {
 
   await db.delete(eWalletsTable).where(eq(eWalletsTable.id, id));
 
+  revalidatePath("/e-wallets");
   return { success: true as const, error: null };
 }
