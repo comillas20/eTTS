@@ -38,7 +38,7 @@ export function RowActions({ record, table }: RowActionsProps) {
         <DropdownMenuTrigger>
           <MoreHorizontalIcon className="size-4" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent align="end">
           <DropdownMenuSub>
             <DropdownMenuItem asChild>
               <DropdownMenuSubTrigger>

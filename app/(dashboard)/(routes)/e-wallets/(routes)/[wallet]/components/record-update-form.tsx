@@ -80,7 +80,13 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
             name="referenceNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Reference number</FormLabel>
+                <FormLabel
+                  className={cn({
+                    "text-secondary":
+                      form.getFieldState("referenceNumber").isDirty,
+                  })}>
+                  Reference number
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="text"
@@ -97,7 +103,12 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
             name="cellNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cell number</FormLabel>
+                <FormLabel
+                  className={cn({
+                    "text-secondary": form.getFieldState("cellNumber").isDirty,
+                  })}>
+                  Cell number
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -116,7 +127,12 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
               name="amount"
               render={({ field }) => (
                 <FormItem className="col-span-2">
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel
+                    className={cn({
+                      "text-secondary": form.getFieldState("amount").isDirty,
+                    })}>
+                    Amount
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -137,7 +153,12 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
               name="fee"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fee</FormLabel>
+                  <FormLabel
+                    className={cn({
+                      "text-secondary": form.getFieldState("fee").isDirty,
+                    })}>
+                    Fee
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -159,7 +180,12 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Type</FormLabel>
+                <FormLabel
+                  className={cn({
+                    "text-secondary": form.getFieldState("type").isDirty,
+                  })}>
+                  Type
+                </FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="capitalize">
@@ -187,19 +213,24 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
               name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Transaction date</FormLabel>
+                  <FormLabel
+                    className={cn({
+                      "text-secondary": form.getFieldState("date").isDirty,
+                    })}>
+                    Transaction date
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          variant={"outline"}
+                          variant="outline"
                           className="pl-3 text-left font-normal">
                           {format(field.value ?? new Date(), "PPPp")}
                           <CalendarIcon className="ml-auto size-4 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+                    <PopoverContent className="z-[9999] w-auto p-0">
                       <Calendar
                         mode="single"
                         selected={field.value ?? undefined}
@@ -249,7 +280,12 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
               name="claimedAt"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Claimed at</FormLabel>
+                  <FormLabel
+                    className={cn({
+                      "text-secondary": form.getFieldState("claimedAt").isDirty,
+                    })}>
+                    Claimed at
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -319,7 +355,12 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Transaction notes</FormLabel>
+                <FormLabel
+                  className={cn({
+                    "text-secondary": form.getFieldState("notes").isDirty,
+                  })}>
+                  Transaction notes
+                </FormLabel>
                 <FormControl>
                   <Textarea {...field} value={field.value ?? ""} />
                 </FormControl>

@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { eWalletsTable, eWalletTypeEnum } from "@/db/schema";
-import { isCellnumber } from "@/lib/utils";
+import { cn, isCellnumber } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createSelectSchema } from "drizzle-zod";
@@ -100,7 +100,12 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-wallet name</FormLabel>
+                  <FormLabel
+                    className={cn({
+                      "text-secondary": form.getFieldState("name").isDirty,
+                    })}>
+                    E-wallet name
+                  </FormLabel>
                   <FormDescription>
                     Your custom e-wallet name (e.g. My G-cash)
                   </FormDescription>
@@ -125,7 +130,12 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type of e-wallet</FormLabel>
+                  <FormLabel
+                    className={cn({
+                      "text-secondary": form.getFieldState("type").isDirty,
+                    })}>
+                    Type of e-wallet
+                  </FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger className="capitalize">
@@ -152,7 +162,13 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
               name="cellNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cell number</FormLabel>
+                  <FormLabel
+                    className={cn({
+                      "text-secondary":
+                        form.getFieldState("cellNumber").isDirty,
+                    })}>
+                    Cell number
+                  </FormLabel>
                   <FormDescription>
                     The cell number you use to transact
                   </FormDescription>
