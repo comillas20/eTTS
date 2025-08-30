@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { isDateRange } from "react-day-picker";
 import { RowActions } from "./row-actions";
+import { DataTableColumnSortHeader } from "@/app/(dashboard)/components/datatable-column-sort-header";
 
 type Record = typeof recordsTable.$inferSelect;
 const dateFormat = "MMM d, yyyy, h:mma";
@@ -122,7 +123,9 @@ export const columns: ColumnDef<Record>[] = [
   },
   {
     accessorKey: "amount",
-    header: "Amount",
+    header: ({ column }) => (
+      <DataTableColumnSortHeader column={column} title="Amount" />
+    ),
     cell: ({ row }) =>
       Intl.NumberFormat("en-US", {
         style: "currency",
