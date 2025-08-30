@@ -1,4 +1,4 @@
-import { DatatableColumnHeaderFilter } from "@/app/(dashboard)/components/datatable-column-header-filter";
+import { DatatableColumnFilterHeader } from "@/app/(dashboard)/components/datatable-column-filter-header";
 import { Badge } from "@/components/ui/badge";
 import { recordsTable } from "@/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
@@ -29,7 +29,7 @@ export const columns: ColumnDef<Record>[] = [
     id: "mobile number",
     accessorKey: "cellNumber",
     header: ({ column }) => (
-      <DatatableColumnHeaderFilter
+      <DatatableColumnFilterHeader
         options={[
           {
             label: "All",
@@ -83,7 +83,7 @@ export const columns: ColumnDef<Record>[] = [
       ) as string[];
 
       return (
-        <DatatableColumnHeaderFilter
+        <DatatableColumnFilterHeader
           header={{ title: "Type", icon: SlidersHorizontalIcon }}
           options={[
             {

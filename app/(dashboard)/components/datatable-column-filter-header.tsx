@@ -17,16 +17,16 @@ type Option = {
   onSelect: () => void;
 };
 
-type DatatableColumnHeaderFilterProps = {
+type DatatableColumnFilterHeaderProps = {
   options: Option[];
   header: { title: string; icon?: LucideIcon };
 } & React.HTMLAttributes<HTMLDivElement>;
 
-export function DatatableColumnHeaderFilter({
+export function DatatableColumnFilterHeader({
   options,
   header,
   className,
-}: DatatableColumnHeaderFilterProps) {
+}: DatatableColumnFilterHeaderProps) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <DropdownMenu>
