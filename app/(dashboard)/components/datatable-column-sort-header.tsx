@@ -53,7 +53,7 @@ export function DataTableColumnSortHeader<TData, TValue>({
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
-              sortStatus ? column.clearSorting() : column.toggleSorting(false)
+              sortStatus ? column.clearSorting() : column.toggleSorting(true)
             }>
             <ArrowDownIcon className="text-muted-foreground/70 h-3.5 w-3.5" />
             Desc
