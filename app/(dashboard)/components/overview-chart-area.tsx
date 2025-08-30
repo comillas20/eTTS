@@ -27,7 +27,8 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { recordsTable } from "@/db/schema";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { compareAsc, max } from "date-fns";
+import { compareAsc, format, lastDayOfMonth, max } from "date-fns";
+import { useSearchParams } from "next/navigation";
 
 const chartConfig = {
   transactions: {
@@ -55,6 +56,8 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
     }
   }, [isMobile]);
 
+  let selectedSpan = "last 3 months";
+
   const chartData = aggregateRecords(data);
   const filteredData = chartData
     .filter((item, _, arr) => {
@@ -62,8 +65,10 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
       const referenceDate = max(arr.map((a) => a.date));
       let daysToSubtract = 90;
       if (timeRange === "30d") {
+        selectedSpan = "last 30 days";
         daysToSubtract = 30;
       } else if (timeRange === "7d") {
+        selectedSpan = "last 7 days";
         daysToSubtract = 7;
       }
       const startDate = new Date(referenceDate);
@@ -72,13 +77,29 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
     })
     .sort((a, b) => compareAsc(new Date(a.date), new Date(b.date)));
 
+  // Get the last day of the selected month via search params
+  const searchParams = useSearchParams();
+  const now = new Date();
+
+  let lastDayOfSelectedMonth = lastDayOfMonth(now);
+  const selectedMonth = searchParams.get("month");
+  const selectedYear = searchParams.get("year");
+  if (selectedMonth && selectedYear) {
+    const parsedM = parseInt(selectedMonth);
+    const parsedY = parseInt(selectedYear);
+
+    if (!isNaN(parsedM) && !isNaN(parsedY))
+      lastDayOfSelectedMonth = lastDayOfMonth(new Date(parsedY, parsedM));
+  }
+
   return (
     <Card className="@container/card">
       <CardHeader>
         <CardTitle>Transactions</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
-            Total transactions for the last 3 months
+            Total transactions for the {selectedSpan} of
+            {" " + format(lastDayOfSelectedMonth, "PPP")}
           </span>
           <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
@@ -90,13 +111,13 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
             variant="outline"
             className="hidden @[767px]/card:flex">
             <ToggleGroupItem value="90d" className="h-8 px-2.5">
-              Last 3 months
+              90 days
             </ToggleGroupItem>
             <ToggleGroupItem value="30d" className="h-8 px-2.5">
-              Last 30 days
+              30 days
             </ToggleGroupItem>
             <ToggleGroupItem value="7d" className="h-8 px-2.5">
-              Last 7 days
+              7 days
             </ToggleGroupItem>
           </ToggleGroup>
           <Select value={timeRange} onValueChange={setTimeRange}>
