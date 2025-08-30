@@ -46,14 +46,18 @@ export function DataTableColumnSortHeader<TData, TValue>({
         <DropdownMenuContent align="start">
           <DropdownMenuItem
             onClick={() =>
-              sortStatus ? column.clearSorting() : column.toggleSorting(false)
+              sortStatus && sortStatus === "asc"
+                ? column.clearSorting()
+                : column.toggleSorting(false)
             }>
             <ArrowUpIcon className="text-muted-foreground/70 h-3.5 w-3.5" />
             Asc
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
-              sortStatus ? column.clearSorting() : column.toggleSorting(true)
+              sortStatus && sortStatus === "desc"
+                ? column.clearSorting()
+                : column.toggleSorting(true)
             }>
             <ArrowDownIcon className="text-muted-foreground/70 h-3.5 w-3.5" />
             Desc
