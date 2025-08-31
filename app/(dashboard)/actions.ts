@@ -59,7 +59,9 @@ export async function getFilteredRecords(filters: FilteredRecords) {
       in: tz("UTC"),
     });
   } else
-    targetDate = lastDayOfMonth(new Date(year || getYear(new Date()), month));
+    targetDate = lastDayOfMonth(new Date(year || getYear(new Date()), month), {
+      in: tz("UTC"),
+    });
 
   // set it so that records in the same day as @targetDate is included
   targetDate.setHours(23, 59, 59);
