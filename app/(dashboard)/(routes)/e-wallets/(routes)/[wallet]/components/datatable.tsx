@@ -12,8 +12,10 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  PaginationState,
   useReactTable,
 } from "@tanstack/react-table";
+import { useEffect, useRef, useState } from "react";
 import { columns } from "./datatable/columns";
 import { Header } from "./datatable/header";
 
@@ -28,6 +30,13 @@ export function Datatable({ wallet }: DatatableProps) {
   });
 
   const records = data && data.success ? data.data : [];
+
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const currentPageIndexRef = useRef(pagination.pageIndex);
 
   const table = useReactTable({
     data: records,
@@ -46,7 +55,31 @@ export function Datatable({ wallet }: DatatableProps) {
       },
       wallet: wallet,
     },
+    state: {
+      pagination,
+    },
+    onPaginationChange: setPagination,
+    autoResetPageIndex: false,
   });
+
+  useEffect(() => {
+    currentPageIndexRef.current = pagination.pageIndex;
+  }, [pagination]);
+
+  useEffect(() => {
+    if (currentPageIndexRef.current === 0) return;
+    else {
+      const pageCount = table.getPageCount() - 1;
+      const pageIndex =
+        pageCount < currentPageIndexRef.current
+          ? pageCount
+          : currentPageIndexRef.current;
+      setPagination((prev) => ({
+        pageIndex: pageIndex,
+        pageSize: prev.pageSize,
+      }));
+    }
+  }, [table, data]);
 
   return (
     <div className="flex size-full flex-col gap-4">
