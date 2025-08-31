@@ -2,6 +2,7 @@
 
 import db from "@/db/drizzle";
 import { recordsTable } from "@/db/schema";
+import { tz } from "@date-fns/tz";
 import { getYear, lastDayOfMonth, subDays } from "date-fns";
 import { and, eq, gte, lt, or, sql } from "drizzle-orm";
 
@@ -54,9 +55,14 @@ export async function getFilteredRecords(filters: FilteredRecords) {
     // something went wrong
     if (!mostRecent) return [];
 
-    targetDate = lastDayOfMonth(mostRecent.date);
+    targetDate = lastDayOfMonth(mostRecent.date, {
+      in: tz("UTC"),
+    });
   } else
     targetDate = lastDayOfMonth(new Date(year || getYear(new Date()), month));
+
+  // set it so that records in the same day as @targetDate is included
+  targetDate.setHours(23, 59, 59);
 
   const results = await db.query.recordsTable.findMany({
     where: and(
