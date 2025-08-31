@@ -101,7 +101,10 @@ export async function POST(request: Request, { params }: RouteProps) {
   });
 
   if (!wallet)
-    return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
+    return NextResponse.json(
+      { success: false, error: "Wallet not found" },
+      { status: 404 },
+    );
 
   try {
     const formData = await request.formData();
@@ -120,10 +123,21 @@ export async function POST(request: Request, { params }: RouteProps) {
 
     if (!parsedFormData.success) {
       return NextResponse.json(
-        { error: parsedFormData.error.issues },
+        {
+          success: false,
+          error: "Something went wrong, please refresh and try again",
+        },
         { status: 400 },
       );
     }
+
+    // wallets that requires file password
+    const walletsNeedPass: (typeof wallet.type)[] = ["g-cash"];
+    if (walletsNeedPass.includes(wallet.type) && !parsedFormData.data.password)
+      return NextResponse.json(
+        { success: false, error: "Password required for this specific file" },
+        { status: 400 },
+      );
 
     const uploadedFile = parsedFormData.data.file;
 
@@ -145,8 +159,15 @@ export async function POST(request: Request, { params }: RouteProps) {
 
     switch (wallet.type) {
       case "g-cash":
+        // repeated check, purely to satisfy typescript
         if (!parsedFormData.data.password)
-          return new NextResponse("Password required", { status: 400 });
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Password required for this specific file",
+            },
+            { status: 400 },
+          );
 
         const records = await runScript({
           wallet: wallet,
@@ -155,14 +176,17 @@ export async function POST(request: Request, { params }: RouteProps) {
           filePassword: parsedFormData.data.password,
         });
 
-        return NextResponse.json({ records }, { status: 200 });
+        return NextResponse.json({ success: true, records }, { status: 200 });
       default:
-        return NextResponse.json({ error: "How?" }, { status: 400 });
+        return NextResponse.json(
+          { success: false, error: "How?" },
+          { status: 400 },
+        );
     }
   } catch (error) {
     console.error("File upload error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error XD" },
+      { success: false, error: "Internal Server Error" },
       { status: 500 },
     );
   }

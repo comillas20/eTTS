@@ -63,21 +63,23 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
       formData.append("file", data.file);
       formData.append("password", data.filePassword || "");
 
-      const res = await fetch(`/api/e-wallets/${wallet.url}`, {
+      const result = await fetch(`/api/e-wallets/${wallet.url}`, {
         method: "POST",
         body: formData,
       });
 
-      const rawData = await res.json();
+      const resultData:
+        | { success: false; error: string }
+        | { success: true; records: unknown } = await result.json();
 
       const recordSchema = createInsertSchema(recordsTable, {
         date: z.string(),
         claimedAt: z.string().optional(),
       }).array();
 
-      if (typeof rawData !== "object" || !("records" in rawData))
-        return { message: "Something went wrong, please try again." };
-      const parsedData = recordSchema.safeParse(rawData.records);
+      if (!resultData.success) return { message: resultData.error };
+
+      const parsedData = recordSchema.safeParse(resultData.records);
       if (parsedData.success) {
         const modifiedRecords = parsedData.data.map((d) => ({
           ...d,
@@ -92,7 +94,10 @@ export function RecordRestore({ wallet }: RecordRestoreProps) {
         queryClient.invalidateQueries({ queryKey: ["records"] });
 
         return { message: "Records has been restored successfully" };
-      } else return { message: "Something went wrong, please try again." };
+      } else
+        return {
+          message: "Something went wrong, please refresh and try again.",
+        };
     },
 
     onSuccess: async (data) => {
