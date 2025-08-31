@@ -4,6 +4,7 @@ import db from "@/db/drizzle";
 import { recordsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { revalidatePath } from "next/cache";
 import z from "zod";
 
 type InsertRecord = typeof recordsTable.$inferInsert;
@@ -47,6 +48,8 @@ export async function createRecords(values: InsertRecord[]) {
     .values(parsedValues.data)
     .returning({ id: recordsTable.id })
     .onConflictDoNothing();
+
+  revalidatePath("/e-wallets");
 
   return {
     success: true as const,
