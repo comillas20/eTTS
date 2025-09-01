@@ -17,7 +17,7 @@ const partialRecordSchema = z.object({
 type PartialRecord = z.infer<typeof partialRecordSchema>;
 
 function getCellNumber(description: string, walletCellNumber: string) {
-  const matches = description.match(/\d{11}/g);
+  const matches = description.match(/(?:\+639|09)\d{9}/g);
 
   if (!matches) return null;
 
