@@ -28,7 +28,7 @@ export function NavWallets() {
               <SidebarMenuButton
                 asChild
                 tooltip={wallet.name}
-                isActive={pathname.startsWith("/" + wallet.url)}>
+                isActive={pathname.startsWith("/e-wallets/" + wallet.url)}>
                 <Link href={"/e-wallets/" + wallet.url}>
                   <WalletIcon />
                   <span>{wallet.name}</span>
