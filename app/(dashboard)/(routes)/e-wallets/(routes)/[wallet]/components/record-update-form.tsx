@@ -77,12 +77,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
         <FormField
           control={form.control}
           name="referenceNumber"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel
                 className={cn({
-                  "text-secondary":
-                    form.getFieldState("referenceNumber").isDirty,
+                  "text-primary": fieldState.isDirty,
                 })}>
                 Reference number
               </FormLabel>
@@ -96,11 +95,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
         <FormField
           control={form.control}
           name="cellNumber"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel
                 className={cn({
-                  "text-secondary": form.getFieldState("cellNumber").isDirty,
+                  "text-primary": fieldState.isDirty,
                 })}>
                 Cell number
               </FormLabel>
@@ -120,11 +119,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
           <FormField
             control={form.control}
             name="amount"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem className="col-span-2">
                 <FormLabel
                   className={cn({
-                    "text-secondary": form.getFieldState("amount").isDirty,
+                    "text-primary": fieldState.isDirty,
                   })}>
                   Amount
                 </FormLabel>
@@ -146,11 +145,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
           <FormField
             control={form.control}
             name="fee"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel
                   className={cn({
-                    "text-secondary": form.getFieldState("fee").isDirty,
+                    "text-primary": fieldState.isDirty,
                   })}>
                   Fee
                 </FormLabel>
@@ -173,11 +172,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
         <FormField
           control={form.control}
           name="type"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel
                 className={cn({
-                  "text-secondary": form.getFieldState("type").isDirty,
+                  "text-primary": fieldState.isDirty,
                 })}>
                 Type
               </FormLabel>
@@ -203,11 +202,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
           <FormField
             control={form.control}
             name="date"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem className="flex flex-col">
                 <FormLabel
                   className={cn({
-                    "text-secondary": form.getFieldState("date").isDirty,
+                    "text-primary": fieldState.isDirty,
                   })}>
                   Transaction date
                 </FormLabel>
@@ -270,11 +269,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
           <FormField
             control={form.control}
             name="claimedAt"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem className="flex flex-col">
                 <FormLabel
                   className={cn({
-                    "text-secondary": form.getFieldState("claimedAt").isDirty,
+                    "text-primary": fieldState.isDirty,
                   })}>
                   Claimed at
                 </FormLabel>
@@ -345,11 +344,11 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
         <FormField
           control={form.control}
           name="notes"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel
                 className={cn({
-                  "text-secondary": form.getFieldState("notes").isDirty,
+                  "text-primary": fieldState.isDirty,
                 })}>
                 Transaction notes
               </FormLabel>
@@ -368,6 +367,7 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
           </AlertDialogCancel>
           <Button
             type="submit"
+            variant="secondary"
             disabled={!form.formState.isDirty || form.formState.isSubmitting}>
             {form.formState.isSubmitting ? (
               <Loader2Icon className="animate-spin" />

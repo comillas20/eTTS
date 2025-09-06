@@ -106,6 +106,7 @@ export function RecordFromJson({ wallet }: RecordFromJsonProps) {
         </Button>
         <Button
           type="submit"
+          variant="secondary"
           onClick={() => {
             if (data) records.mutate(data);
           }}

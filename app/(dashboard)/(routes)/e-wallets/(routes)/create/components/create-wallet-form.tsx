@@ -159,6 +159,7 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
           </Button>
           <Button
             type="submit"
+            variant="secondary"
             disabled={!form.formState.isDirty || form.formState.isSubmitting}>
             {form.formState.isSubmitting ? (
               <Loader2Icon className="animate-spin" />

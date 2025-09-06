@@ -98,11 +98,11 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel
                     className={cn({
-                      "text-secondary": form.getFieldState("name").isDirty,
+                      "text-primary": fieldState.isDirty,
                     })}>
                     E-wallet name
                   </FormLabel>
@@ -128,11 +128,11 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
             <FormField
               control={form.control}
               name="type"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel
                     className={cn({
-                      "text-secondary": form.getFieldState("type").isDirty,
+                      "text-primary": fieldState.isDirty,
                     })}>
                     Type of e-wallet
                   </FormLabel>
@@ -160,12 +160,11 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
             <FormField
               control={form.control}
               name="cellNumber"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel
                     className={cn({
-                      "text-secondary":
-                        form.getFieldState("cellNumber").isDirty,
+                      "text-primary": fieldState.isDirty,
                     })}>
                     Cell number
                   </FormLabel>
@@ -191,6 +190,7 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
               </DialogClose>
               <Button
                 type="submit"
+                variant="secondary"
                 disabled={
                   !form.formState.isDirty || form.formState.isSubmitting
                 }>
