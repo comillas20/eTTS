@@ -31,7 +31,7 @@ export default async function Page({ params }: PageProps) {
         <CustomFees walletId={eWallet.id} />
       </div>
       <div className="sticky w-72 text-sm">
-        <ul>
+        <ul className="[&>li]:mt-2 [&>li]:ml-4">
           <h5 className="mb-4 font-medium">On this page</h5>
           <li>
             <Link href="#custom-fees" className="hover:text-primary">
