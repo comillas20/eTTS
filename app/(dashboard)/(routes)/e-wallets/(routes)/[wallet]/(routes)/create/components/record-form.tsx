@@ -1,5 +1,6 @@
 "use client";
 
+import { getSuggestedFee } from "@/app/(dashboard)/actions/fees";
 import { createRecord } from "@/app/(dashboard)/actions/records";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -26,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { eWalletsTable, recordsTable, transactionTypeEnum } from "@/db/schema";
-import { cn, feeCalculator } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
@@ -110,18 +111,22 @@ export function RecordForm({ wallet }: RecordFormProps) {
   const amount = form.watch("amount");
 
   useEffect(() => {
-    const T = setTimeout(() => {
+    const T = setTimeout(async () => {
       if (!form.getFieldState("fee").isDirty && amount > 0) {
-        form.setValue("fee", feeCalculator(amount, type), {
-          shouldValidate: true,
-        });
+        form.setValue(
+          "fee",
+          await getSuggestedFee({ amount, type, walletId: wallet.id }),
+          {
+            shouldValidate: true,
+          },
+        );
       }
     }, 1000);
 
     return () => {
       clearTimeout(T);
     };
-  }, [form, type, amount]);
+  }, [form, type, amount, wallet.id]);
 
   return (
     <div className="grid gap-y-16 lg:grid-cols-2 lg:gap-x-4">

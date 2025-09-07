@@ -5,6 +5,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  real,
   text,
   timestamp,
   uniqueIndex,
@@ -74,6 +75,7 @@ export const eWalletsTable = pgTable(
     url: varchar({ length: 20 }).notNull(),
     cellNumber: varchar({ length: 13 }).notNull(),
     type: eWalletTypeEnum().notNull(),
+    defaultRate: real().notNull(),
     userId: text()
       .notNull()
       .references(() => user.id),
@@ -116,15 +118,36 @@ export const recordsTable = pgTable(
   ],
 );
 
+export const feesTable = pgTable("fees", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  amountStart: numeric({ mode: "number", scale: 2 }).notNull(),
+  amountEnd: numeric({ mode: "number", scale: 2 }).notNull(),
+  fee: numeric({ mode: "number", scale: 2 }).notNull(),
+  dateImplemented: timestamp().notNull(),
+  eWalletId: integer()
+    .notNull()
+    .references(() => eWalletsTable.id, {
+      onDelete: "cascade",
+    }),
+});
+
 // The sole purpose of Drizzle relations is to let us query relational data in a simplier way.
 
 export const eWalletsRelations = relations(eWalletsTable, ({ many }) => ({
   records: many(recordsTable),
+  fees: many(feesTable),
 }));
 
 export const recordsRelations = relations(recordsTable, ({ one }) => ({
   eWallet: one(eWalletsTable, {
     fields: [recordsTable.eWalletId],
+    references: [eWalletsTable.id],
+  }),
+}));
+
+export const feesRelations = relations(feesTable, ({ one }) => ({
+  eWallet: one(eWalletsTable, {
+    fields: [feesTable.eWalletId],
     references: [eWalletsTable.id],
   }),
 }));

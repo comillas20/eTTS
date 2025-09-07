@@ -90,3 +90,27 @@ export async function deleteWallet(id: number) {
   revalidatePath("/e-wallets");
   return { success: true as const, error: null };
 }
+
+export async function getDefaultRate(id: number) {
+  // just in case, there is no default rate set, which should NOT happen
+  // also to satisfy typescript
+  const defaultRate = 0.02;
+
+  if (typeof id !== "number")
+    return {
+      success: false as const,
+      data: defaultRate,
+      error: "ID should be a number",
+    };
+
+  const result = await db.query.eWalletsTable.findFirst({
+    where: (table, { eq }) => eq(table.id, id),
+    columns: { defaultRate: true },
+  });
+
+  return {
+    success: true as const,
+    data: result ? result.defaultRate : defaultRate,
+    error: null,
+  };
+}

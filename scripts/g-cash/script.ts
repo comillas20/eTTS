@@ -1,5 +1,5 @@
+import { getSuggestedFee } from "@/app/(dashboard)/actions/fees";
 import { eWalletsTable, transactionTypeEnum } from "@/db/schema";
-import { feeCalculator } from "@/lib/utils";
 import { spawn } from "child_process";
 import { existsSync, readFileSync } from "fs";
 import { chmod, mkdir, unlink } from "fs/promises";
@@ -132,21 +132,24 @@ export async function runScript(options: ScriptOptions) {
         const partialRecords = getJsonData(outputFilePath);
 
         if (!partialRecords) return null;
-        const records = partialRecords.map((record) => {
-          const amount = record.credit ?? record.debit ?? 0;
-          const type: (typeof transactionTypeEnum.enumValues)[number] =
-            record.credit ? "cash-out" : "cash-in";
-          return {
-            referenceNumber: record.referenceNumber,
-            date: new Date(record.date),
-            type,
-            amount,
-            fee: feeCalculator(amount, type),
-            eWalletId: wallet.id,
-            cellNumber: getCellNumber(record.description, wallet.cellNumber),
-            claimedAt: type === "cash-out" ? new Date(record.date) : undefined,
-          };
-        });
+        const records = await Promise.all(
+          partialRecords.map(async (record) => {
+            const amount = record.credit ?? record.debit ?? 0;
+            const type: (typeof transactionTypeEnum.enumValues)[number] =
+              record.credit ? "cash-out" : "cash-in";
+            return {
+              referenceNumber: record.referenceNumber,
+              date: new Date(record.date),
+              type,
+              amount,
+              fee: await getSuggestedFee({ amount, type, walletId: wallet.id }),
+              eWalletId: wallet.id,
+              cellNumber: getCellNumber(record.description, wallet.cellNumber),
+              claimedAt:
+                type === "cash-out" ? new Date(record.date) : undefined,
+            };
+          }),
+        );
 
         unlink(outputFilePath);
         unlink(sourceFilePath);

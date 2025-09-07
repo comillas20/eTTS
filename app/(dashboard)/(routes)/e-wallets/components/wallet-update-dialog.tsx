@@ -48,6 +48,8 @@ const formSchema = createSelectSchema(eWalletsTable, {
       .max(20, "E-wallet name is too long"),
   cellNumber: (schema) =>
     schema.trim().refine((check) => isCellnumber(check), "Invalid cell number"),
+  defaultRate: (schema) =>
+    schema.min(0.01, "Rate must be atleast 0.01 or greater"),
 });
 
 type UpdateWalletForm = z.infer<typeof formSchema>;
@@ -94,7 +96,7 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => walletM.mutate(values))}
-            className="space-y-8">
+            className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -125,38 +127,66 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel
-                    className={cn({
-                      "text-primary": fieldState.isDirty,
-                    })}>
-                    Type of e-wallet
-                  </FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel
+                      className={cn({
+                        "text-primary": fieldState.isDirty,
+                      })}>
+                      Type of e-wallet
+                    </FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="capitalize">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {eWalletTypeEnum.enumValues.map((type) => (
+                          <SelectItem
+                            key={type}
+                            value={type}
+                            className="capitalize">
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="defaultRate"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel
+                      className={cn({
+                        "text-primary": fieldState.isDirty,
+                      })}>
+                      Default rate (in decimals)
+                    </FormLabel>
                     <FormControl>
-                      <SelectTrigger className="capitalize">
-                        <SelectValue />
-                      </SelectTrigger>
+                      <Input
+                        type="number"
+                        placeholder="0.02"
+                        {...field}
+                        onChange={({ target }) => {
+                          const value = parseFloat(target.value);
+                          field.onChange(isNaN(value) ? "" : value);
+                        }}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {eWalletTypeEnum.enumValues.map((type) => (
-                        <SelectItem
-                          key={type}
-                          value={type}
-                          className="capitalize">
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="cellNumber"

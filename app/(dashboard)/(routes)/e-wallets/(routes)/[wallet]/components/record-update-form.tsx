@@ -105,7 +105,6 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
               </FormLabel>
               <FormControl>
                 <Input
-                  type="number"
                   placeholder="The cell number of the customer"
                   {...field}
                   value={field.value ?? ""}
