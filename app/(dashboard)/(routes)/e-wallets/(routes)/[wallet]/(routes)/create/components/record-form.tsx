@@ -13,7 +13,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -32,15 +31,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
 import { createInsertSchema } from "drizzle-zod";
-import {
-  CalendarIcon,
-  FileDownIcon,
-  Loader2Icon,
-  PlusIcon,
-  XIcon,
-} from "lucide-react";
+import { CalendarIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -90,22 +83,22 @@ export function RecordForm({ wallet }: RecordFormProps) {
 
   const router = useRouter();
 
-  const [inboxMessage, setInboxMessage] = useState<string>();
-  const extractData = (text?: string) => {
-    if (!text) return;
-    const { date, amount, cellNumber, referenceNumber, type } =
-      getDataFromText(text);
+  // const [inboxMessage, setInboxMessage] = useState<string>();
+  // const extractData = (text?: string) => {
+  //   if (!text) return;
+  //   const { date, amount, cellNumber, referenceNumber, type } =
+  //     getDataFromText(text);
 
-    if (date) form.setValue("claimedAt", date, { shouldDirty: true });
-    if (amount) form.setValue("amount", amount, { shouldDirty: true });
-    if (cellNumber)
-      form.setValue("cellNumber", cellNumber, { shouldDirty: true });
-    if (referenceNumber)
-      form.setValue("referenceNumber", referenceNumber, { shouldDirty: true });
-    if (type) form.setValue("type", type, { shouldDirty: true });
+  //   if (date) form.setValue("claimedAt", date, { shouldDirty: true });
+  //   if (amount) form.setValue("amount", amount, { shouldDirty: true });
+  //   if (cellNumber)
+  //     form.setValue("cellNumber", cellNumber, { shouldDirty: true });
+  //   if (referenceNumber)
+  //     form.setValue("referenceNumber", referenceNumber, { shouldDirty: true });
+  //   if (type) form.setValue("type", type, { shouldDirty: true });
 
-    form.trigger();
-  };
+  //   form.trigger();
+  // };
 
   const type = form.watch("type");
   const amount = form.watch("amount");
@@ -410,7 +403,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
           </div>
         </form>
       </Form>
-      <div className="flex-1 space-y-4">
+      {/* <div className="flex-1 space-y-4">
         <div className="flex min-h-[50%] flex-col space-y-2">
           <Label htmlFor="GCASH_FORM_INBOX">
             ...or extract data from a message in your inbox
@@ -431,32 +424,32 @@ export function RecordForm({ wallet }: RecordFormProps) {
             Extract
           </Button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
 
-type GetDataFromTextReturnType = Partial<RecordForm>;
+// type GetDataFromTextReturnType = Partial<RecordForm>;
 
-export function getDataFromText(text: string): GetDataFromTextReturnType {
-  const type = text.match("sent");
+// export function getDataFromText(text: string): GetDataFromTextReturnType {
+//   const type = text.match("sent");
 
-  const datePattern = /\d+ [a-zA-Z]+ \d{4}\, \d{2}\:\d{2} (AM|PM)/;
-  const date = text.match(datePattern);
+//   const datePattern = /\d+ [a-zA-Z]+ \d{4}\, \d{2}\:\d{2} (AM|PM)/;
+//   const date = text.match(datePattern);
 
-  const amountPattern = /\b\d+\.\d{2}\b/;
-  const amount = text.match(amountPattern);
+//   const amountPattern = /\b\d+\.\d{2}\b/;
+//   const amount = text.match(amountPattern);
 
-  const cellNumberPattern = /(\+63|0)9\d{9}/; //PH phones starts at either +639 or just 09
-  const cellNumber = text.match(cellNumberPattern);
+//   const cellNumberPattern = /(\+63|0)9\d{9}/; //PH phones starts at either +639 or just 09
+//   const cellNumber = text.match(cellNumberPattern);
 
-  const referenceNumber = text.match(/\d{13}/);
+//   const referenceNumber = text.match(/\d{13}/);
 
-  return {
-    date: date ? new Date(date[0]) : undefined,
-    amount: amount ? parseFloat(amount[0]) : undefined,
-    type: type ? (type[0] === "cash-in" ? "cash-in" : "cash-out") : undefined,
-    cellNumber: cellNumber ? cellNumber[0] : undefined,
-    referenceNumber: referenceNumber ? referenceNumber[0] : undefined,
-  };
-}
+//   return {
+//     date: date ? new Date(date[0]) : undefined,
+//     amount: amount ? parseFloat(amount[0]) : undefined,
+//     type: type ? (type[0] === "cash-in" ? "cash-in" : "cash-out") : undefined,
+//     cellNumber: cellNumber ? cellNumber[0] : undefined,
+//     referenceNumber: referenceNumber ? referenceNumber[0] : undefined,
+//   };
+// }
