@@ -180,6 +180,7 @@ export function WalletUpdateDialog({ initialData }: WalletUpdateDialogProps) {
                           const value = parseFloat(target.value);
                           field.onChange(isNaN(value) ? "" : value);
                         }}
+                        onFocus={(e) => e.target.select()}
                       />
                     </FormControl>
                     <FormMessage />

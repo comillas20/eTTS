@@ -152,11 +152,11 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
                     type="number"
                     placeholder="0.02"
                     {...field}
-                    value={field.value === 0 ? "" : field.value}
                     onChange={({ target }) => {
                       const value = parseFloat(target.value);
                       field.onChange(isNaN(value) ? "" : value);
                     }}
+                    onFocus={(e) => e.target.select()}
                   />
                 </FormControl>
                 <FormMessage />
