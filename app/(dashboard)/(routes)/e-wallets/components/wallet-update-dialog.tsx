@@ -1,6 +1,9 @@
 "use client";
 
-import { updateWallet } from "@/app/(dashboard)/actions/wallets";
+import {
+  doesWalletAlreadyExist,
+  updateWallet,
+} from "@/app/(dashboard)/actions/wallets";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,6 +53,9 @@ const formSchema = createSelectSchema(eWalletsTable, {
     schema.trim().refine((check) => isCellnumber(check), "Invalid cell number"),
   defaultRate: (schema) =>
     schema.min(0.01, "Rate must be atleast 0.01 or greater"),
+}).refine(async (check) => !doesWalletAlreadyExist(check), {
+  message: "You already have a wallet with this name",
+  path: ["name"],
 });
 
 type UpdateWalletForm = z.infer<typeof formSchema>;

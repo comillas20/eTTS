@@ -20,7 +20,11 @@ export async function createWallet(values: InsertWallet) {
         .refine((check) => isCellnumber(check))
         .or(z.literal("")),
     url: (schema) => schema.trim().min(1).max(20),
+  }).refine(async (check) => !doesWalletAlreadyExist({ ...check, id: -1 }), {
+    message: "You already have a wallet with this name",
+    path: ["name"],
   });
+
   const parsedValues = schema.safeParse(values);
 
   if (parsedValues.error)
@@ -61,7 +65,15 @@ export async function updateWallet(values: SelectWallet) {
         .refine((check) => isCellnumber(check))
         .or(z.literal("")),
     url: (schema) => schema.trim().min(1).max(20),
-  });
+  }).refine(
+    async (check) =>
+      !check.name ||
+      !doesWalletAlreadyExist({ id: values.id, name: check.name }),
+    {
+      message: "You already have a wallet with this name",
+      path: ["name"],
+    },
+  );
 
   const parsedValues = schema.safeParse(values);
   if (parsedValues.error)
@@ -89,6 +101,17 @@ export async function deleteWallet(id: number) {
 
   revalidatePath("/e-wallets");
   return { success: true as const, error: null };
+}
+
+export async function doesWalletAlreadyExist(
+  wallet: Pick<SelectWallet, "id" | "name">,
+) {
+  const result = await db.query.eWalletsTable.findFirst({
+    where: (table, { eq, and, ne }) =>
+      and(eq(table.name, wallet.name), ne(table.id, wallet.id)),
+  });
+
+  return !!result;
 }
 
 export async function getDefaultRate(id: number) {
