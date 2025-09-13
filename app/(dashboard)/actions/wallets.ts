@@ -20,10 +20,13 @@ export async function createWallet(values: InsertWallet) {
         .refine((check) => isCellnumber(check))
         .or(z.literal("")),
     url: (schema) => schema.trim().min(1).max(20),
-  }).refine(async (check) => !doesWalletAlreadyExist({ ...check, id: -1 }), {
-    message: "You already have a wallet with this name",
-    path: ["name"],
-  });
+  }).refine(
+    async (check) => !(await doesWalletAlreadyExist({ ...check, id: -1 })),
+    {
+      message: "You already have a wallet with this name",
+      path: ["name"],
+    },
+  );
 
   const parsedValues = schema.safeParse(values);
 
@@ -68,7 +71,7 @@ export async function updateWallet(values: SelectWallet) {
   }).refine(
     async (check) =>
       !check.name ||
-      !doesWalletAlreadyExist({ id: values.id, name: check.name }),
+      !(await doesWalletAlreadyExist({ ...values, name: check.name })),
     {
       message: "You already have a wallet with this name",
       path: ["name"],
@@ -104,13 +107,17 @@ export async function deleteWallet(id: number) {
 }
 
 export async function doesWalletAlreadyExist(
-  wallet: Pick<SelectWallet, "id" | "name">,
+  wallet: Pick<SelectWallet, "id" | "name" | "userId">,
 ) {
   const result = await db.query.eWalletsTable.findFirst({
     where: (table, { eq, and, ne }) =>
-      and(eq(table.name, wallet.name), ne(table.id, wallet.id)),
+      and(
+        eq(table.name, wallet.name),
+        ne(table.id, wallet.id),
+        eq(table.userId, wallet.userId),
+      ),
   });
-
+  console.log(!!result);
   return !!result;
 }
 

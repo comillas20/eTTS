@@ -41,10 +41,13 @@ export const formSchema = createInsertSchema(eWalletsTable, {
     schema.trim().refine((check) => isCellnumber(check), "Invalid cell number"),
   defaultRate: (schema) =>
     schema.min(0.01, "Rate must be atleast 0.01 or greater"),
-}).refine(async (check) => !doesWalletAlreadyExist({ ...check, id: -1 }), {
-  message: "You already have a wallet with this name",
-  path: ["name"],
-});
+}).refine(
+  async (check) => !(await doesWalletAlreadyExist({ ...check, id: -1 })),
+  {
+    message: "You already have a wallet with this name",
+    path: ["name"],
+  },
+);
 
 type CreateWalletForm = z.infer<typeof formSchema>;
 
