@@ -8,13 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, SettingsIcon } from "lucide-react";
 import Link from "next/link";
-import { RecordBackUpDownload } from "./components/record-back-up-download";
-import { RecordRestore } from "./components/record-restore";
-import { WalletDeleteDialog } from "./components/wallet-delete-dialog";
+
 import { WalletPieChart } from "./components/wallet-pie-chart";
-import { WalletUpdateDialog } from "./components/wallet-update-dialog";
 
 export default async function Page() {
   const wallets = await getWallets();
@@ -33,14 +30,13 @@ export default async function Page() {
             <CardHeader>
               <CardTitle>{wallet.name}</CardTitle>
               <CardDescription>{wallet.cellNumber}</CardDescription>
-              <CardAction className="space-x-2">
-                <RecordBackUpDownload wallet={wallet} />
-                <RecordRestore wallet={wallet} />
-                <WalletUpdateDialog
-                  key={JSON.stringify(wallet)}
-                  initialData={wallet}
-                />
-                <WalletDeleteDialog id={wallet.id} />
+              <CardAction>
+                <Button variant="outline" asChild>
+                  <Link href={`/e-wallets/${wallet.url}/settings`}>
+                    <SettingsIcon />
+                    Settings
+                  </Link>
+                </Button>
               </CardAction>
             </CardHeader>
             <CardContent key={wallet.records.length}>

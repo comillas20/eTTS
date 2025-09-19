@@ -10,6 +10,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   Popover,
   PopoverContent,
@@ -35,6 +36,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+
 import { mutateFeeRange } from "../action";
 
 type WalletID = typeof eWalletsTable.$inferSelect.id;
@@ -49,14 +51,11 @@ export function CustomFees({ walletId }: CustomFeesProps) {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h3 id="custom-fees">Custom fees</h3>
-        <p className="text-sm">
-          Customize fees in specific amount ranges. Overrides default rate
-        </p>
-        <Separator className="mt-2" />
-      </div>
-
+      <PageHeader
+        id="custom-fees"
+        title="Custom fees"
+        description="Customize fees in specific amount ranges. Overrides default rate"
+      />
       <div className="flex flex-col gap-2">
         {data &&
           !!data.length &&
