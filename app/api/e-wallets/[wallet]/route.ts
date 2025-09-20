@@ -84,7 +84,7 @@ export async function GET(request: Request, { params }: RouteProps) {
   }
 }
 
-const ACCEPTED_EXTENSIONS = ["csv", "pdf"];
+const ACCEPTED_EXTENSIONS = ["pdf"];
 
 export async function POST(request: Request, { params }: RouteProps) {
   const session = await auth.api.getSession({

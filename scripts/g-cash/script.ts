@@ -145,8 +145,7 @@ export async function runScript(options: ScriptOptions) {
               fee: await getSuggestedFee({ amount, type, walletId: wallet.id }),
               eWalletId: wallet.id,
               cellNumber: getCellNumber(record.description, wallet.cellNumber),
-              claimedAt:
-                type === "cash-out" ? new Date(record.date) : undefined,
+              claimedAt: type === "cash-out" ? new Date(record.date) : null,
             };
           }),
         );

@@ -90,6 +90,15 @@ function RecordRestore({ wallet }: RecordsProps) {
     filePassword: z.string().optional(),
   });
 
+  const recordSchema = createInsertSchema(recordsTable, {
+    date: z.string(),
+    claimedAt: z.string().nullable(),
+    createdAt: z.string().optional(),
+    eWalletId: (schema) => schema.optional(),
+  }).array();
+
+  type RecordSchema = z.infer<typeof recordSchema>;
+
   const form = useForm({
     resolver: zodResolver(fileSchema),
     defaultValues: {
@@ -103,41 +112,83 @@ function RecordRestore({ wallet }: RecordsProps) {
       formData.append("file", data.file);
       formData.append("password", data.filePassword || "");
 
-      const result = await fetch(`/api/e-wallets/${wallet.url}`, {
-        method: "POST",
-        body: formData,
-      });
+      type RecordResult =
+        | {
+            data: RecordSchema;
+            error: null;
+          }
+        | {
+            data: null;
+            error: string;
+          };
 
-      const resultData:
-        | { success: false; error: string }
-        | { success: true; records: unknown } = await result.json();
+      let recordResult: RecordResult;
 
-      const recordSchema = createInsertSchema(recordsTable, {
-        date: z.string(),
-        claimedAt: z.string().optional(),
-      }).array();
+      // If the file is JSON, we can just read it directly on the client
+      if (data.file.type === "application/json") {
+        const blobString = await data.file.text();
 
-      if (!resultData.success) return { message: resultData.error };
+        try {
+          const parsedJSON = JSON.parse(blobString);
+          const parsedRecords = recordSchema.safeParse(parsedJSON);
+          console.log(parsedRecords.error);
+          if (parsedRecords.error)
+            recordResult = { data: null, error: "Invalid JSON file" };
+          else
+            recordResult = {
+              data: parsedRecords.data,
+              error: null,
+            };
+        } catch (error) {
+          if (error instanceof SyntaxError)
+            recordResult = { data: null, error: "Invalid JSON file" };
+          else recordResult = { data: null, error: "Something went wrong" };
+        }
+      }
+      // otherwise we send it to the server for processing
+      else {
+        const result = await fetch(`/api/e-wallets/${wallet.url}`, {
+          method: "POST",
+          body: formData,
+        });
 
-      const parsedData = recordSchema.safeParse(resultData.records);
-      if (parsedData.success) {
-        const modifiedRecords = parsedData.data.map((d) => ({
+        const resultData:
+          | { success: false; error: string }
+          | { success: true; records: unknown } = await result.json();
+
+        if (!resultData.success) return { message: resultData.error };
+
+        const parsedData = recordSchema.safeParse(resultData.records);
+        if (parsedData.success) {
+          recordResult = {
+            data: parsedData.data,
+            error: null,
+          };
+        } else
+          recordResult = {
+            data: null,
+            error: "Something went wrong, please refresh and try again.",
+          };
+      }
+
+      // if we have data, we can insert it
+      if (recordResult.data) {
+        const records = recordResult.data.map((d) => ({
           ...d,
           cellNumber: d.cellNumber || null,
           date: new Date(d.date),
           claimedAt: d.claimedAt ? new Date(d.claimedAt) : null,
+          createdAt: d.createdAt ? new Date(d.createdAt) : undefined,
+          eWalletId: wallet.id,
         }));
 
-        await createRecords(modifiedRecords);
+        await createRecords(records);
 
         queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
         queryClient.invalidateQueries({ queryKey: ["records"] });
 
         return { message: "Records has been restored successfully" };
-      } else
-        return {
-          message: "Something went wrong, please refresh and try again.",
-        };
+      } else return { message: recordResult.error };
     },
 
     onSuccess: async (data) => toast(data.message),
@@ -164,6 +215,7 @@ function RecordRestore({ wallet }: RecordsProps) {
                       field.onChange(undefined);
                     }
                   }}
+                  accept=".json,.pdf"
                 />
               </FormControl>
               <FormMessage />
