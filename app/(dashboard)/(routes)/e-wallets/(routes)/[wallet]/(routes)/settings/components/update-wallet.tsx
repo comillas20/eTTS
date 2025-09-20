@@ -241,6 +241,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowRightIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type DeleteWalletProps = {
   id: typeof eWalletsTable.$inferSelect.id;
@@ -249,6 +250,7 @@ type DeleteWalletProps = {
 function DeleteWallet({ id }: DeleteWalletProps) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const walletM = useMutation({
     mutationFn: deleteWallet,
@@ -257,6 +259,7 @@ function DeleteWallet({ id }: DeleteWalletProps) {
 
       if (data instanceof Error) toast.error(data.message);
       else {
+        router.replace("/e-wallets");
         toast("Wallet has been deleted successfully");
         setOpen(false);
       }
