@@ -17,7 +17,13 @@ import { eWalletsTable, recordsTable } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createInsertSchema } from "drizzle-zod";
-import { ArrowRightIcon, DownloadIcon, Loader2Icon, XIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  DownloadIcon,
+  Loader2Icon,
+  RefreshCwIcon,
+} from "lucide-react";
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -85,8 +91,14 @@ function RecordBackUpDownload({ wallet }: RecordsProps) {
 function RecordRestore({ wallet }: RecordsProps) {
   const queryClient = useQueryClient();
 
+  const ACCEPTED_EXTENSIONS = ["application/pdf", "application/json"];
   const fileSchema = z.object({
-    file: z.instanceof(File),
+    file: z
+      .instanceof(File, { message: "No file found" })
+      .refine(
+        (file) => ACCEPTED_EXTENSIONS.includes(file.type),
+        "Invalid file",
+      ),
     filePassword: z.string().optional(),
   });
 
@@ -194,6 +206,9 @@ function RecordRestore({ wallet }: RecordsProps) {
     onSuccess: async (data) => toast(data.message),
   });
 
+  // solely for removing texts in the file input when reseting the form
+  const fileRef = useRef<HTMLInputElement>(null);
+
   return (
     <Form {...form}>
       <form
@@ -210,12 +225,14 @@ function RecordRestore({ wallet }: RecordsProps) {
                   type="file"
                   onChange={(e) => {
                     if (e.target.files && e.target.files.length > 0) {
+                      console.log(e.target.files[0].type);
                       field.onChange(e.target.files[0]);
                     } else {
                       field.onChange(undefined);
                     }
                   }}
                   accept=".json,.pdf"
+                  ref={fileRef}
                 />
               </FormControl>
               <FormMessage />
@@ -244,9 +261,16 @@ function RecordRestore({ wallet }: RecordsProps) {
           )}
         />
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" disabled={walletM.isPending}>
-            <XIcon />
-            Cancel
+          <Button
+            type="button"
+            variant="outline"
+            disabled={walletM.isPending || !form.formState.isDirty}
+            onClick={() => {
+              form.reset();
+              if (fileRef.current) fileRef.current.value = "";
+            }}>
+            <RefreshCwIcon />
+            Reset
           </Button>
           <Button type="submit" disabled={walletM.isPending}>
             {walletM.isPending ? (
