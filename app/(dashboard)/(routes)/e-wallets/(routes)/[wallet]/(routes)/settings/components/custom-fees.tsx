@@ -105,7 +105,7 @@ function CustomFee({
   })
     .refine(
       async (check) =>
-        check.id && !(await isFeeInExistingRange(check.amountStart, check.id)),
+        !check.id || !(await isFeeInExistingRange(check.amountStart, check.id)),
       {
         message: "Amount (start) already included in an existing fee range",
         path: ["amountStart"],
@@ -113,7 +113,7 @@ function CustomFee({
     )
     .refine(
       async (check) =>
-        check.id && !(await isFeeInExistingRange(check.amountEnd, check.id)),
+        !check.id || !(await isFeeInExistingRange(check.amountEnd, check.id)),
       {
         message: "Amount (end) already included in an existing fee range",
         path: ["amountEnd"],
