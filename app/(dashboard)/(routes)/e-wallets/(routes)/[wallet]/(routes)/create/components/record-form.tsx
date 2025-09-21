@@ -102,13 +102,19 @@ export function RecordForm({ wallet }: RecordFormProps) {
 
   const type = form.watch("type");
   const amount = form.watch("amount");
+  const date = form.watch("date");
 
   useEffect(() => {
     const T = setTimeout(async () => {
       if (!form.getFieldState("fee").isDirty && amount > 0) {
         form.setValue(
           "fee",
-          await getSuggestedFee({ amount, type, walletId: wallet.id }),
+          await getSuggestedFee({
+            amount,
+            type,
+            walletId: wallet.id,
+            transactionDate: date,
+          }),
           {
             shouldValidate: true,
           },
@@ -119,7 +125,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
     return () => {
       clearTimeout(T);
     };
-  }, [form, type, amount, wallet.id]);
+  }, [form, type, amount, date, wallet.id]);
 
   return (
     <div className="grid gap-y-16 lg:grid-cols-2 lg:gap-x-4">

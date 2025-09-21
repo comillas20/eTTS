@@ -141,7 +141,12 @@ export async function runScript(options: ScriptOptions) {
               date: new Date(record.date),
               type,
               amount,
-              fee: await getSuggestedFee({ amount, type, walletId: wallet.id }),
+              fee: await getSuggestedFee({
+                amount,
+                type,
+                walletId: wallet.id,
+                transactionDate: new Date(record.date),
+              }),
               eWalletId: wallet.id,
               cellNumber: getCellNumber(record.description, wallet.cellNumber),
               claimedAt: type === "cash-out" ? new Date(record.date) : null,

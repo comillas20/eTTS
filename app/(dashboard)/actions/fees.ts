@@ -97,19 +97,34 @@ export async function isFeeInExistingRange(fee: number, feeRangeId: number) {
 }
 
 type SuggestedFeeOptions = {
-  amount: number;
-  type: (typeof transactionTypeEnum.enumValues)[number];
   walletId: typeof eWalletsTable.$inferSelect.id;
+  type: (typeof transactionTypeEnum.enumValues)[number];
+  amount: number;
+  transactionDate: Date;
 };
 export async function getSuggestedFee({
-  amount,
-  type,
   walletId,
+  type,
+  amount,
+  transactionDate,
 }: SuggestedFeeOptions) {
   // first attempt of getting fee is to check custom fee ranges if the amount falls within any range
+
+  /* by getting all fees table in this wallet that was implemented BEFORE the transaction date,
+   * because I need the fee property to do some calculations
+   * to check if it really belongs in that fee range first
+   */
   const result = await db.query.feesTable.findMany({
-    where: (fields, { eq }) => eq(fields.eWalletId, walletId),
+    where: (fields, { eq, and, gt }) =>
+      and(
+        eq(fields.eWalletId, walletId),
+        gt(fields.dateImplemented, transactionDate),
+      ),
   });
+
+  /* the calculation was just reducing the amount with the fee if it was cash-out
+   * e.g. in range 1-500 with fee = 15, 515 still belongs in this range (515 - 15 = 500)
+   */
 
   if (result && result.length) {
     const matchedRange = result.find((range) => {
