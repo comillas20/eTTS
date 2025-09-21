@@ -131,7 +131,7 @@ function RecordRestore({ wallet }: RecordsProps) {
         try {
           const parsedJSON = JSON.parse(blobString);
           const parsedRecords = recordSchema.safeParse(parsedJSON);
-          console.log(parsedRecords.error);
+
           if (parsedRecords.error)
             recordResult = { data: null, error: "Invalid JSON file" };
           else

@@ -117,7 +117,7 @@ export async function doesWalletAlreadyExist(
         eq(table.userId, wallet.userId),
       ),
   });
-  console.log(!!result);
+
   return !!result;
 }
 

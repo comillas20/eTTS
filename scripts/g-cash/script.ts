@@ -113,9 +113,8 @@ export async function runScript(options: ScriptOptions) {
         const prompt = data.toString("utf8");
         const reply = generateReply(prompt);
 
-        // if it was actually not a prompt but just a print()
-        if (!reply) console.log(prompt);
-        else script.stdin.write(reply + "\n");
+        // check if it was actually a prompt not just a print()
+        if (reply) script.stdin.write(reply + "\n");
       });
 
       script.stderr.on("data", (data) => {

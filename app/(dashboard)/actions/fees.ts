@@ -13,7 +13,6 @@ export async function createFeeRange(values: InsertFeeRange) {
   const schema = createInsertSchema(feesTable);
   const parsedValues = schema.safeParse(values);
 
-  console.log(parsedValues.error);
   if (parsedValues.error)
     return { success: false as const, data: null, error: parsedValues.error };
 
