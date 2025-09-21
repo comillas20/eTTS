@@ -47,7 +47,7 @@ type CustomFeesProps = {
 };
 export function CustomFees({ walletId }: CustomFeesProps) {
   const [activeFee, setActiveFee] = useState<number>();
-  const { data } = useQuery(getFeeRangesQuery(walletId));
+  const { data, dataUpdatedAt } = useQuery(getFeeRangesQuery(walletId));
 
   return (
     <div className="space-y-8">
@@ -61,7 +61,7 @@ export function CustomFees({ walletId }: CustomFeesProps) {
           !!data.length &&
           data.map((fee, i) => (
             <CustomFee
-              key={fee.id}
+              key={fee.id + "-" + dataUpdatedAt}
               data={fee}
               walletId={walletId}
               includeLabel={i === 0}
