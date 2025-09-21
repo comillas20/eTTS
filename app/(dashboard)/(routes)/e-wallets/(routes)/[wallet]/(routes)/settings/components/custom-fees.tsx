@@ -149,6 +149,7 @@ function CustomFee({
             break;
           case "update":
             toast.success("The fee range has been updated!");
+            setIsActive(undefined);
             break;
           default:
             console.log("You just reached an impossible state");
@@ -160,6 +161,68 @@ function CustomFee({
       }
     },
   });
+
+  function getFormActionButton() {
+    if (isActive) {
+      const buttonLabel =
+        typeof data?.id === "number" ? (
+          <>
+            <SaveIcon />
+            Save
+          </>
+        ) : (
+          <>
+            <PlusIcon />
+            Create
+          </>
+        );
+
+      return (
+        <Button
+          key={data?.id.toString() + "_upsert"}
+          type="submit"
+          variant="secondary"
+          className="w-24">
+          {buttonLabel}
+        </Button>
+      );
+    } else
+      return (
+        <Button
+          key={data?.id.toString() + "_edit"}
+          type="button"
+          className="w-24"
+          onClick={() => setIsActive(data?.id)}>
+          <PencilIcon />
+          Edit
+        </Button>
+      );
+  }
+
+  function getFormSubActionButton() {
+    const { isDirty } = form.formState;
+    return !!data && !isDirty ? (
+      <Button
+        key={data.id.toString() + "_delete"}
+        type="button"
+        variant="destructive"
+        className="w-24"
+        onClick={() => feeMutation.mutate({ data, op: "delete" })}>
+        <Trash2Icon />
+        Delete
+      </Button>
+    ) : (
+      <Button
+        key={"_reset"}
+        type="button"
+        onClick={() => form.reset()}
+        className="w-24"
+        disabled={!isDirty}>
+        <RefreshCwIcon />
+        Reset
+      </Button>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -294,48 +357,8 @@ function CustomFee({
             )}
           />
           <span className="flex gap-2">
-            {isActive ? (
-              <Button type="submit" variant="secondary" className="w-24">
-                {data ? (
-                  <>
-                    <SaveIcon />
-                    Save
-                  </>
-                ) : (
-                  <>
-                    <PlusIcon />
-                    Create
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                className="w-24"
-                onClick={() => setIsActive(data?.id)}>
-                <PencilIcon />
-                Edit
-              </Button>
-            )}
-            {data && !form.formState.isDirty && (
-              <Button
-                type="button"
-                variant="destructive"
-                className="w-24"
-                onClick={() => feeMutation.mutate({ data, op: "delete" })}>
-                <Trash2Icon />
-                Delete
-              </Button>
-            )}
-            {(!data || form.formState.isDirty) && (
-              <Button
-                onClick={() => form.reset()}
-                className="w-24"
-                disabled={!form.formState.isDirty}>
-                <RefreshCwIcon />
-                Reset
-              </Button>
-            )}
+            {getFormActionButton()}
+            {getFormSubActionButton()}
           </span>
         </div>
         <div>
