@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMonth, getYear } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
-import { getMonthYears } from "../actions";
+import { getRecordDates } from "../actions";
 
 const months = [
   "Jaunary",
@@ -40,7 +40,19 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
 
   const monthYearsQuery = useQuery({
     queryKey: ["month-years", walletId],
-    queryFn: async () => getMonthYears(walletId),
+    queryFn: async () => {
+      const result = await getRecordDates(walletId);
+      return Array.from(
+        new Set(
+          result.map(
+            (record) => `${getYear(record.date)}-_-${getMonth(record.date)}`,
+          ),
+        ),
+      ).map((key) => {
+        const [year, month] = key.split("-_-").map(Number);
+        return { year, month };
+      });
+    },
   });
 
   const years =

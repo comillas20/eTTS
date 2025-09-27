@@ -4,29 +4,15 @@ import db from "@/db/drizzle";
 import { recordsTable } from "@/db/schema";
 import { tz } from "@date-fns/tz";
 import { getYear, lastDayOfMonth, subDays } from "date-fns";
-import { and, eq, gte, lt, or, sql } from "drizzle-orm";
+import { and, eq, gte, lt, or } from "drizzle-orm";
 
-export async function getMonthYears(walletId?: number) {
-  const monthYears = await db
-    .select({
-      year: sql<number>`CAST(EXTRACT(YEAR FROM ${recordsTable.date}) AS INTEGER)`,
-      month: sql<number>`CAST(EXTRACT(MONTH FROM ${recordsTable.date}) AS INTEGER)`,
-    })
-    .from(recordsTable)
-    .where(walletId ? eq(recordsTable.eWalletId, walletId) : undefined)
-    .groupBy(
-      sql`EXTRACT(YEAR FROM ${recordsTable.date})`,
-      sql`EXTRACT(MONTH FROM ${recordsTable.date})`,
-    )
-    .orderBy(
-      sql`EXTRACT(YEAR FROM ${recordsTable.date}) DESC`,
-      sql`EXTRACT(MONTH FROM ${recordsTable.date}) DESC`,
-    );
-
-  return monthYears.map((row) => ({
-    year: row.year,
-    month: row.month - 1, // Convert to 0-indexed month
-  }));
+export async function getRecordDates(walletId?: number) {
+  return await db.query.recordsTable.findMany({
+    columns: { date: true },
+    where: (table, { eq }) =>
+      walletId ? eq(table.eWalletId, walletId) : undefined,
+    orderBy: (table, { desc }) => [desc(table.date)],
+  });
 }
 
 type FilteredRecords = {
