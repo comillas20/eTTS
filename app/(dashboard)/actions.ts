@@ -2,7 +2,7 @@
 
 import db from "@/db/drizzle";
 import { recordsTable } from "@/db/schema";
-import { tz } from "@date-fns/tz";
+import { tz, TZDate } from "@date-fns/tz";
 import { getYear, lastDayOfMonth, subDays } from "date-fns";
 import { and, eq, gte, lt, or } from "drizzle-orm";
 
@@ -45,9 +45,12 @@ export async function getFilteredRecords(filters: FilteredRecords) {
       in: tz("UTC"),
     });
   } else
-    targetDate = lastDayOfMonth(new Date(year || getYear(new Date()), month), {
-      in: tz("UTC"),
-    });
+    targetDate = lastDayOfMonth(
+      new TZDate(year || getYear(new Date()), month, "UTC"),
+      {
+        in: tz("UTC"),
+      },
+    );
 
   // set it so that records in the same day as @targetDate is included
   targetDate.setHours(23, 59, 59);

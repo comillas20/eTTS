@@ -27,7 +27,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { recordsTable } from "@/db/schema";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { compareAsc, format, lastDayOfMonth, max } from "date-fns";
+import { compareAsc, format, getYear, lastDayOfMonth, max } from "date-fns";
 import { useSearchParams } from "next/navigation";
 
 const chartConfig = {
@@ -84,9 +84,9 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
   let lastDayOfSelectedMonth = lastDayOfMonth(now);
   const selectedMonth = searchParams.get("month");
   const selectedYear = searchParams.get("year");
-  if (selectedMonth && selectedYear) {
+  if (selectedMonth) {
     const parsedM = parseInt(selectedMonth);
-    const parsedY = parseInt(selectedYear);
+    const parsedY = selectedYear ? parseInt(selectedYear) : getYear(now);
 
     if (!isNaN(parsedM) && !isNaN(parsedY))
       lastDayOfSelectedMonth = lastDayOfMonth(new Date(parsedY, parsedM));
@@ -195,11 +195,9 @@ function aggregateRecords(
   const dailyData: Record<string, ChartData> = {};
 
   for (const record of records) {
-    // Get the date string in YYYY-MM-DD format for grouping
-    const dateString = record.date.toISOString().split("T")[0];
-
+    const dateString = record.date.toLocaleDateString();
     if (!dailyData[dateString]) {
-      // If this date is not yet in our aggregated data, initialize it
+      // If this date is not yet in the aggregated data, initialize it
       dailyData[dateString] = {
         date: dateString,
         cashIn: 0,
@@ -207,7 +205,6 @@ function aggregateRecords(
       };
     }
 
-    // Increment the cashIn or cashOut count based on the record type
     if (record.type === "cash-in") {
       dailyData[dateString].cashIn += 1;
     } else if (record.type === "cash-out") {
