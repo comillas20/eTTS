@@ -1,3 +1,4 @@
+"use client";
 import { recordsTable } from "@/db/schema";
 import {
   BanknoteArrowDownIcon,

@@ -1,4 +1,4 @@
-import { isSameMonth } from "date-fns";
+import { getMonth, getYear, isSameMonth, lastDayOfMonth } from "date-fns";
 import { getFilteredRecords } from "./actions";
 import { OverviewCards } from "./components/overview-cards";
 import { OverviewChartArea } from "./components/overview-chart-area";
@@ -32,14 +32,21 @@ export default async function Page({ searchParams }: PageProps) {
       ? parseInt(params.year, 10)
       : undefined;
 
-  const result = await getFilteredRecords({ walletId, month, year });
-  const mostRecent = result.length ? result[0].date : new Date();
+  const targetDate = lastDayOfMonth(
+    new Date(
+      typeof year === "number" ? year : getYear(Date.now()),
+      typeof month === "number" ? month : getMonth(Date.now()),
+    ),
+  );
+  targetDate.setHours(23, 59, 59);
+
+  const result = await getFilteredRecords({ walletId, targetDate });
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <OverviewHeader walletId={walletId} month={month} year={year} />
       <OverviewCards
-        data={result.filter((res) => isSameMonth(res.date, mostRecent))}
+        data={result.filter((res) => isSameMonth(targetDate, res.date))}
       />
       <OverviewChartArea data={result} />
     </main>

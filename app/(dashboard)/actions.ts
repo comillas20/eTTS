@@ -2,8 +2,7 @@
 
 import db from "@/db/drizzle";
 import { recordsTable } from "@/db/schema";
-import { tz, TZDate } from "@date-fns/tz";
-import { getYear, lastDayOfMonth, subDays } from "date-fns";
+import { subDays } from "date-fns";
 import { and, eq, gte, lt, or } from "drizzle-orm";
 
 export async function getRecordDates(walletId?: number) {
@@ -17,44 +16,41 @@ export async function getRecordDates(walletId?: number) {
 
 type FilteredRecords = {
   walletId?: number;
-  month?: number;
-  year?: number;
+  targetDate: Date;
 };
 
 export async function getFilteredRecords(filters: FilteredRecords) {
-  const { walletId, month, year } = filters;
+  const { walletId, targetDate } = filters;
 
   const range = 90;
-
-  let targetDate: Date;
+  // let targetDate: Date;
 
   // Note to self: You cant do !month because month = 0 becomes false, and we dont want that
-  if (typeof month !== "number") {
-    const mostRecent = await db.query.recordsTable.findFirst({
-      where: walletId ? eq(recordsTable.eWalletId, walletId) : undefined,
-      orderBy: (recordsTable, { desc }) => [desc(recordsTable.date)],
-      columns: {
-        date: true,
-      },
-    });
+  // if (typeof month !== "number") {
+  //   const mostRecent = await db.query.recordsTable.findFirst({
+  //     where: walletId ? eq(recordsTable.eWalletId, walletId) : undefined,
+  //     orderBy: (recordsTable, { desc }) => [desc(recordsTable.date)],
+  //     columns: {
+  //       date: true,
+  //     },
+  //   });
 
-    // something went wrong
-    if (!mostRecent) return [];
+  //   // something went wrong
+  //   if (!mostRecent) return [];
 
-    targetDate = lastDayOfMonth(mostRecent.date, {
-      in: tz("UTC"),
-    });
-  } else
-    targetDate = lastDayOfMonth(
-      new TZDate(year || getYear(new Date()), month, "UTC"),
-      {
-        in: tz("UTC"),
-      },
-    );
+  //   targetDate = lastDayOfMonth(mostRecent.date, {
+  //     in: tz("UTC"),
+  //   });
+  // } else
+  //   targetDate = lastDayOfMonth(
+  //     new TZDate(year || getYear(new Date()), month, "UTC"),
+  //     {
+  //       in: tz("UTC"),
+  //     },
+  //   );
 
-  // set it so that records in the same day as @targetDate is included
-  targetDate.setHours(23, 59, 59);
-
+  // // set it so that records in the same day as @targetDate is included
+  // targetDate.setHours(23, 59, 59);
   const results = await db.query.recordsTable.findMany({
     where: and(
       walletId ? eq(recordsTable.eWalletId, walletId) : undefined,
