@@ -115,10 +115,10 @@ export async function getSuggestedFee({
    * to check if it really belongs in that fee range first
    */
   const result = await db.query.feesTable.findMany({
-    where: (fields, { eq, and, gt }) =>
+    where: (fields, { eq, and, lt }) =>
       and(
         eq(fields.eWalletId, walletId),
-        gt(fields.dateImplemented, transactionDate),
+        lt(fields.dateImplemented, transactionDate),
       ),
   });
 
