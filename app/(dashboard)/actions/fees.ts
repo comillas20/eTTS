@@ -3,12 +3,11 @@
 import db from "@/db/drizzle";
 import { eWalletsTable, feesTable, transactionTypeEnum } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createInsertSchema } from "drizzle-zod";
 import { updateRecord } from "./records";
 import { getDefaultRate } from "./wallets";
 
 type InsertFeeRange = typeof feesTable.$inferInsert;
-type SelectFeeRange = typeof feesTable.$inferSelect;
 
 export async function createFeeRange(values: InsertFeeRange) {
   const schema = createInsertSchema(feesTable);
@@ -51,31 +50,31 @@ export async function getFeeRanges(walletId: number) {
   };
 }
 
-export async function updateFeeRange(values: SelectFeeRange) {
-  // I used createSelectSchema instead of the update/insert counterpart
-  // because I want the id to also be verified
-  // and that all properties be required
+// export async function updateFeeRange(values: SelectFeeRange) {
+//   // I used createSelectSchema instead of the update/insert counterpart
+//   // because I want the id to also be verified
+//   // and that all properties be required
 
-  const schema = createSelectSchema(feesTable);
-  const parsedValues = schema.safeParse(values);
+//   const schema = createSelectSchema(feesTable);
+//   const parsedValues = schema.safeParse(values);
 
-  if (parsedValues.error)
-    return { success: false as const, data: null, error: parsedValues.error };
+//   if (parsedValues.error)
+//     return { success: false as const, data: null, error: parsedValues.error };
 
-  const { id, ...rest } = parsedValues.data;
+//   const { id, ...rest } = parsedValues.data;
 
-  const result = await db
-    .update(feesTable)
-    .set(rest)
-    .where(eq(feesTable.id, id))
-    .returning();
+//   const result = await db
+//     .update(feesTable)
+//     .set(rest)
+//     .where(eq(feesTable.id, id))
+//     .returning();
 
-  return {
-    success: true as const,
-    data: result[0],
-    error: null,
-  };
-}
+//   return {
+//     success: true as const,
+//     data: result[0],
+//     error: null,
+//   };
+// }
 
 export async function deleteFeeRange(id: number) {
   if (typeof id !== "number")

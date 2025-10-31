@@ -25,13 +25,10 @@ import { format, isFuture, set, startOfDay } from "date-fns";
 import { createSelectSchema } from "drizzle-zod";
 import {
   CalendarIcon,
-  PencilIcon,
   PlusIcon,
   RefreshCwIcon,
-  SaveIcon,
   Trash2Icon,
 } from "lucide-react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -45,7 +42,6 @@ type CustomFeesProps = {
   walletId: WalletID;
 };
 export function CustomFees({ walletId }: CustomFeesProps) {
-  const [activeFee, setActiveFee] = useState<number>();
   const { data, dataUpdatedAt } = useQuery(getFeeRangesQuery(walletId));
 
   return (
@@ -64,17 +60,10 @@ export function CustomFees({ walletId }: CustomFeesProps) {
               data={fee}
               walletId={walletId}
               includeLabel={i === 0}
-              isActive={activeFee === fee.id}
-              setIsActive={setActiveFee}
             />
           ))}
         {data && data.length > 0 && <Separator className="mb-4" />}
-        <CustomFee
-          walletId={walletId}
-          isActive={typeof activeFee === "undefined"}
-          setIsActive={setActiveFee}
-          includeLabel
-        />
+        <CustomFee walletId={walletId} includeLabel />
       </div>
     </div>
   );
@@ -84,17 +73,9 @@ type CustomFeeProps = {
   walletId: WalletID;
   data?: FeeRange;
   includeLabel?: boolean;
-  isActive: boolean;
-  setIsActive: (feeId?: number) => void;
 };
 
-function CustomFee({
-  walletId,
-  data,
-  includeLabel,
-  isActive,
-  setIsActive,
-}: CustomFeeProps) {
+function CustomFee({ walletId, data, includeLabel }: CustomFeeProps) {
   const schema = createSelectSchema(feesTable, {
     id: (schema) => schema.optional(),
     amountStart: (schema) =>
@@ -114,7 +95,7 @@ function CustomFee({
       dateImplemented: startOfDay(Date.now()),
       fee: 0,
     },
-    disabled: !isActive,
+    disabled: !!data,
   });
 
   const queryClient = useQueryClient();
@@ -130,10 +111,6 @@ function CustomFee({
           case "create":
             toast.success("The fee range has been added!");
             break;
-          case "update":
-            toast.success("The fee range has been updated!");
-            setIsActive(undefined);
-            break;
           default:
             console.log("You just reached an impossible state");
             break;
@@ -144,43 +121,6 @@ function CustomFee({
       }
     },
   });
-
-  function getFormActionButton() {
-    if (isActive) {
-      const buttonLabel =
-        typeof data?.id === "number" ? (
-          <>
-            <SaveIcon />
-            Save
-          </>
-        ) : (
-          <>
-            <PlusIcon />
-            Create
-          </>
-        );
-
-      return (
-        <Button
-          key={data?.id.toString() + "_upsert"}
-          type="submit"
-          variant="secondary"
-          className="w-24">
-          {buttonLabel}
-        </Button>
-      );
-    } else
-      return (
-        <Button
-          key={data?.id.toString() + "_edit"}
-          type="button"
-          className="w-24"
-          onClick={() => setIsActive(data?.id)}>
-          <PencilIcon />
-          Edit
-        </Button>
-      );
-  }
 
   function getFormSubActionButton() {
     const { isDirty } = form.formState;
@@ -340,7 +280,12 @@ function CustomFee({
             )}
           />
           <span className="flex gap-2">
-            {getFormActionButton()}
+            {!data && (
+              <Button type="submit" variant="secondary" className="w-24">
+                <PlusIcon />
+                Create
+              </Button>
+            )}
             {getFormSubActionButton()}
           </span>
         </div>
