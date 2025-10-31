@@ -41,12 +41,13 @@ export default async function Page({ searchParams }: PageProps) {
   targetDate.setHours(23, 59, 59);
 
   const result = await getFilteredRecords({ walletId, targetDate });
+  const latestRecordDate = result.length > 0 ? result[0].date : targetDate;
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <OverviewHeader walletId={walletId} month={month} year={year} />
       <OverviewCards
-        data={result.filter((res) => isSameMonth(targetDate, res.date))}
+        data={result.filter((res) => isSameMonth(latestRecordDate, res.date))}
       />
       <OverviewChartArea data={result} />
     </main>
