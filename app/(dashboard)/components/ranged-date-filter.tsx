@@ -32,6 +32,7 @@ export function RangedDateFilter({
           onSelect={(dates) => {
             onDateChange(dates);
           }}
+          defaultMonth={dates?.from}
         />
         <Button
           className="m-3 mt-0"
