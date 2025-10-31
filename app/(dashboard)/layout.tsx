@@ -6,10 +6,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { NavBreadcrumb } from "./components/nav-breadcrumb";
-import { auth } from "@/lib/auth"; // path to your Better Auth server instance
+import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+
+import React from "react";
+import { NavBreadcrumb } from "./components/nav-breadcrumb";
 import { NavUser } from "./components/nav-user";
 import { ThemeToggle } from "./components/theme-toggle";
 
