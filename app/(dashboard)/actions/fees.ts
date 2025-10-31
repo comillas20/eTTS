@@ -4,6 +4,7 @@ import db from "@/db/drizzle";
 import { eWalletsTable, feesTable, transactionTypeEnum } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { updateRecord } from "./records";
 import { getDefaultRate } from "./wallets";
 
 type InsertFeeRange = typeof feesTable.$inferInsert;
@@ -21,6 +22,8 @@ export async function createFeeRange(values: InsertFeeRange) {
     .values(parsedValues.data)
     .returning({ id: feesTable.id })
     .onConflictDoNothing();
+
+  await adjustRecordFees(parsedValues.data);
 
   return {
     success: true as const,
@@ -78,23 +81,33 @@ export async function deleteFeeRange(id: number) {
   if (typeof id !== "number")
     return { success: false as const, error: "ID should be a number" };
 
+  // gets the most recent fee range that is NOT the deleted one
+  const currentFeeRange = await db.query.feesTable.findFirst({
+    where: (table, { eq }) => eq(table.id, id),
+  });
+
+  if (!currentFeeRange)
+    return { success: false as const, error: "Fee range not found" };
+
+  await adjustRecordFees(currentFeeRange, true);
+  // revert first before deleting, so no optimization here
   await db.delete(feesTable).where(eq(feesTable.id, id));
 
   return { success: true as const, error: null };
 }
 
-export async function isFeeInExistingRange(fee: number, feeRangeId: number) {
-  const result = await db.query.feesTable.findMany({
-    where: (table, { and, lte, gte }) =>
-      and(lte(table.amountStart, fee), gte(table.amountEnd, fee)),
-  });
+// export async function isFeeInExistingRange(fee: number, feeRangeId: number) {
+//   const result = await db.query.feesTable.findMany({
+//     where: (table, { and, lte, gte }) =>
+//       and(lte(table.amountStart, fee), gte(table.amountEnd, fee)),
+//   });
 
-  // if system only finds the current edited range, then we ignore
-  if (result && result.length === 1 && result[0].id === feeRangeId)
-    return false;
+//   // if system only finds the current edited range, then we ignore
+//   if (result && result.length === 1 && result[0].id === feeRangeId)
+//     return false;
 
-  return !!result;
-}
+//   return !!result;
+// }
 
 type SuggestedFeeOptions = {
   walletId: typeof eWalletsTable.$inferSelect.id;
@@ -120,6 +133,7 @@ export async function getSuggestedFee({
         eq(fields.eWalletId, walletId),
         lt(fields.dateImplemented, transactionDate),
       ),
+    orderBy: (recordsTable, { desc }) => [desc(recordsTable.dateImplemented)],
   });
 
   /* the calculation was just reducing the amount with the fee if it was cash-out
@@ -149,4 +163,108 @@ export async function getSuggestedFee({
 
     return belowInitialFee ? initialFee : initialFee + ladder * rate;
   } else return Math.ceil(amount / ladder) * ladder * rate;
+}
+
+/**
+ *
+ * @param currentFeeRange the current fee range, needs to be existing in the db
+ * @param revert should be set to true if record.fee should be reverted to currentFeeRange's previous fee range (or default rate)
+ */
+async function adjustRecordFees(
+  currentFeeRange: InsertFeeRange,
+  revert?: boolean,
+) {
+  // get all records whose amount is within amountStart & amountEnd of curentFeerange
+  // and whose record date is AFTER curentFeerange.dateImplementation
+  const records = await db.query.recordsTable.findMany({
+    where: (table, { and, eq, or, gte, between, sql }) =>
+      and(
+        eq(table.eWalletId, currentFeeRange.eWalletId),
+        gte(table.date, currentFeeRange.dateImplemented),
+        or(
+          and(
+            eq(table.type, "cash-in"),
+            between(
+              table.amount,
+              currentFeeRange.amountStart,
+              currentFeeRange.amountEnd,
+            ),
+          ),
+          and(
+            eq(table.type, "cash-out"),
+            between(
+              table.amount,
+              currentFeeRange.amountStart,
+              sql`${currentFeeRange.amountEnd} + ${table.fee}`,
+            ),
+          ),
+        ),
+      ),
+    orderBy: (recordsTable, { desc }) => [desc(recordsTable.date)],
+  });
+
+  // loop each of them, and get the most recent fee range before this current fee range
+  // if no prev fee range, get the default rate of this wallet
+  //
+  // if record.fee == prev.fee, change it to the curentFeerange's fee, unless revert == true,
+  // in which case, change it to the prev.fee or default rate
+  // otherwise, it means it was specially modified (e.g. discounts / another fee range later implemented), so leave it untouched
+  records.forEach(async (record) => {
+    const modifiedAmount =
+      record.type === "cash-in" ? record.amount : record.amount - record.fee;
+    // checks if this current fee range is the latest fee range for this specific record
+    const otherLatestRange = await db.query.feesTable.findFirst({
+      where: (table, { and, gt, lte, sql, between }) =>
+        and(
+          eq(table.eWalletId, currentFeeRange.eWalletId),
+          gt(table.dateImplemented, currentFeeRange.dateImplemented), // should be AFTER the curentFeerange's date implementation
+          lte(table.dateImplemented, record.date), // but BEFORE the record's date
+          between(sql`${modifiedAmount}`, table.amountStart, table.amountEnd),
+        ),
+      orderBy: (recordsTable, { desc }) => [desc(recordsTable.dateImplemented)],
+    });
+
+    // skip if not the latest fee range and is not updating
+    if (!!otherLatestRange) return;
+
+    const prevFeeRange = await db.query.feesTable.findFirst({
+      where: (table, { and, lt, sql, between }) =>
+        and(
+          eq(table.eWalletId, currentFeeRange.eWalletId),
+          lt(table.dateImplemented, currentFeeRange.dateImplemented), // should be BEFORE the curentFeerange's date implementation
+          lt(table.dateImplemented, record.date), // and BEFORE the record's date
+          between(sql`${modifiedAmount}`, table.amountStart, table.amountEnd),
+        ),
+      orderBy: (recordsTable, { desc }) => [desc(recordsTable.dateImplemented)],
+    });
+
+    let prevFee = 0;
+    if (!prevFeeRange) {
+      const { data: rate } = await getDefaultRate(record.eWalletId);
+
+      const ladder = 500;
+
+      if (record.type === "cash-out") {
+        // round up to nearest ladder
+        const nearestMaxLadder = Math.floor(record.amount / ladder) * ladder;
+        const initialFee = nearestMaxLadder * rate;
+        const diff = record.amount - nearestMaxLadder;
+        const belowInitialFee = initialFee >= diff;
+
+        prevFee = belowInitialFee ? initialFee : initialFee + ladder * rate;
+      } else prevFee = Math.ceil(record.amount / ladder) * ladder * rate;
+    } else prevFee = prevFeeRange.fee;
+
+    if (record.fee === prevFee) {
+      await updateRecord({
+        ...record,
+        fee: currentFeeRange.fee,
+      });
+    } else if (record.fee === currentFeeRange.fee && revert) {
+      await updateRecord({
+        ...record,
+        fee: prevFee,
+      });
+    }
+  });
 }

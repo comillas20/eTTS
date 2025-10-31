@@ -1,5 +1,4 @@
 "use client";
-import { isFeeInExistingRange } from "@/app/(dashboard)/actions/fees";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -102,23 +101,7 @@ function CustomFee({
       schema.min(1, "Amount (start) should be atleast 1"),
     amountEnd: (schema) => schema.min(1, "Amount (end) should be atleast 1"),
     fee: (schema) => schema.min(0, "Fee cannot be a negative number"),
-  })
-    .refine(
-      async (check) =>
-        !check.id || !(await isFeeInExistingRange(check.amountStart, check.id)),
-      {
-        message: "Amount (start) already included in an existing fee range",
-        path: ["amountStart"],
-      },
-    )
-    .refine(
-      async (check) =>
-        !check.id || !(await isFeeInExistingRange(check.amountEnd, check.id)),
-      {
-        message: "Amount (end) already included in an existing fee range",
-        path: ["amountEnd"],
-      },
-    );
+  });
 
   type Form = z.infer<typeof schema>;
 
