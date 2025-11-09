@@ -35,7 +35,7 @@ const formSchema = z
       .min(8, "Password must be at least 8 characters long"),
   })
   .superRefine((args, ctx) => {
-    if (args.password === args.confirmPassword) {
+    if (args.password != args.confirmPassword) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["password"],
@@ -75,7 +75,7 @@ export function RegisterForm() {
           toast.error(ctx.error.message);
         },
         onSuccess: async () => {
-          router.push("/dashboard");
+          router.push("/");
         },
       },
     });

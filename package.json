@@ -10,10 +10,10 @@
     "db:seed": "tsx ./db/seeder.ts",
     "db:push": "npx drizzle-kit push",
     "py:install:windows": "scripts\\dep-installations\\py-install.bat",
-    "py:install:linux": "scripts\\dep-installations\\py-install.sh",
+    "py:install:linux": "scripts/dep-installations/py-install.sh",
     "py:install": "test -f /dev/null && npm run py:install:linux -- \"$@\" || npm run py:install:windows -- ",
     "py:rebuild:windows": "scripts\\dep-installations\\py-rebuild.bat",
-    "py:rebuild:linux": "scripts\\dep-installations\\py-rebuild.sh",
+    "py:rebuild:linux": "scripts/dep-installations/py-rebuild.sh",
     "py:rebuild": "test -f /dev/null && npm run py:rebuild:linux || npm run py:rebuild:windows"
   },
   "dependencies": {
