@@ -152,16 +152,23 @@ export async function getSuggestedFee({
   const { data: rate } = await getDefaultRate(walletId);
 
   const ladder = 500;
+  const amountRate = ladder * rate;
 
   if (type === "cash-out") {
-    // round up to nearest ladder
-    const nearestMaxLadder = Math.floor(amount / ladder) * ladder;
-    const initialFee = nearestMaxLadder * rate;
-    const diff = amount - nearestMaxLadder;
-    const belowInitialFee = initialFee >= diff;
+    const expectedFee = Math.ceil(amount / ladder) * amountRate;
+    const baseAmount = amount - expectedFee;
 
-    return belowInitialFee ? initialFee : initialFee + ladder * rate;
-  } else return Math.ceil(amount / ladder) * ladder * rate;
+    // Verifying the fee calculation on @baseAmount.
+    // If the fee on the baseAmount < expectedFee, use the lower fee and the initial calculation was too high.
+
+    const trueFee = Math.ceil(baseAmount / ladder) * amountRate;
+
+    // The highest fee that could be correct is the expectedFee.
+    // The lowest correct fee is trueFee. If they are different,
+    // it means the baseAmount crossed into a lower tier.
+
+    return trueFee > expectedFee ? expectedFee : trueFee;
+  } else return Math.ceil(amount / ladder) * amountRate;
 }
 
 /**
