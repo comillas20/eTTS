@@ -13,13 +13,17 @@ type SelectWallet = typeof eWalletsTable.$inferSelect;
 
 export async function createWallet(values: InsertWallet) {
   const schema = createInsertSchema(eWalletsTable, {
-    name: (schema) => schema.trim().min(1).max(20),
+    name: (schema) =>
+      schema
+        .trim()
+        .min(1, "E-wallet name is required")
+        .max(20, "E-wallet name is too long"),
     cellNumber: (schema) =>
       schema
         .trim()
-        .refine((check) => isCellnumber(check))
-        .or(z.literal("")),
-    url: (schema) => schema.trim().min(1).max(20),
+        .refine((check) => isCellnumber(check), "Invalid cell number"),
+    defaultRate: (schema) =>
+      schema.min(0.01, "Rate must be atleast 0.01 or greater"),
   }).refine(
     async (check) => !(await doesWalletAlreadyExist({ ...check, id: -1 })),
     {
@@ -28,7 +32,7 @@ export async function createWallet(values: InsertWallet) {
     },
   );
 
-  const parsedValues = schema.safeParse(values);
+  const parsedValues = await schema.safeParseAsync(values);
 
   if (parsedValues.error)
     return { success: false as const, data: null, error: parsedValues.error };
@@ -36,12 +40,12 @@ export async function createWallet(values: InsertWallet) {
   const result = await db
     .insert(eWalletsTable)
     .values(parsedValues.data)
-    .returning({ id: eWalletsTable.id })
+    .returning()
     .onConflictDoNothing();
 
   return {
     success: true as const,
-    data: result,
+    data: result[0],
     error: null,
   };
 }

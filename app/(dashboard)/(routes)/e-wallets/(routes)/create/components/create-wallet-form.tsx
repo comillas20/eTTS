@@ -1,6 +1,9 @@
 "use client";
 
-import { doesWalletAlreadyExist } from "@/app/(dashboard)/actions/wallets";
+import {
+  createWallet,
+  doesWalletAlreadyExist,
+} from "@/app/(dashboard)/actions/wallets";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -29,7 +32,6 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createWallet } from "../actions";
 
 export const formSchema = createInsertSchema(eWalletsTable, {
   name: (schema) =>
@@ -72,17 +74,18 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
   const queryClient = useQueryClient();
   const walletM = useMutation({
     mutationFn: createWallet,
-    onSuccess: (data) => {
+    onSuccess: (rawData) => {
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
 
-      if (data instanceof Error) toast.error(data.message);
-      else
+      const { data, error, success } = rawData;
+      if (success)
         toast("Wallet has been created successfully", {
           action: {
             label: "View",
-            onClick: () => router.push(`/e-wallets/${data.url}`),
+            onClick: () => router.push(`/e-wallets/${data.url}/settings`),
           },
         });
+      else toast.error(error.message);
     },
   });
 
