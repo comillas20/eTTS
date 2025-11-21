@@ -115,20 +115,28 @@ export function Datatable({ wallet }: DatatableProps) {
     currentPageIndexRef.current = pagination.pageIndex;
   }, [pagination]);
 
+  // mainly used for useEffect dept. Calling a function as a useEffect dept is bad.
+  const pageCount = table.getPageCount();
   useEffect(() => {
     if (currentPageIndexRef.current === 0) return;
-    else {
-      const pageCount = table.getPageCount() - 1;
-      const pageIndex =
-        pageCount < currentPageIndexRef.current
-          ? pageCount
-          : currentPageIndexRef.current;
-      setPagination((prev) => ({
-        pageIndex: pageIndex,
-        pageSize: prev.pageSize,
-      }));
+
+    const pageCountIndex = pageCount - 1;
+    const globalFilter = table.getState().globalFilter;
+
+    if (typeof globalFilter === "string" && globalFilter !== "") {
+      table.resetPageIndex();
+      return;
     }
-  }, [table, data]);
+
+    const pageIndex =
+      pageCountIndex < currentPageIndexRef.current
+        ? pageCountIndex
+        : currentPageIndexRef.current;
+    setPagination((prev) => ({
+      pageIndex: pageIndex,
+      pageSize: prev.pageSize,
+    }));
+  }, [table, pageCount]);
 
   return (
     <div className="flex size-full flex-col gap-4">
