@@ -17,9 +17,17 @@ export function getFeeRangesQuery(walletId: number) {
   });
 }
 
-export function getRecordsQuery(walletId: number) {
+type GetRecordFilters = {
+  walletId?: number;
+  limit?: number;
+  range?: {
+    startDate: Date;
+    endDate: Date;
+  };
+};
+export function getRecordsQuery(filters?: GetRecordFilters) {
   return queryOptions({
-    queryKey: ["records", walletId],
-    queryFn: async () => getRecords(walletId),
+    queryKey: ["records", filters],
+    queryFn: async () => getRecords(filters),
   });
 }

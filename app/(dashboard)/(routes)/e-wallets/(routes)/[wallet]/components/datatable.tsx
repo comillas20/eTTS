@@ -76,7 +76,7 @@ type DatatableProps = {
 };
 
 export function Datatable({ wallet }: DatatableProps) {
-  const { data } = useQuery(getRecordsQuery(wallet.id));
+  const { data } = useQuery(getRecordsQuery({ walletId: wallet.id }));
 
   const records = data && data.success ? data.data : [];
 

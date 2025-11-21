@@ -58,16 +58,41 @@ export async function createRecords(values: InsertRecord[]) {
   };
 }
 
-export async function getRecords(id: number) {
-  if (typeof id !== "number")
-    return {
-      success: false as const,
-      data: null,
-      error: "ID should be a number",
-    };
+type GetRecordFilters = {
+  walletId?: number;
+  limit?: number;
+  range?: {
+    startDate: Date;
+    endDate: Date;
+  };
+};
+export async function getRecords(filters?: GetRecordFilters) {
+  if (filters) {
+    const { walletId } = filters;
+    if (walletId && typeof walletId !== "number")
+      return {
+        success: false as const,
+        data: null,
+        error: "Wallet ID should be a number or should not be provided",
+      };
+  }
 
   const result = await db.query.recordsTable.findMany({
-    where: (fields, { eq }) => eq(fields.eWalletId, id),
+    where: (fields, { and, eq, gte, lte }) => {
+      if (!filters) return undefined;
+
+      const { walletId, range } = filters;
+      return and(
+        walletId ? eq(fields.eWalletId, walletId) : undefined,
+        range
+          ? and(
+              gte(recordsTable.date, range.startDate),
+              lte(recordsTable.date, range.endDate),
+            )
+          : undefined,
+      );
+    },
+    limit: filters?.limit,
     orderBy: (fields, { desc }) => [desc(fields.date)],
   });
 
