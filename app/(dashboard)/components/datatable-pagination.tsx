@@ -38,11 +38,9 @@ export function DatatablePagination<TData>({ table }: PaginationProps<TData>) {
                 1
               </PaginationButton>
             </PaginationItem>
-            {/* Middle, always active except on first page and last page */}
             {mid !== 1 && mid !== pageCount && (
               <PaginationItem>
                 <PaginationButton
-                  isActive={true}
                   disabled={mid === 1 || mid === pageCount}
                   onClick={() => table.setPageIndex(mid - 1)}>
                   {mid}

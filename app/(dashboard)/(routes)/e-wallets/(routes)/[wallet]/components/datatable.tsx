@@ -266,7 +266,9 @@ const columns: ColumnDef<Record>[] = [
   },
   {
     accessorKey: "fee",
-    header: "Fee",
+    header: ({ column }) => (
+      <DataTableColumnSortHeader column={column} title="Fee" />
+    ),
     cell: ({ row }) =>
       Intl.NumberFormat("en-US", {
         style: "currency",
@@ -277,7 +279,9 @@ const columns: ColumnDef<Record>[] = [
   {
     id: "transaction date",
     accessorKey: "date",
-    header: "Transaction date",
+    header: ({ column }) => (
+      <DataTableColumnSortHeader column={column} title="Transaction date" />
+    ),
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         {format(row.original.date, dateFormat)}

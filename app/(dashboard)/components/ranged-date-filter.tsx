@@ -20,7 +20,7 @@ export function RangedDateFilter({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline">
+        <Button variant={dates ? "accent" : "outline"}>
           {dates ? <CalendarCheckIcon /> : <CalendarIcon />}
           <span className="hidden lg:inline">Transaction dates</span>
         </Button>
