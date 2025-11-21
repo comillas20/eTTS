@@ -79,14 +79,18 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
 
   // Get the last day of the selected month via search params
   const searchParams = useSearchParams();
-  const now = new Date();
 
-  let lastDayOfSelectedMonth = lastDayOfMonth(now);
+  if (data.length < 1) return null;
+  const latestRecordDate = data[0].date;
+
+  let lastDayOfSelectedMonth = lastDayOfMonth(latestRecordDate);
   const selectedMonth = searchParams.get("month");
   const selectedYear = searchParams.get("year");
   if (selectedMonth) {
     const parsedM = parseInt(selectedMonth);
-    const parsedY = selectedYear ? parseInt(selectedYear) : getYear(now);
+    const parsedY = selectedYear
+      ? parseInt(selectedYear)
+      : getYear(latestRecordDate);
 
     if (!isNaN(parsedM) && !isNaN(parsedY))
       lastDayOfSelectedMonth = lastDayOfMonth(new Date(parsedY, parsedM));
