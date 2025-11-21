@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteRecord, getRecords } from "@/app/(dashboard)/actions/records";
+import { deleteRecord } from "@/app/(dashboard)/actions/records";
 import { DatatableColumnFilterHeader } from "@/app/(dashboard)/components/datatable-column-filter-header";
 import { DataTableColumnSortHeader } from "@/app/(dashboard)/components/datatable-column-sort-header";
 import { DatatableFrame } from "@/app/(dashboard)/components/datatable-frame";
@@ -68,6 +68,7 @@ import { useEffect, useRef, useState } from "react";
 import { DateRange, isDateRange } from "react-day-picker";
 import { toast } from "sonner";
 
+import { getRecordsQuery } from "@/lib/queries";
 import { RecordUpdateForm } from "./record-update-form";
 
 type DatatableProps = {
@@ -75,10 +76,7 @@ type DatatableProps = {
 };
 
 export function Datatable({ wallet }: DatatableProps) {
-  const { data } = useQuery({
-    queryKey: ["records", wallet.id],
-    queryFn: async () => getRecords(wallet.id),
-  });
+  const { data } = useQuery(getRecordsQuery(wallet.id));
 
   const records = data && data.success ? data.data : [];
 

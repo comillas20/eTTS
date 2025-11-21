@@ -1,4 +1,5 @@
 import { getFeeRanges } from "@/app/(dashboard)/actions/fees";
+import { getRecords } from "@/app/(dashboard)/actions/records";
 import { getWallets } from "@/app/(dashboard)/actions/wallets";
 import { queryOptions } from "@tanstack/react-query";
 
@@ -13,6 +14,12 @@ export function getFeeRangesQuery(walletId: number) {
   return queryOptions({
     queryKey: ["fee-ranges", walletId],
     queryFn: async () => getFeeRanges(walletId),
-    select: (result) => result.data,
+  });
+}
+
+export function getRecordsQuery(walletId: number) {
+  return queryOptions({
+    queryKey: ["records", walletId],
+    queryFn: async () => getRecords(walletId),
   });
 }

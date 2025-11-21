@@ -43,6 +43,7 @@ type CustomFeesProps = {
 };
 export function CustomFees({ walletId }: CustomFeesProps) {
   const { data, dataUpdatedAt } = useQuery(getFeeRangesQuery(walletId));
+  const feeRanges = data && data.success ? data.data : [];
 
   return (
     <div className="space-y-8">
@@ -52,9 +53,8 @@ export function CustomFees({ walletId }: CustomFeesProps) {
         description="Customize fees in specific amount ranges. Overrides default rate"
       />
       <div className="flex flex-col gap-2">
-        {data &&
-          !!data.length &&
-          data.map((fee, i) => (
+        {feeRanges.length > 0 &&
+          feeRanges.map((fee, i) => (
             <CustomFee
               key={fee.id + "-" + dataUpdatedAt}
               data={fee}
@@ -62,7 +62,7 @@ export function CustomFees({ walletId }: CustomFeesProps) {
               includeLabel={i === 0}
             />
           ))}
-        {data && data.length > 0 && <Separator className="mb-4" />}
+        {feeRanges.length > 0 && <Separator className="mb-4" />}
         <CustomFee walletId={walletId} includeLabel />
       </div>
     </div>
