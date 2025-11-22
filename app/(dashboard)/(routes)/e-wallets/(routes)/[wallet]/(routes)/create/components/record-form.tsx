@@ -83,23 +83,6 @@ export function RecordForm({ wallet }: RecordFormProps) {
 
   const router = useRouter();
 
-  // const [inboxMessage, setInboxMessage] = useState<string>();
-  // const extractData = (text?: string) => {
-  //   if (!text) return;
-  //   const { date, amount, cellNumber, referenceNumber, type } =
-  //     getDataFromText(text);
-
-  //   if (date) form.setValue("claimedAt", date, { shouldDirty: true });
-  //   if (amount) form.setValue("amount", amount, { shouldDirty: true });
-  //   if (cellNumber)
-  //     form.setValue("cellNumber", cellNumber, { shouldDirty: true });
-  //   if (referenceNumber)
-  //     form.setValue("referenceNumber", referenceNumber, { shouldDirty: true });
-  //   if (type) form.setValue("type", type, { shouldDirty: true });
-
-  //   form.trigger();
-  // };
-
   const type = form.watch("type");
   const amount = form.watch("amount");
   const date = form.watch("date");
@@ -142,7 +125,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
                 <FormControl>
                   <Input
                     type="text"
-                    placeholder="Usually 13 digits"
+                    placeholder="Reference of the transaction"
                     {...field}
                   />
                 </FormControl>
@@ -159,7 +142,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="If ref no. is not available"
+                    placeholder="Client's cellular number"
                     {...field}
                     value={field.value ?? ""}
                   />

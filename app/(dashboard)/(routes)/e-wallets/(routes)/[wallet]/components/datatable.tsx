@@ -453,7 +453,7 @@ type RowDialogProps = {
 function RowUpdateDialog({ record, ...props }: RowDialogProps) {
   return (
     <AlertDialog {...props}>
-      <AlertDialogContent>
+      <AlertDialogContent className="sm:max-w-xl">
         <AlertDialogHeader>
           <AlertDialogTitle>Update record</AlertDialogTitle>
           <AlertDialogDescription>
