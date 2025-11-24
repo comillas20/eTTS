@@ -52,10 +52,12 @@ export default async function Page({ searchParams }: PageProps) {
   const latestRecord = await getRecords({ walletId, limit: 1 });
 
   // only prioritize latestRecord's date if it exists, and if there was no selected month / year
-  const targetDate =
-    !selectedDate && latestRecord.success && latestRecord.data.length > 0
-      ? latestRecord.data[0].date
-      : selectedDate!;
+  let targetDate: Date;
+  if (selectedDate) targetDate = selectedDate;
+  else if (latestRecord.success && latestRecord.data.length > 0)
+    targetDate = latestRecord.data[0].date;
+  else targetDate = new Date();
+
   targetDate.setHours(23, 59, 59);
 
   const range = 90;
