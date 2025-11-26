@@ -48,6 +48,7 @@ import { format, isAfter, isBefore, isSameDay } from "date-fns";
 import {
   BanknoteArrowDownIcon,
   BanknoteArrowUpIcon,
+  BanknoteXIcon,
   BracketsIcon,
   ChevronDownIcon,
   ColumnsIcon,
@@ -138,11 +139,31 @@ export function Datatable({ wallet }: DatatableProps) {
     }));
   }, [table, pageCount]);
 
+  const filteredRows = table.getFilteredRowModel().rows;
+  const totalFees = filteredRows.reduce(
+    (arr, row) => arr + row.original.fee,
+    0,
+  );
+
   return (
     <div className="flex size-full flex-col gap-4">
       <Header table={table} />
       <DatatableFrame table={table} />
-      <DatatablePagination table={table} />
+      <div className="flex justify-between gap-2">
+        {filteredRows.length > 0 && (
+          <div className="ml-1 space-x-2 text-sm font-medium">
+            <span>Total fees:</span>
+            <span>
+              {Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: "PHP",
+                currencyDisplay: "code",
+              }).format(totalFees)}
+            </span>
+          </div>
+        )}
+        <DatatablePagination table={table} />
+      </div>
     </div>
   );
 }
@@ -195,7 +216,9 @@ const columns: ColumnDef<Record>[] = [
       />
     ),
     cell: ({ row }) =>
-      row.original.cellNumber ?? <Badge variant="outline">N/A</Badge>,
+      row.original.cellNumber ?? (
+        <span className="text-muted-foreground italic">Not Available</span>
+      ),
     filterFn: (row, columnId, filterValue) => {
       if (typeof filterValue === "boolean") {
         return filterValue
@@ -236,21 +259,7 @@ const columns: ColumnDef<Record>[] = [
         />
       );
     },
-    cell: ({ row }) => {
-      const { claimedAt, type } = row.original;
-
-      if (type === "cash-in") return <Badge variant="outline">{type}</Badge>;
-      else {
-        return (
-          <div className="flex gap-1">
-            <Badge variant="outline">{type}</Badge>
-            <Badge>
-              {claimedAt ? format(claimedAt, dateFormat) : "Unclaimed"}
-            </Badge>
-          </div>
-        );
-      }
-    },
+    cell: ({ row }) => <Badge variant="outline">{row.original.type}</Badge>,
   },
   {
     accessorKey: "amount",
@@ -299,6 +308,69 @@ const columns: ColumnDef<Record>[] = [
             isAfter(date, filterValue.from) && isBefore(date, filterValue.to)
           );
       }
+
+      return true;
+    },
+  },
+  {
+    id: "claim status",
+    accessorKey: "claimedAt",
+    header: ({ column }) => {
+      return (
+        <DatatableColumnFilterHeader
+          header={{ title: "Claim status", icon: SlidersHorizontalIcon }}
+          options={[
+            {
+              label: "All",
+              icon: BracketsIcon,
+              isSelected: column.getFilterValue() === undefined,
+              onSelect: () => column.setFilterValue(undefined),
+            },
+            {
+              label: "Unclaimed",
+              icon: BanknoteXIcon,
+              isSelected: column.getFilterValue() === "unclaimed",
+              onSelect: () => column.setFilterValue("unclaimed"),
+            },
+            {
+              label: "Claimed",
+              icon: BanknoteArrowDownIcon,
+              isSelected: column.getFilterValue() === "claimed",
+              onSelect: () => column.setFilterValue("claimed"),
+            },
+            {
+              label: "Not Applicable",
+              icon: XIcon,
+              isSelected: column.getFilterValue() === "n/a",
+              onSelect: () => column.setFilterValue("n/a"),
+            },
+          ]}
+        />
+      );
+    },
+    cell: ({ row }) => {
+      if (row.original.type !== "cash-out")
+        return (
+          <span className="text-muted-foreground italic">Not Applicable</span>
+        );
+
+      return row.original.claimedAt ? (
+        <Badge variant="outline">
+          {format(row.original.claimedAt, dateFormat)}
+        </Badge>
+      ) : (
+        <Badge variant="destructive">Unclaimed</Badge>
+      );
+    },
+    filterFn: (row, columnId, filterValue) => {
+      if (typeof filterValue !== "string") return true;
+
+      if (filterValue === "claimed") return row.original.claimedAt !== null;
+      if (filterValue === "unclaimed")
+        return (
+          row.original.type === "cash-out" && row.original.claimedAt === null
+        );
+      if (filterValue === "n/a") return row.original.type !== "cash-out";
 
       return true;
     },

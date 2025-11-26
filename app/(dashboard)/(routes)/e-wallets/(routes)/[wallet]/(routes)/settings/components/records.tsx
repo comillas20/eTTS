@@ -47,6 +47,7 @@ import {
   ArrowRightIcon,
   BanknoteArrowDownIcon,
   BanknoteArrowUpIcon,
+  BanknoteXIcon,
   BracketsIcon,
   DownloadIcon,
   Loader2Icon,
@@ -424,7 +425,7 @@ function RecordInsertionTable({
       ),
       cell: ({ row }) =>
         row.original.cellNumber ?? (
-          <span className="text-muted-foreground italic">N/A</span>
+          <span className="text-muted-foreground italic">Not Available</span>
         ),
       filterFn: (row, columnId, filterValue) => {
         if (typeof filterValue === "boolean") {
@@ -506,23 +507,66 @@ function RecordInsertionTable({
       ),
     },
     {
-      id: "claimed date",
+      id: "claim status",
       accessorKey: "claimedAt",
-      header: ({ column }) => (
-        <DataTableColumnSortHeader column={column} title="Claimed date" />
-      ),
+      header: ({ column }) => {
+        return (
+          <DatatableColumnFilterHeader
+            header={{ title: "Claim status", icon: SlidersHorizontalIcon }}
+            options={[
+              {
+                label: "All",
+                icon: BracketsIcon,
+                isSelected: column.getFilterValue() === undefined,
+                onSelect: () => column.setFilterValue(undefined),
+              },
+              {
+                label: "Unclaimed",
+                icon: BanknoteXIcon,
+                isSelected: column.getFilterValue() === "unclaimed",
+                onSelect: () => column.setFilterValue("unclaimed"),
+              },
+              {
+                label: "Claimed",
+                icon: BanknoteArrowDownIcon,
+                isSelected: column.getFilterValue() === "claimed",
+                onSelect: () => column.setFilterValue("claimed"),
+              },
+              {
+                label: "Not Applicable",
+                icon: XIcon,
+                isSelected: column.getFilterValue() === "n/a",
+                onSelect: () => column.setFilterValue("n/a"),
+              },
+            ]}
+          />
+        );
+      },
       cell: ({ row }) => {
-        if (row.original.type === "cash-in")
-          return <span className="text-muted-foreground italic">N/A</span>;
+        if (row.original.type !== "cash-out")
+          return (
+            <span className="text-muted-foreground italic">Not Applicable</span>
+          );
 
         return row.original.claimedAt ? (
-          format(row.original.claimedAt, dateFormat)
+          <Badge variant="outline">
+            {format(row.original.claimedAt, dateFormat)}
+          </Badge>
         ) : (
-          <span className="flex gap-2">
-            <XIcon />
-            Unclaimed
-          </span>
+          <Badge variant="destructive">Unclaimed</Badge>
         );
+      },
+      filterFn: (row, columnId, filterValue) => {
+        if (typeof filterValue !== "string") return true;
+
+        if (filterValue === "claimed") return row.original.claimedAt !== null;
+        if (filterValue === "unclaimed")
+          return (
+            row.original.type === "cash-out" && row.original.claimedAt === null
+          );
+        if (filterValue === "n/a") return row.original.type !== "cash-out";
+
+        return true;
       },
     },
   ];
