@@ -80,7 +80,7 @@ export function LoginForm() {
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="johndoe@gmail.com"
+                      placeholder="Email address"
                       {...field}
                     />
                   </FormControl>
@@ -95,7 +95,11 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Password — atleast 8 characters"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -99,7 +99,7 @@ export function RegisterForm() {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input type="text" placeholder="Ex. John Doe" {...field} />
+                    <Input type="text" placeholder="Full name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -114,7 +114,7 @@ export function RegisterForm() {
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="johndoe@gmail.com"
+                      placeholder="Email address"
                       {...field}
                     />
                   </FormControl>
@@ -129,7 +129,11 @@ export function RegisterForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Password — atleast 8 characters"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,7 +146,11 @@ export function RegisterForm() {
                 <FormItem>
                   <FormLabel>Confirm password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Must be the same password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
