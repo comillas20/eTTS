@@ -40,7 +40,10 @@ export function NavUtilities() {
       <SidebarMenu>
         {navigations.map((navigation) => (
           <SidebarMenuItem key={navigation.name}>
-            <SidebarMenuButton asChild isActive={pathname === navigation.url}>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === navigation.url}
+              tooltip={navigation.name}>
               <Link href={navigation.url}>
                 <navigation.icon />
                 <span>{navigation.name}</span>

@@ -419,8 +419,7 @@ function Header({ table }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <ColumnsIcon />
-              <span className="hidden lg:inline">Customize Columns</span>
-              <span className="lg:hidden">Columns</span>
+              <span className="hidden lg:inline">Columns</span>
               <ChevronDownIcon />
             </Button>
           </DropdownMenuTrigger>
@@ -438,9 +437,18 @@ function Header({ table }: HeaderProps) {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }>
+                    onCheckedChange={(value) => {
+                      const hasOnlyTwoVisibleColumns =
+                        table.getVisibleLeafColumns().length === 3; // including action column
+
+                      if (hasOnlyTwoVisibleColumns && !value) {
+                        toast.error("At least two columns should be visible.");
+                        return;
+                      }
+
+                      column.toggleVisibility(!!value);
+                    }}
+                    onSelect={(event) => event.preventDefault()}>
                     {column.id}
                   </DropdownMenuCheckboxItem>
                 );
