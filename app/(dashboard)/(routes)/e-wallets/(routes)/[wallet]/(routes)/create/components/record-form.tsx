@@ -235,7 +235,9 @@ export function RecordForm({ wallet }: RecordFormProps) {
                         <Button
                           variant={"outline"}
                           className="pl-3 text-left font-normal">
-                          {format(field.value, "PPPp")}
+                          {field.value
+                            ? format(field.value, "PPPp")
+                            : "Select date"}
                           <CalendarIcon className="ml-auto size-4 opacity-50" />
                         </Button>
                       </FormControl>

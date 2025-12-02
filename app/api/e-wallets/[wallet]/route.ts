@@ -12,14 +12,6 @@ import { Readable } from "stream";
 import { createGzip } from "zlib";
 import z from "zod";
 
-export async function generateStaticParams() {
-  const wallets = await db.query.eWalletsTable.findMany();
-
-  return wallets.map((wallet) => ({
-    wallet: wallet.url,
-  }));
-}
-
 type RouteProps = {
   params: Promise<{ wallet: string }>;
 };

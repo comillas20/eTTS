@@ -1,3 +1,4 @@
+import { getWallets } from "@/app/(dashboard)/actions/wallets";
 import db from "@/db/drizzle";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -5,11 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { Datatable } from "./components/datatable";
 
 export async function generateStaticParams() {
-  const wallets = await db.query.eWalletsTable.findMany({
-    columns: {
-      url: true,
-    },
-  });
+  const wallets = await getWallets();
 
   return wallets.map((wallet) => ({
     wallet: wallet.url,
