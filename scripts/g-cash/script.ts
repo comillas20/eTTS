@@ -1,8 +1,7 @@
 import { getSuggestedFee } from "@/app/(dashboard)/actions/fees";
 import { eWalletsTable, transactionTypeEnum } from "@/db/schema";
 import { spawn } from "child_process";
-import { existsSync, readFileSync } from "fs";
-import { chmod, mkdir, unlink } from "fs/promises";
+import { chmod, mkdir } from "fs/promises";
 import path from "path";
 import { z } from "zod";
 
@@ -60,8 +59,15 @@ export async function runScript(options: ScriptOptions) {
         "python.exe",
       );
 
+      // The specific flags required to silence the warnings for jpype/tabula in newer Java versions.
+      // const javaOptions =
+      //   "--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED";
       const script = spawn(pythonExecutable, [scriptName], {
         cwd: saveDir,
+        // env: {
+        //   ...process.env,
+        //   _JAVA_OPTIONS: javaOptions,
+        // },
       });
 
       let partialRecords: PartialRecord[] = [];

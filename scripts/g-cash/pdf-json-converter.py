@@ -122,6 +122,7 @@ def convert_pdf_to_json(reader):
         # return final_df.to_dict(orient='records')
     except Exception as e:
         sys.stderr.write(f"An error occurred: {e}")
+        return "[]"
     finally:
         decrypted_pdf_stream.close()
 
