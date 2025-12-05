@@ -28,61 +28,16 @@ function getCellNumber(description: string, walletCellNumber: string) {
   return foundCellNumber || null;
 }
 
-function getJsonData(path: string) {
-  try {
-    if (!existsSync(path)) {
-      throw new Error("JSON file does not exist");
-    }
-
-    const data = readFileSync(path, "utf-8");
-    const jsonData = JSON.parse(data);
-
-    if (Array.isArray(jsonData)) {
-      const parsedJson: PartialRecord[] = [];
-      jsonData.forEach((data) => {
-        const parsed = partialRecordSchema.safeParse(data);
-        if (parsed.success) parsedJson.push(parsed.data);
-      });
-
-      return parsedJson as PartialRecord[];
-    } else {
-      const parsed = partialRecordSchema.safeParse(jsonData);
-      if (parsed.error) throw parsed.error;
-      return [parsed.data];
-    }
-  } catch (err) {
-    console.error("Error reading or parsing JSON file:", err);
-    return null;
-  }
-}
-
 type ScriptOptions = {
   wallet: typeof eWalletsTable.$inferSelect;
-  sourceFilePath: string;
+  buffer: Buffer<ArrayBuffer>;
   scriptName: string;
   filePassword: string;
 };
 
 export async function runScript(options: ScriptOptions) {
-  const { wallet, scriptName, filePassword, sourceFilePath } = options;
+  const { wallet, scriptName, filePassword, buffer } = options;
   if (!filePassword) return new Error("File password is required");
-
-  const prompts = [
-    {
-      code: "[SOURCE_FILE_PATH]",
-      reply: sourceFilePath,
-    },
-    {
-      code: "[FILE_PASSWORD]",
-      reply: filePassword,
-    },
-  ];
-
-  function generateReply(prompt: string) {
-    const result = prompts.find((p) => prompt.includes(p.code));
-    if (!result) return null;
-    return result.reply;
-  }
 
   // Ensure the python script is executable
   const scriptPath = path.resolve(
@@ -109,12 +64,36 @@ export async function runScript(options: ScriptOptions) {
         cwd: saveDir,
       });
 
+      let partialRecords: PartialRecord[] = [];
       script.stdout.on("data", (data) => {
-        const prompt = data.toString("utf8");
-        const reply = generateReply(prompt);
+        const prompt = data.toString("utf8").trim();
 
-        // check if it was actually a prompt not just a print()
-        if (reply) script.stdin.write(reply + "\n");
+        if (prompt === "[FILE_PASSWORD]")
+          script.stdin.write(filePassword + "\n");
+        else if (prompt === "[PDF_BUFFER]") {
+          script.stdin.write(buffer);
+          script.stdin.end();
+        } else
+          try {
+            const parsedJson = JSON.parse(prompt);
+            if (Array.isArray(parsedJson)) {
+              parsedJson.forEach((data) => {
+                const parsed = partialRecordSchema.safeParse(data);
+                if (parsed.success) partialRecords.push(parsed.data);
+              });
+            } else {
+              const parsedJsonWithZod =
+                partialRecordSchema.safeParse(parsedJson);
+              if (parsedJsonWithZod.error)
+                throw new Error(
+                  parsedJsonWithZod.error.flatten().fieldErrors.toString(),
+                );
+              partialRecords.push(parsedJsonWithZod.data);
+            }
+          } catch (error: unknown) {
+            if (error instanceof SyntaxError) console.log(error.message);
+            else console.error("Unexpected error:", error);
+          }
       });
 
       script.stderr.on("data", (data) => {
@@ -123,14 +102,8 @@ export async function runScript(options: ScriptOptions) {
 
       script.on("close", async (code) => {
         console.log(`Python script exited with code ${code}`);
-        const outputFilePath = path.resolve(
-          saveDir,
-          "output",
-          "decrypted.json",
-        );
-        const partialRecords = getJsonData(outputFilePath);
 
-        if (!partialRecords) return null;
+        if (!partialRecords || partialRecords.length <= 0) return null;
         const records = await Promise.all(
           partialRecords.map(async (record) => {
             const amount = record.credit ?? record.debit ?? 0;
@@ -153,9 +126,6 @@ export async function runScript(options: ScriptOptions) {
             };
           }),
         );
-
-        unlink(outputFilePath);
-        unlink(sourceFilePath);
 
         resolve(records);
       });

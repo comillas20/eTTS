@@ -1,51 +1,54 @@
 import pandas as pd
+import io
+import json
 import numpy as np
 from pypdf import PdfReader, PdfWriter
 import sys, os, tabula, io
 
-def remove_pdf_password(source_pdf_path, pdf_password):
+def get_decrypted_pdf_reader(pdf_file_object, pdf_password):
     """
-    Removes password protection from a PDF file and saves an unprotected copy.
+    Decrypts a password-protected PDF file-like object and returns the reader.
 
     Args:
-        source_pdf_path (str): The path to the password-protected PDF file.
+        pdf_file_object: A file-like object (e.g., io.BytesIO) containing 
+                         the PDF data.
         pdf_password (str): The password to decrypt the PDF.
+
+    Returns:
+        PdfReader: The decrypted PdfReader object if successful.
+        False: If decryption fails or another error occurs.
     """
     try:
-        reader = PdfReader(source_pdf_path)
+        reader = PdfReader(pdf_file_object)
 
         if reader.is_encrypted:
-            print("[Decryption attempt]")
+            # print("[Decryption attempt]")
             try:
                 reader.decrypt(pdf_password)
-                print("[Decryption successful]")
+                # print("[Decryption successful]")
             except Exception as e:
-                print(f"Error: Could not decrypt PDF. Incorrect password or PDF is corrupted. Details: {e}", file=sys.stderr)
+                sys.stderr.write(f"Error: Could not decrypt PDF. Incorrect password or PDF is corrupted. Details: {e}", file=sys.stderr)
                 return False
         return reader
 
-    except FileNotFoundError:
-        print(f"Error: Source PDF file not found at '{source_pdf_path}'")
-        return False
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        sys.stderr.write(f"An unexpected error occurred: {e}")
         return False
 
-def convert_pdf_to_json(reader, output_json_path):
+def convert_pdf_to_json(reader):
     """
     Converts a PDF file to a JSON file.
 
     Args:
         reader (PdfReader): The PDF to convert.
-        output_json_path (str): The path where the JSON file will be saved.
     """
     if not reader:
-        print("Invalid PDF reader provided. Cannot convert to JSON.")
+        sys.stderr.write("Invalid PDF reader provided. Cannot convert to JSON.")
         return
 
     writer = PdfWriter()
 
-    print("[Write attempt]")
+    # print("[Write attempt]")
     # Add all pages to the writer
     for page in reader.pages:
         writer.add_page(page)
@@ -60,15 +63,15 @@ def convert_pdf_to_json(reader, output_json_path):
         dfs = tabula.read_pdf(decrypted_pdf_stream, pages='all', multiple_tables=True, stream=True)
 
         if not dfs:
-            print("No tables found in the PDF. Please check the PDF structure or parameters.")
+            sys.stderr.write("No tables found in the PDF. Please check the PDF structure or parameters.")
             return
 
         combined_df = pd.concat(dfs, ignore_index=True)
-
+       
         if 'Date and Time' in combined_df.columns:
             combined_df['date'] = pd.to_datetime(
                 combined_df['Date and Time'],
-                format='%Y-%m-%d %I:%M %p',
+                format='%Y-%m-%d %H:%M',
                 errors='coerce'
             ).dt.tz_localize('Asia/Manila')
         else:
@@ -105,45 +108,53 @@ def convert_pdf_to_json(reader, output_json_path):
             combined_df['description'] = combined_df['description'].fillna(combined_df['Description'])
         combined_df['description'] = combined_df['description'].replace({np.nan: ''})
 
-        # 3. Save file to JSON
-        print(f"Saving DataFrame to JSON: {output_json_path}...")
-
         final_df = combined_df[['date', 'referenceNumber', 'debit', 'credit', 'description']]
-        final_df.to_json(output_json_path, orient='records', date_format='iso', indent=4)
-        decrypted_pdf_stream.close()
-        print("JSON file created and saved successfully!")
+        
+        # CRITICAL FIX: Leverage pandas' native JSON serializer (to_json) for robust
+        # handling of Timestamp, NaT, and NaN, then load the resulting JSON string
+        # back into a native Python object (list of dicts) before returning.
+        json_string = final_df.to_json(orient='records', date_format='iso')
+        
+        # print("[Write successful]")
+        return json_string
 
+
+        # return final_df.to_dict(orient='records')
     except Exception as e:
-        print(f"An error occurred: {e}")
-
-def get_input(prompt):
-    print(prompt)
-    sys.stdout.flush() # Ensure prompt is displayed before waiting for input
-    return sys.stdin.readline().strip()
+        sys.stderr.write(f"An error occurred: {e}")
+    finally:
+        decrypted_pdf_stream.close()
 
 if __name__ == "__main__":
-    source_path = get_input("[SOURCE_FILE_PATH]")
+    try:
+        print("[FILE_PASSWORD]")
+        sys.stdout.flush()
+        pdf_password = sys.stdin.readline().strip()
 
-    if not os.path.exists(source_path):
-        print(f"Error: The file '{source_path}' does not exist. Please check the path and try again.", file=sys.stderr)
-    else:
-        password = get_input("[FILE_PASSWORD]")
+        print("[PDF_BUFFER]")
+        sys.stdout.flush()
+        pdf_data_bytes = sys.stdin.buffer.read()
+    except Exception as e:
+        # Handle case where no data was piped
+        sys.stderr.write(f"Error reading stdin: {e}\n")
+        sys.exit(1)
 
-        file_name, file_extension = os.path.splitext(source_path)
-
-        # Ensure 'output' directory exists
-        output_dir = "output"
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        output_path_base = os.path.join(output_dir, "decrypted")
-        output_path = f"{output_path_base}.json"
-
-        # Handle existing output files by appending a number
-        counter = 0
-        while os.path.exists(output_path):
-            counter += 1
-            output_path = f"{output_path_base} ({counter}).json"
-
-        pdf_reader = remove_pdf_password(source_path, password)
-        convert_pdf_to_json(pdf_reader, output_path)
+    try:
+        # Process the PDF data from memory
+        pdf_file_object = io.BytesIO(pdf_data_bytes)
+        pdf_reader = get_decrypted_pdf_reader(pdf_file_object, pdf_password)
+        
+        # Convert the reader content to a data structure, serialize, and print
+        final_records = convert_pdf_to_json(pdf_reader)
+        
+        # Print the raw JSON string using write and flush for reliability
+        sys.stdout.write(final_records)
+        sys.stdout.flush() 
+        
+    except Exception as e:
+        # Catch any errors during PDF processing or output not caught in convert_pdf_to_json
+        sys.stderr.write(f"FATAL PYTHON PROCESSING ERROR (UNHANDLED): {e}\n")
+        sys.stderr.flush()
+        sys.exit(1)
+        
+    sys.exit(0)

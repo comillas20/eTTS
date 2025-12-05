@@ -136,19 +136,6 @@ export async function POST(request: Request, { params }: RouteProps) {
     const arrayBuffer = await uploadedFile.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const fileExt = uploadedFile.name.split(".").pop()?.toLowerCase() || "dat";
-    const filename = `record-${Intl.NumberFormat("en-US", {
-      minimumIntegerDigits: 4,
-    }).format(wallet.id)}_backup_${Date.now()}.${fileExt}`;
-
-    const saveDir = path.resolve(process.cwd(), "public", "records");
-    const savePath = path.resolve(saveDir, filename);
-
-    // Ensure the directory exists
-    await mkdir(saveDir, { recursive: true });
-
-    await writeFile(savePath, buffer);
-
     switch (wallet.type) {
       case "g-cash":
         // repeated check, purely to satisfy typescript
@@ -163,8 +150,8 @@ export async function POST(request: Request, { params }: RouteProps) {
 
         const records = await runScript({
           wallet: wallet,
+          buffer: buffer,
           scriptName: "pdf-json-converter.py",
-          sourceFilePath: savePath,
           filePassword: parsedFormData.data.password,
         });
 
