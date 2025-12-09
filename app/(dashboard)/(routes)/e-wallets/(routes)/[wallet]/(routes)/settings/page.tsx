@@ -1,4 +1,4 @@
-import { getWallets } from "@/app/(dashboard)/actions/wallets";
+import { getWalletUrls } from "@/app/(dashboard)/actions/wallets";
 import db from "@/db/drizzle";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,10 +8,10 @@ import { Records } from "./components/records";
 import { UpdateWallet } from "./components/update-wallet";
 
 export async function generateStaticParams() {
-  const wallets = await getWallets();
+  const wallets = await getWalletUrls();
 
-  return wallets.map((wallet) => ({
-    wallet: wallet.url,
+  return wallets.map((url) => ({
+    wallet: url,
   }));
 }
 

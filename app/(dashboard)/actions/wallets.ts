@@ -77,6 +77,17 @@ export async function getWallets() {
   });
 }
 
+// for generateStaticParams. Do not authenticate/authorize
+export async function getWalletUrls() {
+  const wallets = await db.query.eWalletsTable.findMany({
+    columns: {
+      url: true,
+    },
+  });
+
+  return wallets.map((wallet) => wallet.url);
+}
+
 export async function updateWallet(values: SelectWallet) {
   const isAuthorized = await canAccessWallet(values.id);
 

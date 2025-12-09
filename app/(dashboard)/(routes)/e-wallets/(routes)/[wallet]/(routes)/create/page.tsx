@@ -1,13 +1,13 @@
-import { getWallets } from "@/app/(dashboard)/actions/wallets";
+import { getWalletUrls } from "@/app/(dashboard)/actions/wallets";
 import db from "@/db/drizzle";
 import { notFound } from "next/navigation";
 import { RecordForm } from "./components/record-form";
 
 export async function generateStaticParams() {
-  const wallets = await getWallets();
+  const wallets = await getWalletUrls();
 
-  return wallets.map((wallet) => ({
-    wallet: wallet.url,
+  return wallets.map((url) => ({
+    wallet: url,
   }));
 }
 
