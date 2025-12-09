@@ -2,6 +2,7 @@
 
 import db from "@/db/drizzle";
 import { eWalletsTable } from "@/db/schema";
+import { canAccessWallet, getAuthentication } from "@/lib/auth";
 import { isCellnumber } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
@@ -12,6 +13,11 @@ type InsertWallet = typeof eWalletsTable.$inferInsert;
 type SelectWallet = typeof eWalletsTable.$inferSelect;
 
 export async function createWallet(values: InsertWallet) {
+  const auth = getAuthentication();
+
+  if (!auth)
+    return { success: false as const, data: null, error: "Unauthenticated" };
+
   const schema = createInsertSchema(eWalletsTable, {
     name: (schema) =>
       schema
@@ -35,7 +41,11 @@ export async function createWallet(values: InsertWallet) {
   const parsedValues = await schema.safeParseAsync(values);
 
   if (parsedValues.error)
-    return { success: false as const, data: null, error: parsedValues.error };
+    return {
+      success: false as const,
+      data: null,
+      error: parsedValues.error.message,
+    };
 
   const result = await db
     .insert(eWalletsTable)
@@ -51,6 +61,9 @@ export async function createWallet(values: InsertWallet) {
 }
 
 export async function getWallets() {
+  const auth = await getAuthentication();
+  if (!auth) return [];
+
   return await db.query.eWalletsTable.findMany({
     with: {
       records: {
@@ -60,10 +73,16 @@ export async function getWallets() {
         },
       },
     },
+    where: (table, { eq }) => eq(table.userId, auth.user.id),
   });
 }
 
 export async function updateWallet(values: SelectWallet) {
+  const isAuthorized = await canAccessWallet(values.id);
+
+  if (!isAuthorized)
+    return { success: false as const, data: null, error: "Unauthorized" };
+
   const schema = createUpdateSchema(eWalletsTable, {
     name: (schema) => schema.trim().min(1).max(20),
     cellNumber: (schema) =>
@@ -84,7 +103,11 @@ export async function updateWallet(values: SelectWallet) {
 
   const parsedValues = schema.safeParse(values);
   if (parsedValues.error)
-    return { success: false as const, data: null, error: parsedValues.error };
+    return {
+      success: false as const,
+      data: null,
+      error: parsedValues.error.message,
+    };
 
   const result = await db
     .update(eWalletsTable)
@@ -104,6 +127,9 @@ export async function deleteWallet(id: number) {
   if (typeof id !== "number")
     return { success: false as const, error: "ID should be a number" };
 
+  const isAuthorized = await canAccessWallet(id);
+  if (!isAuthorized) return { success: false as const, error: "Unauthorized" };
+
   await db.delete(eWalletsTable).where(eq(eWalletsTable.id, id));
 
   revalidatePath("/e-wallets");
@@ -113,12 +139,16 @@ export async function deleteWallet(id: number) {
 export async function doesWalletAlreadyExist(
   wallet: Pick<SelectWallet, "id" | "name" | "userId">,
 ) {
+  const auth = await getAuthentication();
+  if (!auth) return false;
+
   const result = await db.query.eWalletsTable.findFirst({
     where: (table, { eq, and, ne }) =>
       and(
         eq(table.name, wallet.name),
         ne(table.id, wallet.id),
         eq(table.userId, wallet.userId),
+        eq(table.userId, auth.user.id),
       ),
   });
 
@@ -135,6 +165,15 @@ export async function getDefaultRate(id: number) {
       success: false as const,
       data: defaultRate,
       error: "ID should be a number",
+    };
+
+  const isAuthorized = await canAccessWallet(id);
+
+  if (!isAuthorized)
+    return {
+      success: false as const,
+      data: defaultRate,
+      error: "Unauthorized",
     };
 
   const result = await db.query.eWalletsTable.findFirst({

@@ -17,7 +17,7 @@ export async function mutateFeeRange({ data, op }: MutationProps) {
       const { id, ...rest } = data;
       return { ...(await createFeeRange(rest)), op };
     case "delete":
-      const result = await deleteFeeRange(data.id);
+      const result = await deleteFeeRange(data);
       return { ...result, data: null, op };
     default:
       return {

@@ -1,6 +1,7 @@
+import db from "@/db/drizzle";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import db from "@/db/drizzle";
+import { headers } from "next/headers";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -22,3 +23,28 @@ export const auth = betterAuth({
     },
   },
 });
+
+export async function getAuthentication() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  return session;
+}
+
+export async function canAccessWallet(walletId: number) {
+  const auth = await getAuthentication();
+
+  // early return if not authenticated
+  if (!auth) return false;
+
+  const wallet = await db.query.eWalletsTable.findFirst({
+    where: (ewalletsTable, { eq, and }) =>
+      and(
+        eq(ewalletsTable.id, walletId),
+        eq(ewalletsTable.userId, auth.user.id),
+      ),
+  });
+
+  return !!wallet;
+}

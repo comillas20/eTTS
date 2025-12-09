@@ -133,9 +133,13 @@ export const feesTable = pgTable("fees", {
 
 // The sole purpose of Drizzle relations is to let us query relational data in a simplier way.
 
-export const eWalletsRelations = relations(eWalletsTable, ({ many }) => ({
+export const eWalletsRelations = relations(eWalletsTable, ({ one, many }) => ({
   records: many(recordsTable),
   fees: many(feesTable),
+  user: one(user, {
+    fields: [eWalletsTable.userId],
+    references: [user.id],
+  }),
 }));
 
 export const recordsRelations = relations(recordsTable, ({ one }) => ({

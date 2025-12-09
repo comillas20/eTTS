@@ -1,13 +1,10 @@
 "use server";
 
 import db from "@/db/drizzle";
-import { auth } from "@/lib/auth";
+import { getAuthentication } from "@/lib/auth";
 import { runScript } from "@/scripts/g-cash/script";
-import { mkdir, writeFile } from "fs/promises";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
-import path from "path";
 import { Readable } from "stream";
 import { createGzip } from "zlib";
 import z from "zod";
@@ -17,17 +14,14 @@ type RouteProps = {
 };
 
 export async function GET(request: Request, { params }: RouteProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) redirect("/login");
+  const auth = await getAuthentication();
+  if (!auth) redirect("/login");
 
   const { wallet: walletUrl } = await params;
 
   const wallet = await db.query.eWalletsTable.findFirst({
     where: (wallets, { and, eq }) =>
-      and(eq(wallets.url, walletUrl), eq(wallets.userId, session.user.id)),
+      and(eq(wallets.url, walletUrl), eq(wallets.userId, auth.user.id)),
   });
 
   if (!wallet) return new NextResponse("Wallet not found", { status: 404 });
@@ -79,17 +73,14 @@ export async function GET(request: Request, { params }: RouteProps) {
 const ACCEPTED_EXTENSIONS = ["pdf"];
 
 export async function POST(request: Request, { params }: RouteProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) redirect("/login");
+  const auth = await getAuthentication();
+  if (!auth) redirect("/login");
 
   const { wallet: walletUrl } = await params;
 
   const wallet = await db.query.eWalletsTable.findFirst({
     where: (wallets, { and, eq }) =>
-      and(eq(wallets.url, walletUrl), eq(wallets.userId, session.user.id)),
+      and(eq(wallets.url, walletUrl), eq(wallets.userId, auth.user.id)),
   });
 
   if (!wallet)

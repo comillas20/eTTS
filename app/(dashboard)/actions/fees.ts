@@ -2,19 +2,30 @@
 
 import db from "@/db/drizzle";
 import { eWalletsTable, feesTable, transactionTypeEnum } from "@/db/schema";
+import { canAccessWallet } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { updateRecord } from "./records";
 import { getDefaultRate } from "./wallets";
 
 type InsertFeeRange = typeof feesTable.$inferInsert;
+type SelectFeeRange = typeof feesTable.$inferSelect;
 
 export async function createFeeRange(values: InsertFeeRange) {
+  const isAuthorized = await canAccessWallet(values.eWalletId);
+
+  if (!isAuthorized)
+    return { success: false as const, data: null, error: "Unauthorized" };
+
   const schema = createInsertSchema(feesTable);
   const parsedValues = schema.safeParse(values);
 
   if (parsedValues.error)
-    return { success: false as const, data: null, error: parsedValues.error };
+    return {
+      success: false as const,
+      data: null,
+      error: parsedValues.error.message,
+    };
 
   const result = await db
     .insert(feesTable)
@@ -32,6 +43,11 @@ export async function createFeeRange(values: InsertFeeRange) {
 }
 
 export async function getFeeRanges(walletId: number) {
+  const isAuthorized = await canAccessWallet(walletId);
+
+  if (!isAuthorized)
+    return { success: false as const, data: null, error: "Unauthorized" };
+
   if (typeof walletId !== "number")
     return {
       success: false as const,
@@ -50,33 +66,15 @@ export async function getFeeRanges(walletId: number) {
   };
 }
 
-// export async function updateFeeRange(values: SelectFeeRange) {
-//   // I used createSelectSchema instead of the update/insert counterpart
-//   // because I want the id to also be verified
-//   // and that all properties be required
+export async function deleteFeeRange(
+  values: Pick<SelectFeeRange, "id" | "eWalletId">,
+) {
+  const { id, eWalletId } = values;
+  const isAuthorized = await canAccessWallet(eWalletId);
 
-//   const schema = createSelectSchema(feesTable);
-//   const parsedValues = schema.safeParse(values);
+  if (!isAuthorized)
+    return { success: false as const, data: null, error: "Unauthorized" };
 
-//   if (parsedValues.error)
-//     return { success: false as const, data: null, error: parsedValues.error };
-
-//   const { id, ...rest } = parsedValues.data;
-
-//   const result = await db
-//     .update(feesTable)
-//     .set(rest)
-//     .where(eq(feesTable.id, id))
-//     .returning();
-
-//   return {
-//     success: true as const,
-//     data: result[0],
-//     error: null,
-//   };
-// }
-
-export async function deleteFeeRange(id: number) {
   if (typeof id !== "number")
     return { success: false as const, error: "ID should be a number" };
 
@@ -95,19 +93,6 @@ export async function deleteFeeRange(id: number) {
   return { success: true as const, error: null };
 }
 
-// export async function isFeeInExistingRange(fee: number, feeRangeId: number) {
-//   const result = await db.query.feesTable.findMany({
-//     where: (table, { and, lte, gte }) =>
-//       and(lte(table.amountStart, fee), gte(table.amountEnd, fee)),
-//   });
-
-//   // if system only finds the current edited range, then we ignore
-//   if (result && result.length === 1 && result[0].id === feeRangeId)
-//     return false;
-
-//   return !!result;
-// }
-
 type SuggestedFeeOptions = {
   walletId: typeof eWalletsTable.$inferSelect.id;
   type: (typeof transactionTypeEnum.enumValues)[number];
@@ -120,6 +105,9 @@ export async function getSuggestedFee({
   amount,
   transactionDate,
 }: SuggestedFeeOptions) {
+  const isAuthorized = await canAccessWallet(walletId);
+  if (!isAuthorized) return 0;
+
   // first attempt of getting fee is to check custom fee ranges if the amount falls within any range
 
   /* by getting all fees table in this wallet that was implemented BEFORE the transaction date,

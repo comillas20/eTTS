@@ -1,21 +1,31 @@
 "use server";
 
 import db from "@/db/drizzle";
-import { recordsTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eWalletsTable, recordsTable, user } from "@/db/schema";
+import { canAccessWallet, getAuthentication } from "@/lib/auth";
+import { and, desc, eq, getTableColumns, gte, lte } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { revalidatePath } from "next/cache";
-import z from "zod";
+import { parse } from "path";
 
 type InsertRecord = typeof recordsTable.$inferInsert;
 type SelectRecord = typeof recordsTable.$inferSelect;
 
 export async function createRecord(values: InsertRecord) {
+  const isAuthorized = await canAccessWallet(values.eWalletId);
+
+  if (!isAuthorized)
+    return { success: false as const, data: null, error: "Unauthorized" };
+
   const schema = createInsertSchema(recordsTable);
   const parsedValues = schema.safeParse(values);
 
   if (parsedValues.error)
-    return { success: false as const, data: null, error: parsedValues.error };
+    return {
+      success: false as const,
+      data: null,
+      error: parsedValues.error.message,
+    };
 
   if (parsedValues.data.type === "cash-in") parsedValues.data.claimedAt = null;
 
@@ -37,24 +47,41 @@ export async function createRecords(values: InsertRecord[]) {
   const parsedValues = schema.safeParse(values);
 
   if (parsedValues.error)
-    return { success: false as const, data: null, error: parsedValues.error };
+    return {
+      success: false as const,
+      data: null,
+      error: parsedValues.error.message,
+    };
 
   parsedValues.data.forEach((record) => {
     if (record.type === "cash-in") record.claimedAt = null;
   });
 
+  const accessChecks = parsedValues.data.map((record) =>
+    canAccessWallet(record.eWalletId),
+  );
+  const results = await Promise.all(accessChecks);
+  const filteredRecords = parsedValues.data.filter(
+    (_, index) => results[index],
+  );
+
   const result = await db
     .insert(recordsTable)
-    .values(parsedValues.data)
+    .values(filteredRecords)
     .returning({ id: recordsTable.id })
     .onConflictDoNothing();
 
   revalidatePath("/e-wallets");
 
+  const hasUnauthorizedRecords =
+    filteredRecords.length < parsedValues.data.length;
+
   return {
     success: true as const,
     data: result,
-    error: null,
+    error: hasUnauthorizedRecords
+      ? "Some records were not authorized and were not created"
+      : null,
   };
 }
 
@@ -77,24 +104,40 @@ export async function getRecords(filters?: GetRecordFilters) {
       };
   }
 
-  const result = await db.query.recordsTable.findMany({
-    where: (fields, { and, eq, gte, lte }) => {
+  const auth = await getAuthentication();
+
+  if (!auth)
+    return {
+      success: false as const,
+      data: null,
+      error: "Unauthenticated",
+    };
+
+  let query = db
+    .select({ ...getTableColumns(recordsTable) })
+    .from(recordsTable)
+    .innerJoin(eWalletsTable, eq(recordsTable.eWalletId, eWalletsTable.id))
+    .where(() => {
       if (!filters) return undefined;
 
       const { walletId, range } = filters;
       return and(
-        walletId ? eq(fields.eWalletId, walletId) : undefined,
+        walletId ? eq(recordsTable.eWalletId, walletId) : undefined,
         range
           ? and(
               gte(recordsTable.date, range.startDate),
               lte(recordsTable.date, range.endDate),
             )
           : undefined,
+        eq(eWalletsTable.userId, auth.user.id),
       );
-    },
-    limit: filters?.limit,
-    orderBy: (fields, { desc }) => [desc(fields.date)],
-  });
+    })
+    .orderBy(desc(recordsTable.date))
+    .$dynamic();
+
+  if (filters?.limit) query = query.limit(filters.limit);
+
+  const result = await query;
 
   return {
     success: true as const,
@@ -104,6 +147,11 @@ export async function getRecords(filters?: GetRecordFilters) {
 }
 
 export async function updateRecord(values: SelectRecord) {
+  const isAuthorized = await canAccessWallet(values.eWalletId);
+
+  if (!isAuthorized)
+    return { success: false as const, data: null, error: "Unauthorized" };
+
   // I used createSelectSchema instead of the update/insert counterpart
   // because I want the id to also be verified
   // and that all properties be required
@@ -112,7 +160,11 @@ export async function updateRecord(values: SelectRecord) {
   const parsedValues = schema.safeParse(values);
 
   if (parsedValues.error)
-    return { success: false as const, data: null, error: parsedValues.error };
+    return {
+      success: false as const,
+      data: null,
+      error: parsedValues.error.message,
+    };
 
   const { id, ...rest } = parsedValues.data;
 
@@ -129,27 +181,15 @@ export async function updateRecord(values: SelectRecord) {
   };
 }
 
-export async function updateNotes(record: Pick<SelectRecord, "id" | "notes">) {
-  const schema = z.object({
-    id: z.number(),
-    notes: z.string().nullable(),
-  });
+export async function deleteRecord(
+  values: Pick<SelectRecord, "id" | "eWalletId">,
+) {
+  const { id, eWalletId } = values;
+  const isAuthorized = await canAccessWallet(eWalletId);
 
-  const parsedValues = schema.safeParse(record);
+  if (!isAuthorized)
+    return { success: false as const, data: null, error: "Unauthorized" };
 
-  if (parsedValues.error)
-    return { success: false as const, error: parsedValues.error };
-
-  const { id, notes } = parsedValues.data;
-  await db
-    .update(recordsTable)
-    .set({ notes: notes })
-    .where(eq(recordsTable.id, id));
-
-  return { success: true as const, error: parsedValues.error };
-}
-
-export async function deleteRecord(id: number) {
   if (typeof id !== "number")
     return { success: false as const, error: "ID should be a number" };
 
