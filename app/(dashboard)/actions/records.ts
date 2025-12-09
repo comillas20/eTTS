@@ -1,12 +1,11 @@
 "use server";
 
 import db from "@/db/drizzle";
-import { eWalletsTable, recordsTable, user } from "@/db/schema";
+import { eWalletsTable, recordsTable } from "@/db/schema";
 import { canAccessWallet, getAuthentication } from "@/lib/auth";
 import { and, desc, eq, getTableColumns, gte, lte } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { revalidatePath } from "next/cache";
-import { parse } from "path";
 
 type InsertRecord = typeof recordsTable.$inferInsert;
 type SelectRecord = typeof recordsTable.$inferSelect;
