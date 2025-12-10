@@ -85,7 +85,7 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
             onClick: () => router.push(`/e-wallets/${data.url}/settings`),
           },
         });
-      else toast.error(error.message);
+      else toast.error(error);
     },
   });
 

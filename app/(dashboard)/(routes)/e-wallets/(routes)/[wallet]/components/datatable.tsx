@@ -606,7 +606,7 @@ function RowDeleteDialog({ record, ...props }: RowDialogProps) {
           </AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 text-white shadow-xs"
-            onClick={() => recordM.mutate(record.id)}
+            onClick={() => recordM.mutate(record)}
             disabled={recordM.isPending}>
             <Trash2Icon />
             Delete
