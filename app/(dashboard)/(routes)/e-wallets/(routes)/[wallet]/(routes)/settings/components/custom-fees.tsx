@@ -112,7 +112,7 @@ function CustomFee({ walletId, data, includeLabel }: CustomFeeProps) {
             toast.success("The fee range has been added!");
             break;
           default:
-            console.log("You just reached an impossible state");
+            toast.error("An unexpected error occurred");
             break;
         }
         form.reset();

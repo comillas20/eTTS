@@ -64,8 +64,7 @@ export async function GET(request: Request, { params }: RouteProps) {
     headers.set("Content-Disposition", `attachment; filename="${filename}"`);
 
     return new NextResponse(webStream, { headers });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -154,7 +153,6 @@ export async function POST(request: Request, { params }: RouteProps) {
         );
     }
   } catch (error) {
-    console.error("File upload error:", error);
     return NextResponse.json(
       { success: false, error: "Internal Server Error" },
       { status: 500 },

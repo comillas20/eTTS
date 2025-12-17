@@ -288,7 +288,6 @@ function RecordRestore({ wallet }: RecordsProps) {
                     type="file"
                     onChange={(e) => {
                       if (e.target.files && e.target.files.length > 0) {
-                        console.log(e.target.files[0].type);
                         field.onChange(e.target.files[0]);
                       } else {
                         field.onChange(undefined);

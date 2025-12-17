@@ -98,8 +98,6 @@ export async function runScript(options: ScriptOptions) {
     });
 
     script.on("close", async (code) => {
-      console.log(`Python script exited with code ${code}`);
-
       if (code !== 0) {
         return reject(
           new Error(`Python Script Error (Code ${code}): ${scriptErrorOutput}`),
@@ -145,7 +143,7 @@ export async function runScript(options: ScriptOptions) {
             };
           }),
         );
-        console.log(records);
+
         return resolve(records);
       } catch (error) {
         return reject(
