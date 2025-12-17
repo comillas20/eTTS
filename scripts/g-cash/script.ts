@@ -51,67 +51,80 @@ export async function runScript(options: ScriptOptions) {
   await mkdir(saveDir, { recursive: true });
 
   return new Promise((resolve, reject) => {
-    try {
-      const pythonExecutable = path.join(
-        process.cwd(),
-        ".venv",
-        "Scripts",
-        "python.exe",
-      );
+    let pythonExecutable = "";
+    switch (process.platform) {
+      case "win32":
+        pythonExecutable = path.join(
+          process.cwd(),
+          ".venv",
+          "Scripts",
+          "python.exe",
+        );
+        break;
+      case "linux":
+        pythonExecutable = path.join(process.cwd(), ".venv", "bin", "python");
+        break;
+      default:
+        return reject(new Error("Unsupported platform: " + process.platform));
+    }
 
-      // The specific flags required to silence the warnings for jpype/tabula in newer Java versions.
-      // const javaOptions =
-      //   "--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED";
-      const script = spawn(pythonExecutable, [scriptName], {
-        cwd: saveDir,
-        // env: {
-        //   ...process.env,
-        //   _JAVA_OPTIONS: javaOptions,
-        // },
-      });
+    // The specific flags required to silence the warnings for jpype/tabula in newer Java versions.
+    // const javaOptions =
+    //   "--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED";
+    const script = spawn(pythonExecutable, [scriptName], {
+      cwd: saveDir,
+      // env: {
+      //   ...process.env,
+      //   _JAVA_OPTIONS: javaOptions,
+      // },
+    });
 
-      let partialRecords: PartialRecord[] = [];
-      script.stdout.on("data", (data) => {
-        const prompt = data.toString("utf8").trim();
+    let scriptDataOutput = "";
+    let scriptErrorOutput = "";
 
-        if (prompt === "[FILE_PASSWORD]")
-          script.stdin.write(filePassword + "\n");
-        else if (prompt === "[PDF_BUFFER]") {
-          script.stdin.write(buffer);
-          script.stdin.end();
-        } else
-          try {
-            const parsedJson = JSON.parse(prompt);
-            if (Array.isArray(parsedJson)) {
-              parsedJson.forEach((data) => {
-                const parsed = partialRecordSchema.safeParse(data);
-                if (parsed.success) partialRecords.push(parsed.data);
-              });
-            } else {
-              const parsedJsonWithZod =
-                partialRecordSchema.safeParse(parsedJson);
-              if (parsedJsonWithZod.error)
-                throw new Error(
-                  parsedJsonWithZod.error.flatten().fieldErrors.toString(),
-                );
-              partialRecords.push(parsedJsonWithZod.data);
-            }
-          } catch (error: unknown) {
-            if (error instanceof SyntaxError) console.log(error.message);
-            else console.error("Unexpected error:", error);
-          }
-      });
+    script.stdout.on("data", (data) => {
+      const prompt = data.toString("utf8");
 
-      script.stderr.on("data", (data) => {
-        console.error(`Error: ${data}`);
-      });
+      if (prompt.includes("[FILE_PASSWORD]"))
+        script.stdin.write(filePassword + "\n");
+      else if (prompt.includes("[PDF_BUFFER]")) {
+        script.stdin.write(buffer);
+        script.stdin.end();
+      } else scriptDataOutput += prompt;
+    });
 
-      script.on("close", async (code) => {
-        console.log(`Python script exited with code ${code}`);
+    script.stderr.on("data", (data) => {
+      scriptErrorOutput += data.toString();
+    });
 
-        if (!partialRecords || partialRecords.length <= 0) return null;
+    script.on("close", async (code) => {
+      console.log(`Python script exited with code ${code}`);
+
+      if (code !== 0) {
+        return reject(
+          new Error(`Python Script Error (Code ${code}): ${scriptErrorOutput}`),
+        );
+      }
+
+      try {
+        const cleanedOutput = scriptDataOutput.trim();
+        if (!cleanedOutput) return resolve([]);
+
+        const parsedJson = JSON.parse(cleanedOutput);
+        const rawRecords = Array.isArray(parsedJson)
+          ? parsedJson
+          : [parsedJson];
+
+        const validatedRecords = rawRecords
+          .map((r) => partialRecordSchema.safeParse(r))
+          .filter((p) => p.success)
+          .map((p) => p.data);
+
+        if (!validatedRecords || validatedRecords.length <= 0)
+          return reject("No records");
+
         const records = await Promise.all(
-          partialRecords.map(async (record) => {
+          validatedRecords.map(async (record) => {
             const amount = record.credit ?? record.debit ?? 0;
             const type: (typeof transactionTypeEnum.enumValues)[number] =
               record.credit ? "cash-out" : "cash-in";
@@ -132,11 +145,13 @@ export async function runScript(options: ScriptOptions) {
             };
           }),
         );
-
-        resolve(records);
-      });
-    } catch (error) {
-      reject(new Error("Error running script: " + error));
-    }
+        console.log(records);
+        return resolve(records);
+      } catch (error) {
+        return reject(
+          new Error("Failed to parse Python output: " + String(error)),
+        );
+      }
+    });
   });
 }
