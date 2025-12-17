@@ -71,7 +71,7 @@ def convert_pdf_to_json(reader):
         if 'Date and Time' in combined_df.columns:
             combined_df['date'] = pd.to_datetime(
                 combined_df['Date and Time'],
-                format='%Y-%m-%d %H:%M',
+                format='%Y-%m-%d %I:%M %p',
                 errors='coerce'
             ).dt.tz_localize('Asia/Manila')
         else:
