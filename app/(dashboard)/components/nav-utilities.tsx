@@ -1,7 +1,5 @@
 "use client";
 
-import { WalletIcon, type LucideIcon } from "lucide-react";
-
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -9,8 +7,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import {
+  DatabaseBackupIcon,
+  FileTextIcon,
+  WalletIcon,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
-import { FileTextIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 type Navigation = {
@@ -29,6 +32,11 @@ const navigations: Navigation[] = [
     name: "E-wallets",
     url: "/e-wallets",
     icon: WalletIcon,
+  },
+  {
+    name: "Backup & Restore",
+    url: "/backup-restore",
+    icon: DatabaseBackupIcon,
   },
 ];
 

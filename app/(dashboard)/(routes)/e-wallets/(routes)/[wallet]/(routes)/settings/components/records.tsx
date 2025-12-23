@@ -254,7 +254,7 @@ function RecordRestore({ wallet }: RecordsProps) {
 
   const walletM = useMutation({
     mutationFn: async () => {
-      const result = await createRecords(records);
+      const result = await createRecords(records, wallet.id);
 
       if (!result.success)
         return { message: "Something went wrong, please try again." };

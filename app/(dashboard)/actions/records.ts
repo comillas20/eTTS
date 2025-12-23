@@ -3,7 +3,7 @@
 import db from "@/db/drizzle";
 import { eWalletsTable, recordsTable } from "@/db/schema";
 import { canAccessWallet, getAuthentication } from "@/lib/auth";
-import { and, desc, eq, getTableColumns, gte, lte } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, gte, lte, sql } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { revalidatePath } from "next/cache";
 
@@ -41,8 +41,13 @@ export async function createRecord(values: InsertRecord) {
   };
 }
 
-export async function createRecords(values: InsertRecord[]) {
-  const schema = createInsertSchema(recordsTable).array();
+export async function createRecords(
+  values: Omit<InsertRecord, "eWalletId">[],
+  walletId: number,
+) {
+  const schema = createInsertSchema(recordsTable)
+    .omit({ eWalletId: true })
+    .array();
   const parsedValues = schema.safeParse(values);
 
   if (parsedValues.error)
@@ -56,31 +61,80 @@ export async function createRecords(values: InsertRecord[]) {
     if (record.type === "cash-in") record.claimedAt = null;
   });
 
-  const accessChecks = parsedValues.data.map((record) =>
-    canAccessWallet(record.eWalletId),
-  );
-  const results = await Promise.all(accessChecks);
-  const filteredRecords = parsedValues.data.filter(
-    (_, index) => results[index],
-  );
+  const hasAccess = await canAccessWallet(walletId);
+
+  if (!hasAccess)
+    return { success: false as const, data: null, error: "Unauthorized" };
+
+  const finalData = parsedValues.data.map((record) => ({
+    ...record,
+    eWalletId: walletId,
+  }));
 
   const result = await db
     .insert(recordsTable)
-    .values(filteredRecords)
+    .values(finalData)
     .returning({ id: recordsTable.id })
     .onConflictDoNothing();
 
   revalidatePath("/e-wallets");
 
-  const hasUnauthorizedRecords =
-    filteredRecords.length < parsedValues.data.length;
+  return {
+    success: true as const,
+    data: result,
+    error: null,
+  };
+}
+
+export async function restoreRecords(
+  values: Omit<InsertRecord, "eWalletId">[],
+  walletId: number,
+) {
+  const schema = createInsertSchema(recordsTable)
+    .omit({ eWalletId: true })
+    .array();
+  const parsedValues = schema.safeParse(values);
+
+  if (parsedValues.error)
+    return {
+      success: false as const,
+      data: null,
+      error: parsedValues.error.message,
+    };
+
+  parsedValues.data.forEach((record) => {
+    if (record.type === "cash-in") record.claimedAt = null;
+  });
+
+  const hasAccess = await canAccessWallet(walletId);
+
+  if (!hasAccess)
+    return { success: false as const, data: null, error: "Unauthorized" };
+
+  const finalData = parsedValues.data.map((record) => ({
+    ...record,
+    eWalletId: walletId,
+  }));
+
+  const result = await db
+    .insert(recordsTable)
+    .values(finalData)
+    .returning({ id: recordsTable.id })
+    .onConflictDoUpdate({
+      target: [recordsTable.eWalletId, recordsTable.referenceNumber],
+      set: {
+        fee: sql.raw(`excluded.${recordsTable.fee.name}`),
+        claimedAt: sql.raw(`excluded."${recordsTable.claimedAt.name}"`),
+        notes: sql.raw(`excluded.${recordsTable.notes.name}`),
+      },
+    });
+
+  revalidatePath("/e-wallets");
 
   return {
     success: true as const,
     data: result,
-    error: hasUnauthorizedRecords
-      ? "Some records were not authorized and were not created"
-      : null,
+    error: null,
   };
 }
 
