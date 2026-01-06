@@ -111,99 +111,55 @@ export function RecordForm({ wallet }: RecordFormProps) {
   }, [form, type, amount, date, wallet.id]);
 
   return (
-    <div className="grid gap-y-16 lg:grid-cols-2 lg:gap-x-4">
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit((values) => records.mutate(values))}
-          className="space-y-4">
-          <FormField
-            control={form.control}
-            name="referenceNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reference number</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="Reference of the transaction"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="cellNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cell number</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Client's cellular number"
-                    {...field}
-                    value={field.value ?? ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="grid grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Amount"
-                      {...field}
-                      onChange={({ target }) => {
-                        const value = parseFloat(target.value);
-                        field.onChange(isNaN(value) ? "" : value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="fee"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fee</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Fee"
-                      {...field}
-                      onChange={({ target }) => {
-                        const value = parseFloat(target.value);
-                        field.onChange(isNaN(value) ? "" : value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit((values) => records.mutate(values))}
+        className="space-y-4">
+        <FormField
+          control={form.control}
+          name="referenceNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Reference number</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  placeholder="Reference of the transaction"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="cellNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cell number</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Client's cellular number"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="grid grid-cols-5 gap-4">
           <FormField
             control={form.control}
             name="type"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-2">
                 <FormLabel>Type</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger className="capitalize">
+                    <SelectTrigger className="w-full capitalize">
                       {field.value ?? "Select type"}
                     </SelectTrigger>
                   </FormControl>
@@ -222,201 +178,220 @@ export function RecordForm({ wallet }: RecordFormProps) {
               </FormItem>
             )}
           />
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Transaction date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className="pl-3 text-left font-normal">
-                          {field.value
-                            ? format(field.value, "PPPp")
-                            : "Select date"}
-                          <CalendarIcon className="ml-auto size-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ?? undefined}
-                        onSelect={(date) => {
-                          // Always put time on date when date exists
-                          if (date && field.value) {
-                            const hours = field.value.getHours();
-                            const minutes = field.value.getMinutes();
-                            field.onChange(
-                              set(date, {
-                                hours: hours,
-                                minutes: minutes,
-                              }),
-                            );
-                          } else field.onChange(date);
-                        }}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("2024-11-30")
-                        }
-                        initialFocus
-                        required
-                      />
-                      <div className="p-2">
-                        <Input
-                          type="time"
-                          value={`${format(field.value ?? new Date(), "HH:mm")}`}
-                          onChange={({ target }) => {
-                            const [hours, minutes] = target.value.split(":");
-                            if (field.value)
-                              field.onChange(
-                                set(field.value, {
-                                  hours: parseInt(hours),
-                                  minutes: parseInt(minutes),
-                                }),
-                              );
-                          }}
-                        />
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="claimedAt"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Claimed at</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                          disabled={type === "cash-in"}>
-                          {field.value ? (
-                            format(field.value, "PPPp")
-                          ) : (
-                            <span>Unclaimed</span>
-                          )}
-                          <CalendarIcon className="ml-auto size-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ?? undefined}
-                        onSelect={(date) => {
-                          // Always put time on date when date exists
-                          if (date && field.value) {
-                            const hours = field.value.getHours();
-                            const minutes = field.value.getMinutes();
-                            field.onChange(
-                              set(date, {
-                                hours: hours,
-                                minutes: minutes,
-                              }),
-                            );
-                          } else field.onChange(date);
-                        }}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("2024-11-30")
-                        }
-                        initialFocus
-                      />
-                      <div className="p-2">
-                        <Input
-                          type="time"
-                          value={`${format(field.value ?? new Date(), "HH:mm")}`}
-                          onChange={({ target }) => {
-                            const [hours, minutes] = target.value.split(":");
-                            if (field.value)
-                              field.onChange(
-                                set(field.value, {
-                                  hours: parseInt(hours),
-                                  minutes: parseInt(minutes),
-                                }),
-                              );
-                          }}
-                        />
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
           <FormField
             control={form.control}
-            name="notes"
+            name="amount"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Transaction notes</FormLabel>
+              <FormItem className="col-span-2">
+                <FormLabel>Amount</FormLabel>
                 <FormControl>
-                  <Textarea {...field} value={field.value ?? ""} />
+                  <Input
+                    type="number"
+                    placeholder="Amount"
+                    {...field}
+                    onChange={({ target }) => {
+                      const value = parseFloat(target.value);
+                      field.onChange(isNaN(value) ? "" : value);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
-          <div className="flex items-center justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={form.formState.isSubmitting}>
-              <XIcon />
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="secondary"
-              disabled={!form.formState.isDirty || form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                <PlusIcon />
-              )}
-              Create
-            </Button>
-          </div>
-        </form>
-      </Form>
-      {/* <div className="flex-1 space-y-4">
-        <div className="flex min-h-[50%] flex-col space-y-2">
-          <Label htmlFor="GCASH_FORM_INBOX">
-            ...or extract data from a message in your inbox
-          </Label>
-          <Textarea
-            id="GCASH_FORM_INBOX"
-            className="flex-1"
-            value={inboxMessage}
-            onChange={({ target }) => setInboxMessage(target.value)}
+          <FormField
+            control={form.control}
+            name="fee"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fee</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Fee"
+                    {...field}
+                    onChange={({ target }) => {
+                      const value = parseFloat(target.value);
+                      field.onChange(isNaN(value) ? "" : value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
 
-        <div className="flex justify-end">
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Transaction date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className="pl-3 text-left font-normal">
+                      {field.value
+                        ? format(field.value, "PPPp")
+                        : "Select date"}
+                      <CalendarIcon className="ml-auto size-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ?? undefined}
+                    onSelect={(date) => {
+                      // Always put time on date when date exists
+                      if (date && field.value) {
+                        const hours = field.value.getHours();
+                        const minutes = field.value.getMinutes();
+                        field.onChange(
+                          set(date, {
+                            hours: hours,
+                            minutes: minutes,
+                          }),
+                        );
+                      } else field.onChange(date);
+                    }}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("2024-11-30")
+                    }
+                    initialFocus
+                    required
+                  />
+                  <div className="p-2">
+                    <Input
+                      type="time"
+                      value={`${format(field.value ?? new Date(), "HH:mm")}`}
+                      onChange={({ target }) => {
+                        const [hours, minutes] = target.value.split(":");
+                        if (field.value)
+                          field.onChange(
+                            set(field.value, {
+                              hours: parseInt(hours),
+                              minutes: parseInt(minutes),
+                            }),
+                          );
+                      }}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="claimedAt"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Claimed at</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground",
+                      )}
+                      disabled={type === "cash-in"}>
+                      {field.value ? (
+                        format(field.value, "PPPp")
+                      ) : (
+                        <span>Unclaimed</span>
+                      )}
+                      <CalendarIcon className="ml-auto size-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ?? undefined}
+                    onSelect={(date) => {
+                      // Always put time on date when date exists
+                      if (date && field.value) {
+                        const hours = field.value.getHours();
+                        const minutes = field.value.getMinutes();
+                        field.onChange(
+                          set(date, {
+                            hours: hours,
+                            minutes: minutes,
+                          }),
+                        );
+                      } else field.onChange(date);
+                    }}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("2024-11-30")
+                    }
+                    initialFocus
+                  />
+                  <div className="p-2">
+                    <Input
+                      type="time"
+                      value={`${format(field.value ?? new Date(), "HH:mm")}`}
+                      onChange={({ target }) => {
+                        const [hours, minutes] = target.value.split(":");
+                        if (field.value)
+                          field.onChange(
+                            set(field.value, {
+                              hours: parseInt(hours),
+                              minutes: parseInt(minutes),
+                            }),
+                          );
+                      }}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Transaction notes</FormLabel>
+              <FormControl>
+                <Textarea {...field} value={field.value ?? ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex items-center justify-end gap-4">
           <Button
-            onClick={() => extractData(inboxMessage)}
-            disabled={!inboxMessage}>
-            <FileDownIcon />
-            Extract
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={form.formState.isSubmitting}>
+            <XIcon />
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={!form.formState.isDirty || form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? (
+              <Loader2Icon className="animate-spin" />
+            ) : (
+              <PlusIcon />
+            )}
+            Create
           </Button>
         </div>
-      </div> */}
-    </div>
+      </form>
+    </Form>
   );
 }
 

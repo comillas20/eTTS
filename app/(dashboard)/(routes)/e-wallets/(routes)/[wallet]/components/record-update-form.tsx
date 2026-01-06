@@ -92,6 +92,7 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="cellNumber"
@@ -114,7 +115,39 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-5 gap-4">
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field, fieldState }) => (
+              <FormItem className="col-span-2">
+                <FormLabel
+                  className={cn({
+                    "text-primary": fieldState.isDirty,
+                  })}>
+                  Type
+                </FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full capitalize">
+                      {field.value ?? "Select type"}
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent usePortal={false}>
+                    {transactionTypeEnum.enumValues.map((type) => (
+                      <SelectItem
+                        key={type}
+                        value={type}
+                        className="capitalize">
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="amount"
@@ -170,176 +203,145 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
         </div>
         <FormField
           control={form.control}
-          name="type"
+          name="date"
           render={({ field, fieldState }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel
                 className={cn({
                   "text-primary": fieldState.isDirty,
                 })}>
-                Type
+                Transaction date
               </FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger className="capitalize">
-                    {field.value ?? "Select type"}
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent usePortal={false}>
-                  {transactionTypeEnum.enumValues.map((type) => (
-                    <SelectItem key={type} value={type} className="capitalize">
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className="pl-3 text-left font-normal">
+                      {format(field.value ?? new Date(), "PPPp")}
+                      <CalendarIcon className="ml-auto size-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" usePortal={false}>
+                  <Calendar
+                    mode="single"
+                    selected={field.value ?? undefined}
+                    onSelect={(date) => {
+                      // Always put time on date when date exists
+                      if (date && field.value) {
+                        const hours = field.value.getHours();
+                        const minutes = field.value.getMinutes();
+                        field.onChange(
+                          set(date, {
+                            hours: hours,
+                            minutes: minutes,
+                          }),
+                        );
+                      } else field.onChange(date);
+                    }}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("2024-11-30")
+                    }
+                    initialFocus
+                    required
+                  />
+                  <div className="p-2">
+                    <Input
+                      type="time"
+                      value={`${format(field.value ?? new Date(), "HH:mm")}`}
+                      onChange={({ target }) => {
+                        const [hours, minutes] = target.value.split(":");
+                        if (field.value)
+                          field.onChange(
+                            set(field.value, {
+                              hours: parseInt(hours),
+                              minutes: parseInt(minutes),
+                            }),
+                          );
+                      }}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field, fieldState }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel
-                  className={cn({
-                    "text-primary": fieldState.isDirty,
-                  })}>
-                  Transaction date
-                </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className="pl-3 text-left font-normal">
-                        {format(field.value ?? new Date(), "PPPp")}
-                        <CalendarIcon className="ml-auto size-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" usePortal={false}>
-                    <Calendar
-                      mode="single"
-                      selected={field.value ?? undefined}
-                      onSelect={(date) => {
-                        // Always put time on date when date exists
-                        if (date && field.value) {
-                          const hours = field.value.getHours();
-                          const minutes = field.value.getMinutes();
+        <FormField
+          control={form.control}
+          name="claimedAt"
+          render={({ field, fieldState }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel
+                className={cn({
+                  "text-primary": fieldState.isDirty,
+                })}>
+                Claimed at
+              </FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground",
+                      )}
+                      disabled={type === "cash-in"}>
+                      {field.value ? (
+                        format(field.value, "PPPp")
+                      ) : (
+                        <span>Unclaimed</span>
+                      )}
+                      <CalendarIcon className="ml-auto size-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" usePortal={false}>
+                  <Calendar
+                    mode="single"
+                    selected={field.value ?? undefined}
+                    onSelect={(date) => {
+                      // Always put time on date when date exists
+                      if (date && field.value) {
+                        const hours = field.value.getHours();
+                        const minutes = field.value.getMinutes();
+                        field.onChange(
+                          set(date, {
+                            hours: hours,
+                            minutes: minutes,
+                          }),
+                        );
+                      } else field.onChange(date);
+                    }}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("2024-11-30")
+                    }
+                    initialFocus
+                  />
+                  <div className="p-2">
+                    <Input
+                      type="time"
+                      value={`${format(field.value ?? new Date(), "HH:mm")}`}
+                      onChange={({ target }) => {
+                        const [hours, minutes] = target.value.split(":");
+                        if (field.value)
                           field.onChange(
-                            set(date, {
-                              hours: hours,
-                              minutes: minutes,
+                            set(field.value, {
+                              hours: parseInt(hours),
+                              minutes: parseInt(minutes),
                             }),
                           );
-                        } else field.onChange(date);
                       }}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("2024-11-30")
-                      }
-                      initialFocus
-                      required
                     />
-                    <div className="p-2">
-                      <Input
-                        type="time"
-                        value={`${format(field.value ?? new Date(), "HH:mm")}`}
-                        onChange={({ target }) => {
-                          const [hours, minutes] = target.value.split(":");
-                          if (field.value)
-                            field.onChange(
-                              set(field.value, {
-                                hours: parseInt(hours),
-                                minutes: parseInt(minutes),
-                              }),
-                            );
-                        }}
-                      />
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="claimedAt"
-            render={({ field, fieldState }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel
-                  className={cn({
-                    "text-primary": fieldState.isDirty,
-                  })}>
-                  Claimed at
-                </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
-                        disabled={type === "cash-in"}>
-                        {field.value ? (
-                          format(field.value, "PPPp")
-                        ) : (
-                          <span>Unclaimed</span>
-                        )}
-                        <CalendarIcon className="ml-auto size-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" usePortal={false}>
-                    <Calendar
-                      mode="single"
-                      selected={field.value ?? undefined}
-                      onSelect={(date) => {
-                        // Always put time on date when date exists
-                        if (date && field.value) {
-                          const hours = field.value.getHours();
-                          const minutes = field.value.getMinutes();
-                          field.onChange(
-                            set(date, {
-                              hours: hours,
-                              minutes: minutes,
-                            }),
-                          );
-                        } else field.onChange(date);
-                      }}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("2024-11-30")
-                      }
-                      initialFocus
-                    />
-                    <div className="p-2">
-                      <Input
-                        type="time"
-                        value={`${format(field.value ?? new Date(), "HH:mm")}`}
-                        onChange={({ target }) => {
-                          const [hours, minutes] = target.value.split(":");
-                          if (field.value)
-                            field.onChange(
-                              set(field.value, {
-                                hours: parseInt(hours),
-                                minutes: parseInt(minutes),
-                              }),
-                            );
-                        }}
-                      />
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="notes"

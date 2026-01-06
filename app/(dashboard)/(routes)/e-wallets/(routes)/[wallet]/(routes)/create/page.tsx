@@ -34,7 +34,9 @@ export default async function Page({ params }: PageProps) {
             <strong className="text-secondary">{eWallet.name}</strong> record
           </p>
         </div>
-        <RecordForm wallet={eWallet} />
+        <div className="grid gap-y-16 lg:grid-cols-2 lg:gap-x-4">
+          <RecordForm wallet={eWallet} />
+        </div>
       </div>
     </div>
   );
