@@ -8,6 +8,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
+  CreditCardIcon,
   DatabaseBackupIcon,
   FileTextIcon,
   WalletIcon,
@@ -37,6 +38,11 @@ const navigations: Navigation[] = [
     name: "Backup & Restore",
     url: "/backup-restore",
     icon: DatabaseBackupIcon,
+  },
+  {
+    name: "Custom fees",
+    url: "/custom-fees",
+    icon: CreditCardIcon,
   },
 ];
 
