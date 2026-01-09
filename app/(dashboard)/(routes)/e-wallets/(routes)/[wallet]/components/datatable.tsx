@@ -52,6 +52,7 @@ import {
   BracketsIcon,
   ChevronDownIcon,
   ColumnsIcon,
+  FolderUpIcon,
   MoreHorizontalIcon,
   NotebookIcon,
   NotebookPenIcon,
@@ -455,7 +456,10 @@ function Header({ table }: HeaderProps) {
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-
+        <Link href={path + `/import`} className={buttonVariants()}>
+          <FolderUpIcon />
+          <span className="hidden lg:inline">Import data</span>
+        </Link>
         <Link
           href={path + `/create`}
           className={buttonVariants({ variant: "secondary" })}>

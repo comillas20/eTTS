@@ -7,6 +7,12 @@ declare module "@tanstack/table-core" {
     headerRowProps?: (row: HeaderGroup<TData>) => React.ComponentProps<"tr">;
     bodyRowProps?: (row: Row<TData>) => React.ComponentProps<"tr">;
     wallet?: typeof eWalletsTable.$inferSelect;
+    updateRow?: (
+      rowIndex: number,
+      columnId: (string & {}) | keyof TData,
+      value: any,
+    ) => void;
+    deleteRow?: (rowIndex: number) => void;
   }
 }
 
