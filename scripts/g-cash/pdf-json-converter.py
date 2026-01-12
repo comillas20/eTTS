@@ -69,11 +69,17 @@ def convert_pdf_to_json(reader):
         combined_df = pd.concat(dfs, ignore_index=True)
        
         if 'Date and Time' in combined_df.columns:
-            combined_df['date'] = pd.to_datetime(
-                combined_df['Date and Time'],
-                format='%Y-%m-%d %I:%M %p',
-                errors='coerce'
-            ).dt.tz_localize('Asia/Manila')
+            try:
+                combined_df['date'] = pd.to_datetime(
+                    combined_df['Date and Time'],
+                    format='%Y-%m-%d %I:%M %p',
+                ).dt.tz_localize('Asia/Manila')
+            except Exception as e:
+                combined_df['date'] = pd.to_datetime(
+                    combined_df['Date and Time'],
+                    format='%Y-%m-%d %I:%M',
+                    errors='coerce'
+                ).dt.tz_localize('Asia/Manila')
         else:
             combined_df['date'] = pd.NaT
 
