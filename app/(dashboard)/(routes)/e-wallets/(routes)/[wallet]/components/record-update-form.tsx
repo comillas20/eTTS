@@ -318,7 +318,7 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
                     disabled={(date) =>
                       date > new Date() || date < new Date("2024-11-30")
                     }
-                    initialFocus
+                    defaultMonth={field.value ?? undefined}
                   />
                   <div className="p-2">
                     <Input

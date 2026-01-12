@@ -246,7 +246,9 @@ const columns: ColumnDef<Record>[] = [
           <Badge variant="destructive">Unclaimed</Badge>
         );
 
-      const [claimedDate, setClaimedDate] = useState<Date>();
+      const [claimedDate, setClaimedDate] = useState<Date | null>(
+        claimedAt ?? null,
+      );
       return (
         <Popover>
           <PopoverTrigger asChild>
@@ -279,11 +281,12 @@ const columns: ColumnDef<Record>[] = [
                       minutes: minutes,
                     }),
                   );
-                } else setClaimedDate(date);
+                } else setClaimedDate(date || null);
               }}
               disabled={(date) =>
                 date > new Date() || date < new Date("2024-11-30")
               }
+              defaultMonth={claimedDate ?? undefined}
             />
             <div className="flex gap-2 p-2">
               <Input
