@@ -23,19 +23,24 @@ export function NavWallets() {
       <SidebarGroupLabel>e-Wallets</SidebarGroupLabel>
       <SidebarMenu>
         {query.data && query.data.length > 0 ? (
-          query.data.map((wallet) => (
-            <SidebarMenuItem key={wallet.id}>
-              <SidebarMenuButton
-                asChild
-                tooltip={wallet.name}
-                isActive={pathname.startsWith("/e-wallets/" + wallet.url)}>
-                <Link href={"/e-wallets/" + wallet.url}>
-                  <WalletIcon />
-                  <span>{wallet.name}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))
+          query.data.map((wallet) => {
+            const splittedPath = pathname.split("/");
+            const currentWallet =
+              splittedPath.length > 2 ? splittedPath[2] : "";
+            return (
+              <SidebarMenuItem key={wallet.id}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={wallet.name}
+                  isActive={wallet.url === currentWallet}>
+                  <Link href={"/e-wallets/" + wallet.url}>
+                    <WalletIcon />
+                    <span>{wallet.name}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })
         ) : (
           <SidebarMenuItem className="flex items-center justify-center text-xs">
             <XIcon className="text-destructive size-4" />
