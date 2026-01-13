@@ -3,7 +3,7 @@ import { RestoreCard } from "./components/restore-card";
 
 export default function Page() {
   return (
-    <div className="space-y-8 bg-gradient-to-br p-2">
+    <div className="space-y-8 p-2">
       <div>
         <h3>Backup & Restore</h3>
         <p className="text-sm">

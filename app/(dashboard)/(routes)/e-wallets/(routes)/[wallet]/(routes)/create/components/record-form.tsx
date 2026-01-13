@@ -31,7 +31,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, set } from "date-fns";
 import { createInsertSchema } from "drizzle-zod";
-import { CalendarIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  Loader2Icon,
+  PlusIcon,
+  RefreshCwIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -114,7 +119,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((values) => records.mutate(values))}
-        className="space-y-4">
+        className="max-w-3xl space-y-4">
         <FormField
           control={form.control}
           name="referenceNumber"
@@ -373,10 +378,10 @@ export function RecordForm({ wallet }: RecordFormProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
-            disabled={form.formState.isSubmitting}>
-            <XIcon />
-            Cancel
+            onClick={() => form.reset()}
+            disabled={form.formState.isSubmitting || !form.formState.isDirty}>
+            <RefreshCwIcon />
+            Reset
           </Button>
           <Button
             type="submit"
@@ -394,28 +399,3 @@ export function RecordForm({ wallet }: RecordFormProps) {
     </Form>
   );
 }
-
-// type GetDataFromTextReturnType = Partial<RecordForm>;
-
-// export function getDataFromText(text: string): GetDataFromTextReturnType {
-//   const type = text.match("sent");
-
-//   const datePattern = /\d+ [a-zA-Z]+ \d{4}\, \d{2}\:\d{2} (AM|PM)/;
-//   const date = text.match(datePattern);
-
-//   const amountPattern = /\b\d+\.\d{2}\b/;
-//   const amount = text.match(amountPattern);
-
-//   const cellNumberPattern = /(\+63|0)9\d{9}/; //PH phones starts at either +639 or just 09
-//   const cellNumber = text.match(cellNumberPattern);
-
-//   const referenceNumber = text.match(/\d{13}/);
-
-//   return {
-//     date: date ? new Date(date[0]) : undefined,
-//     amount: amount ? parseFloat(amount[0]) : undefined,
-//     type: type ? (type[0] === "cash-in" ? "cash-in" : "cash-out") : undefined,
-//     cellNumber: cellNumber ? cellNumber[0] : undefined,
-//     referenceNumber: referenceNumber ? referenceNumber[0] : undefined,
-//   };
-// }

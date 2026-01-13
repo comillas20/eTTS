@@ -68,7 +68,7 @@ export default async function Page({ searchParams }: PageProps) {
 
   const records = result.success ? result.data : [];
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <main className="flex flex-1 flex-col gap-4">
       <OverviewHeader walletId={walletId} month={month} year={year} />
       <OverviewCards
         data={records.filter((res) => isSameMonth(targetDate, res.date))}

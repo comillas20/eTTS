@@ -113,7 +113,8 @@ export function CustomFee({
         type="button"
         onClick={() => form.reset()}
         className="w-24"
-        disabled={!isDirty}>
+        disabled={!isDirty}
+        variant="outline">
         <RefreshCwIcon />
         Reset
       </Button>
@@ -253,13 +254,13 @@ export function CustomFee({
             )}
           />
           <span className="flex gap-2">
+            {getFormSubActionButton()}
             {!data && (
               <Button type="submit" variant="secondary" className="w-24">
                 <PlusIcon />
                 Create
               </Button>
             )}
-            {getFormSubActionButton()}
           </span>
         </div>
         <div>

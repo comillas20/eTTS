@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PlusIcon, SettingsIcon } from "lucide-react";
+import { PenIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 
 import { WalletPieChart } from "./components/wallet-pie-chart";
@@ -31,10 +31,9 @@ export default async function Page() {
               <CardTitle>{wallet.name}</CardTitle>
               <CardDescription>{wallet.cellNumber}</CardDescription>
               <CardAction>
-                <Button variant="outline" asChild>
-                  <Link href={`/e-wallets/${wallet.url}/settings`}>
-                    <SettingsIcon />
-                    Settings
+                <Button variant="outline" size="icon" asChild>
+                  <Link href={`/e-wallets/${wallet.url}/update`}>
+                    <PenIcon />
                   </Link>
                 </Button>
               </CardAction>

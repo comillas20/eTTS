@@ -27,7 +27,7 @@ import { isCellnumber } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createInsertSchema } from "drizzle-zod";
-import { Loader2Icon, PlusIcon, XIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon, RefreshCwIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -97,7 +97,7 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-[36rem] space-y-8">
+        className="max-w-3xl space-y-8">
         <FormField
           control={form.control}
           name="name"
@@ -194,10 +194,10 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
-            disabled={form.formState.isSubmitting}>
-            <XIcon />
-            Cancel
+            onClick={() => form.reset()}
+            disabled={form.formState.isSubmitting || !form.formState.isDirty}>
+            <RefreshCwIcon />
+            Reset
           </Button>
           <Button
             type="submit"
