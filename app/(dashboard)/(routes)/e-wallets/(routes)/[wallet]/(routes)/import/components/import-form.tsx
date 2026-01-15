@@ -1,9 +1,16 @@
 "use client";
 
-import { FileIcon, XIcon } from "lucide-react";
-import { ChangeEvent, DragEvent, useRef, useState } from "react";
+import {
+  FileIcon,
+  Loader2Icon,
+  RefreshCwIcon,
+  UploadIcon,
+  XIcon,
+} from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
+import { createRecords } from "@/app/(dashboard)/actions/records";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -14,15 +21,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { eWalletsTable, recordsTable } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createInsertSchema } from "drizzle-zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { Input } from "@/components/ui/input";
 import { RecordInsertionTable } from "./record-insertion-table";
-import { createRecords } from "@/app/(dashboard)/actions/records";
 
 type RecordsProps = {
   wallet: typeof eWalletsTable.$inferSelect;
@@ -113,7 +119,7 @@ export function ImportForm({ wallet }: RecordsProps) {
 
       return {
         data: records,
-        message: "Records has been restored successfully",
+        message: "The file has been processed successfully",
       };
     } else return { data: null, message: recordResult.error };
   }
@@ -125,9 +131,10 @@ export function ImportForm({ wallet }: RecordsProps) {
     mutationFn: async (data: z.infer<typeof fileSchema>) => {
       const parsedData = await parseFile(data);
 
-      toast(parsedData.message);
-
-      if (!parsedData.data || parsedData.data.length < 1) return;
+      if (!parsedData.data || parsedData.data.length < 1) {
+        toast(parsedData.message);
+        return;
+      }
 
       setRecords(parsedData.data);
       setIsModalOpen(true);
@@ -144,7 +151,7 @@ export function ImportForm({ wallet }: RecordsProps) {
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
       queryClient.invalidateQueries({ queryKey: ["records"] });
 
-      return { message: "Records has been restored successfully" };
+      return { message: "Records has been imported successfully" };
     },
 
     onSuccess: async (data) => toast(data.message),
@@ -261,13 +268,22 @@ export function ImportForm({ wallet }: RecordsProps) {
               className="whitespace-nowrap"
               onClick={() => form.reset()}
               disabled={!file}>
-              Cancel
+              <RefreshCwIcon />
+              Reset
             </Button>
             <Button
               type="submit"
               className="whitespace-nowrap"
               disabled={fileM.isPending || !form.formState.isDirty}>
-              Upload
+              {fileM.isPending ? (
+                <>
+                  <Loader2Icon className="animate-spin" /> Processing...
+                </>
+              ) : (
+                <>
+                  <UploadIcon /> Upload file for processing
+                </>
+              )}
             </Button>
           </div>
         </form>
