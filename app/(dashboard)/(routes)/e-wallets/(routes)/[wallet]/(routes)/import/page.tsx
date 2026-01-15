@@ -1,6 +1,8 @@
 import { getWalletUrls } from "@/app/(dashboard)/actions/wallets";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import db from "@/db/drizzle";
 import { auth } from "@/lib/auth";
+import { AlertCircleIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { ImportForm } from "./components/import-form";
@@ -32,6 +34,18 @@ export default async function Page({ params }: PageProps) {
   });
 
   if (!eWallet) return notFound();
+
+  if (eWallet.type === "other")
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon />
+        <AlertTitle>No import</AlertTitle>
+        <AlertDescription>
+          Import not supported for this type of e-wallet
+        </AlertDescription>
+      </Alert>
+    );
+
   return (
     <div className="space-y-8 p-2">
       <div>
