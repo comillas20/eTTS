@@ -148,6 +148,9 @@ export function ImportForm({ wallet }: RecordsProps) {
       if (!result.success)
         return { message: "Something went wrong, please try again." };
 
+      setRecords([]);
+      form.reset();
+
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
       queryClient.invalidateQueries({ queryKey: ["records"] });
 
