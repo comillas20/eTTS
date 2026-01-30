@@ -38,20 +38,25 @@ export default async function Page({ searchParams }: PageProps) {
       ? parseInt(params.year, 10)
       : undefined;
 
-  const hasSelectedYear = typeof year === "number";
-  const hasSelectedMonth = typeof month === "number";
-  const selectedDate =
-    hasSelectedMonth || hasSelectedYear
-      ? lastDayOfMonth(
-          new Date(
-            hasSelectedYear ? year : getYear(Date.now()),
-            hasSelectedMonth ? month : getMonth(Date.now()),
-          ),
-        )
-      : undefined;
   const latestRecord = await getRecords({ walletId, limit: 1 });
 
-  // only prioritize latestRecord's date if it exists, and if there was no selected month / year
+  const hasSelectedYear = typeof year === "number";
+  const hasSelectedMonth = typeof month === "number";
+
+  let selectedDate: Date | undefined = undefined;
+  if (hasSelectedYear && !hasSelectedMonth)
+    selectedDate = lastDayOfMonth(new Date(year, getMonth(Date.now())));
+  else if (hasSelectedMonth && !hasSelectedYear) {
+    const latestYear =
+      latestRecord.success && latestRecord.data.length > 0
+        ? getYear(latestRecord.data[0].date)
+        : getYear(Date.now());
+    selectedDate = lastDayOfMonth(new Date(latestYear, month));
+  } else if (hasSelectedYear && hasSelectedMonth) {
+    selectedDate = lastDayOfMonth(new Date(year, month));
+  }
+
+  // prioritizes selectedDate, then latest record date, then current date
   let targetDate: Date;
   if (selectedDate) targetDate = selectedDate;
   else if (latestRecord.success && latestRecord.data.length > 0)
