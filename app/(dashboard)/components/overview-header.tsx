@@ -105,12 +105,26 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
   const onYearChange = useCallback(
     (value: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      const firstAvailableMonth = monthYearsQuery.data
-        ? monthYearsQuery.data.find((y) => y.year === parseInt(value, 10))
-            ?.month || getMonth(new Date())
-        : getMonth(new Date());
+
+      const availableMonths = monthYearsQuery.data
+        ?.filter((y) => y.year === parseInt(value, 10))
+        .map((y) => y.month);
+
+      // The option of selecting a year should NOT do anthing if there is no months for that year
+      if (!availableMonths || availableMonths.length === 0) return;
+
+      const selectedMonthParam = params.get("month");
+      const isValidMonth =
+        selectedMonthParam &&
+        !isNaN(parseInt(selectedMonthParam, 10)) &&
+        availableMonths.includes(parseInt(selectedMonthParam, 10));
+
       params.set("year", value);
-      params.set("month", String(firstAvailableMonth));
+      params.set(
+        "month",
+        // uses the first available month (always latest because it is sorted) if the current selected month is not valid for the selected year
+        isValidMonth ? selectedMonthParam : String(availableMonths[0]),
+      );
       router.push(`?${params.toString()}`);
     },
     [searchParams, router, monthYearsQuery.data],
