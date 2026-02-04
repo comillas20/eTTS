@@ -18,8 +18,8 @@ export function DatatablePagination<TData>({ table }: PaginationProps<TData>) {
   const mid = Math.ceil((currentPage + 1 + pageCount) / 2);
   if (pageCount >= 2)
     return (
-      <div className="flex items-center justify-end space-x-6">
-        <span className="flex w-32 items-center justify-center text-sm font-medium">
+      <div className="flex flex-col-reverse items-center justify-center gap-x-8 gap-y-2 md:flex-row md:justify-end">
+        <span className="flex items-center justify-center text-sm font-medium">
           {`Page ${currentPage + 1} of ${pageCount}`}
         </span>
         <Pagination className="mx-0 flex w-fit items-center space-x-2">

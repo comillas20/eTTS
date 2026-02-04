@@ -150,7 +150,7 @@ export function Datatable({ wallet }: DatatableProps) {
     <div className="flex size-full flex-col gap-4">
       <Header table={table} />
       <DatatableFrame table={table} />
-      <div className="flex justify-between gap-2">
+      <div className="flex flex-col justify-between gap-2 md:flex-row">
         {filteredRows.length > 0 && (
           <div className="ml-1 space-x-2 text-sm font-medium">
             <span>Total fees:</span>
@@ -393,7 +393,7 @@ function Header({ table }: HeaderProps) {
   const transacDateCol = table.getColumn("transaction date");
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-2 md:flex-row md:items-center">
       <div className="flex items-center gap-2">
         <Input
           className="w-80"
@@ -415,12 +415,12 @@ function Header({ table }: HeaderProps) {
           />
         )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="@container flex w-full items-center gap-2 md:justify-end">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <ColumnsIcon />
-              <span className="hidden lg:inline">Columns</span>
+              <span>Columns</span>
               <ChevronDownIcon />
             </Button>
           </DropdownMenuTrigger>
@@ -458,13 +458,13 @@ function Header({ table }: HeaderProps) {
         </DropdownMenu>
         <Link href={path + `/import`} className={buttonVariants()}>
           <FolderUpIcon />
-          <span className="hidden lg:inline">Import data</span>
+          <span className="hidden @md:inline">Import data</span>
         </Link>
         <Link
           href={path + `/create`}
           className={buttonVariants({ variant: "secondary" })}>
           <PlusIcon />
-          <span className="hidden lg:inline">Add Record</span>
+          <span className="hidden @3xs:inline">Add Record</span>
         </Link>
       </div>
     </div>
