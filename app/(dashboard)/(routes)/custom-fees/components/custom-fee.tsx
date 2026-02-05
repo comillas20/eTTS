@@ -142,6 +142,7 @@ export function CustomFee({
                   <Input
                     type="number"
                     className={cn({
+                      "w-40": true,
                       "border-secondary": fieldState.isDirty && !!data,
                     })}
                     value={field.value === 0 ? "" : field.value}
@@ -166,6 +167,7 @@ export function CustomFee({
                   <Input
                     type="number"
                     className={cn({
+                      "w-40": true,
                       "border-secondary": fieldState.isDirty && !!data,
                     })}
                     value={field.value === 0 ? "" : field.value}
@@ -190,6 +192,7 @@ export function CustomFee({
                   <Input
                     type="number"
                     className={cn({
+                      "w-24": true,
                       "border-secondary": fieldState.isDirty && !!data,
                     })}
                     value={field.value === 0 ? "" : field.value}
@@ -222,7 +225,7 @@ export function CustomFee({
                     <FormControl>
                       <Button
                         variant="outline"
-                        className="pl-3 text-left font-normal"
+                        className="w-52 pl-3 text-left font-normal"
                         disabled={formState.disabled}>
                         {format(field.value ?? new Date(), "PPP")}
                         <CalendarIcon className="ml-auto size-4 opacity-50" />

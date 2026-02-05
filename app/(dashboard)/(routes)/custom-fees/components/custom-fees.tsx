@@ -55,7 +55,7 @@ export function CustomFees() {
           ))}
         </SelectContent>
       </Select>
-      <div className="flex flex-col gap-2">
+      <div className="flex max-w-4xl flex-col gap-2 overflow-auto">
         {feeRanges.length > 0 &&
           feeRanges.map((fee, i) => (
             <CustomFee
