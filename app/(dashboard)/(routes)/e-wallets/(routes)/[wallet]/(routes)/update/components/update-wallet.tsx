@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { DeleteWalletButton } from "./delete-wallet-button";
+import { useRouter } from "next/navigation";
 
 const formSchema = createSelectSchema(eWalletsTable, {
   name: (schema) =>
@@ -61,6 +62,8 @@ export function UpdateWallet({ initialData }: UpdateWalletProps) {
     defaultValues: initialData,
   });
 
+  const router = useRouter();
+
   const queryClient = useQueryClient();
   const walletM = useMutation({
     mutationFn: updateWallet,
@@ -71,6 +74,8 @@ export function UpdateWallet({ initialData }: UpdateWalletProps) {
       else {
         toast("Wallet has been updated successfully");
       }
+      
+      router.replace("/e-wallets");
     },
   });
 

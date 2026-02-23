@@ -112,7 +112,7 @@ export async function updateWallet(values: SelectWallet) {
     },
   );
 
-  const parsedValues = schema.safeParse(values);
+  const parsedValues = await schema.safeParseAsync(values);
   if (parsedValues.error)
     return {
       success: false as const,
