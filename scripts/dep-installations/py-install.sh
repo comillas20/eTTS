@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Equivalent to running npm install [package] for Python
+
 echo "Running Python dependency installer..."
 
 # Activate the virtual environment

@@ -1,18 +1,20 @@
 #!/bin/bash
 
+# Equivalent to running npm ci for Python dependencies
+
 echo "--- Starting Python Dependency Setup ---"
 
 # Check if the virtual environment directory exists
 if [ -d ".venv" ]; then
     echo "Virtual environment '.venv' already exists. Deleting..."
-    rm -rf .venv && python3 -m venv .venv
+    rm -rf .venv && python3.12 -m venv .venv
 fi
 
 echo "Creating a new virtual environment..."
-python3 -m venv .venv
+python3.12 -m venv .venv
 
 if [ $? -ne 0 ]; then
-    echo "Error: Failed to create virtual environment. Please ensure 'python3' is installed and in your PATH."
+    echo "Error: Failed to create virtual environment. Please ensure 'python3.12' is installed and in your PATH."
     exit 1
 fi
 
@@ -31,5 +33,3 @@ fi
 
 deactivate
 echo "--- Setup complete! ---"
-echo "To run your Python script, first activate the environment by running:"
-echo "source .venv/bin/activate"
