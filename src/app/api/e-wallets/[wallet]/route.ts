@@ -2,7 +2,7 @@
 
 import db from "@/db/drizzle";
 import { getAuthentication } from "@/lib/auth";
-import { runScript } from "@/scripts/g-cash/script";
+import { runScript } from "./script";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { Readable } from "stream";
@@ -153,6 +153,7 @@ export async function POST(request: Request, { params }: RouteProps) {
         );
     }
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { success: false, error: "Internal Server Error" },
       { status: 500 },

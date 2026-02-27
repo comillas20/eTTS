@@ -13,8 +13,6 @@ const partialRecordSchema = z.object({
   description: z.string(),
 });
 
-type PartialRecord = z.infer<typeof partialRecordSchema>;
-
 function getCellNumber(description: string, walletCellNumber: string) {
   const matches = description.match(/(?:\+639|09)\d{9}/g);
 
@@ -38,36 +36,29 @@ export async function runScript(options: ScriptOptions) {
   const { wallet, scriptName, filePassword, buffer } = options;
   if (!filePassword) return new Error("File password is required");
 
-  // Ensure the python script is executable
+  const PROJECT_ROOT = process.cwd();
+  const pythonPath =
+    process.platform === "win32"
+      ? path.resolve(PROJECT_ROOT, ".venv", "Scripts", "python.exe")
+      : path.resolve(PROJECT_ROOT, ".venv", "bin", "python3.12");
+
   const scriptPath = path.resolve(
-    process.cwd(),
+    PROJECT_ROOT,
     "scripts",
     "g-cash",
     scriptName,
   );
+
   await chmod(scriptPath, 0o755);
 
   const saveDir = path.resolve(process.cwd(), "scripts", "g-cash");
   await mkdir(saveDir, { recursive: true });
+  const pythonExecutable = pythonPath;
+
+  if (!pythonExecutable)
+    return new Error("Python executable path is not defined");
 
   return new Promise((resolve, reject) => {
-    let pythonExecutable = "";
-    switch (process.platform) {
-      case "win32":
-        pythonExecutable = path.join(
-          process.cwd(),
-          ".venv",
-          "Scripts",
-          "python.exe",
-        );
-        break;
-      case "linux":
-        pythonExecutable = path.join(process.cwd(), ".venv", "bin", "python");
-        break;
-      default:
-        return reject(new Error("Unsupported platform: " + process.platform));
-    }
-
     // The specific flags required to silence the warnings for jpype/tabula in newer Java versions.
     // const javaOptions =
     //   "--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED";
