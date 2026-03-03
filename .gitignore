@@ -44,3 +44,11 @@ next-env.d.ts
 
 # test stuff
 backups/*
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so

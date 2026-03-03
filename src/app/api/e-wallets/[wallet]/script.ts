@@ -28,31 +28,26 @@ function getCellNumber(description: string, walletCellNumber: string) {
 type ScriptOptions = {
   wallet: typeof eWalletsTable.$inferSelect;
   buffer: Buffer<ArrayBuffer>;
-  scriptName: string;
   filePassword: string;
 };
 
 export async function runScript(options: ScriptOptions) {
-  const { wallet, scriptName, filePassword, buffer } = options;
+  const { wallet, filePassword, buffer } = options;
   if (!filePassword) return new Error("File password is required");
 
+  if (wallet.type === "other") return new Error("Unsupported wallet type");
+
   const PROJECT_ROOT = process.cwd();
+  const SCRIPT_FILENAME = wallet.type + "_script.py";
+  const SCRIPTS_DIR = path.resolve(PROJECT_ROOT, "scripts");
+
   const pythonPath =
     process.platform === "win32"
       ? path.resolve(PROJECT_ROOT, ".venv", "Scripts", "python.exe")
       : path.resolve(PROJECT_ROOT, ".venv", "bin", "python3.12");
 
-  const scriptPath = path.resolve(
-    PROJECT_ROOT,
-    "scripts",
-    "g-cash",
-    scriptName,
-  );
+  await chmod(path.resolve(SCRIPTS_DIR, SCRIPT_FILENAME), 0o755);
 
-  await chmod(scriptPath, 0o755);
-
-  const saveDir = path.resolve(process.cwd(), "scripts", "g-cash");
-  await mkdir(saveDir, { recursive: true });
   const pythonExecutable = pythonPath;
 
   if (!pythonExecutable)
@@ -62,8 +57,8 @@ export async function runScript(options: ScriptOptions) {
     // The specific flags required to silence the warnings for jpype/tabula in newer Java versions.
     // const javaOptions =
     //   "--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED";
-    const script = spawn(pythonExecutable, [scriptName], {
-      cwd: saveDir,
+    const script = spawn(pythonExecutable, [SCRIPT_FILENAME], {
+      cwd: SCRIPTS_DIR,
       // env: {
       //   ...process.env,
       //   _JAVA_OPTIONS: javaOptions,

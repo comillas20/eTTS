@@ -141,7 +141,6 @@ export async function POST(request: Request, { params }: RouteProps) {
         const records = await runScript({
           wallet: wallet,
           buffer: buffer,
-          scriptName: "pdf-json-converter.py",
           filePassword: parsedFormData.data.password,
         });
 
