@@ -14,6 +14,8 @@ import {
 import {
   ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -174,12 +176,13 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
                       day: "numeric",
                     });
                   }}
-                  indicator="dashed"
+                  indicator="line"
                 />
               }
             />
             <Bar dataKey="cashIn" fill="var(--chart-1)" radius={4} />
             <Bar dataKey="cashOut" fill="var(--chart-2)" radius={4} />
+            <ChartLegend content={<ChartLegendContent />} />
           </BarChart>
         </ChartContainer>
       </CardContent>

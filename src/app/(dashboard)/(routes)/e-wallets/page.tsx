@@ -17,7 +17,7 @@ export default async function Page() {
   const wallets = await getWallets();
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-4">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,24rem))] gap-4">
       {wallets.map((wallet) => {
         const cashIn = wallet.records.filter(
           (record) => record.type === "cash-in",
@@ -26,7 +26,7 @@ export default async function Page() {
           (record) => record.type === "cash-out" && !!record.claimedAt,
         );
         return (
-          <Card key={wallet.id}>
+          <Card key={wallet.id} className="aspect-[9/10] gap-12">
             <CardHeader>
               <CardTitle>{wallet.name}</CardTitle>
               <CardDescription>{wallet.cellNumber}</CardDescription>

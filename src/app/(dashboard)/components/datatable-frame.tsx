@@ -51,7 +51,7 @@ export function DatatableFrame<TData>({ table }: FrameProps<TData>) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="data-[state=selected]:bg-primary/50"
+                  className="data-[state=selected]:bg-primary/50 odd:bg-primary/20 hover:bg-primary/50 bg-blend-difference"
                   {...props}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="capitalize">
