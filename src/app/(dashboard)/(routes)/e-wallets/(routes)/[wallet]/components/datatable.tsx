@@ -53,6 +53,7 @@ import {
   ChevronDownIcon,
   ColumnsIcon,
   FolderUpIcon,
+  Loader2Icon,
   MoreHorizontalIcon,
   NotebookIcon,
   NotebookPenIcon,
@@ -78,7 +79,9 @@ type DatatableProps = {
 };
 
 export function Datatable({ wallet }: DatatableProps) {
-  const { data } = useQuery(getRecordsQuery({ walletId: wallet.id }));
+  const { data, isLoading } = useQuery(
+    getRecordsQuery({ walletId: wallet.id }),
+  );
 
   const records = data && data.success ? data.data : [];
 
@@ -146,8 +149,15 @@ export function Datatable({ wallet }: DatatableProps) {
     0,
   );
 
+  if (isLoading)
+    return (
+      <div className="flex w-full flex-col items-center justify-center gap-4">
+        <Loader2Icon className="animate-spin" />
+        <span>Getting records...</span>
+      </div>
+    );
   return (
-    <div className="flex size-full flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <Header table={table} />
       <DatatableFrame table={table} />
       <div className="flex flex-col justify-between gap-2 md:flex-row">

@@ -19,6 +19,12 @@ export function NavUser() {
 
   const router = useRouter();
 
+  if (isPending)
+    return (
+      <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm">
+        <Loader2Icon className="size-4 animate-spin" />
+      </div>
+    );
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
