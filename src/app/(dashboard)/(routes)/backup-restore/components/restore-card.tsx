@@ -236,8 +236,8 @@ export function RestoreCard() {
                 <AlertCircleIcon className="text-warning" />
                 <p className="text-sm">
                   <strong>Warning:</strong> This action will overwrite the{" "}
-                  <strong>fee, claimed date, and notes</strong> of records with
-                  same reference
+                  <strong>fee, claimed date, and notes</strong> of existing
+                  records with same reference
                 </p>
               </Alert>
             </CardContent>
