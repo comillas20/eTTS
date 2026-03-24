@@ -263,10 +263,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
                         );
                       } else field.onChange(date);
                     }}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("2024-11-30")
-                    }
-                    initialFocus
+                    disabled={(date) => date > new Date()}
                     required
                   />
                   <div className="p-2">
@@ -333,12 +330,9 @@ export function RecordForm({ wallet }: RecordFormProps) {
                         );
                       } else field.onChange(date);
                     }}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("2024-11-30")
-                    }
-                    initialFocus
+                    disabled={(date) => date > new Date()}
                   />
-                  <div className="p-2">
+                  <div className="flex gap-2 p-2">
                     <Input
                       type="time"
                       value={`${format(field.value ?? new Date(), "HH:mm")}`}
@@ -353,6 +347,13 @@ export function RecordForm({ wallet }: RecordFormProps) {
                           );
                       }}
                     />
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        field.onChange(new Date());
+                      }}>
+                      Now
+                    </Button>
                   </div>
                 </PopoverContent>
               </Popover>
