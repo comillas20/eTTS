@@ -16,6 +16,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -42,7 +48,8 @@ export const formSchema = createInsertSchema(eWalletsTable, {
   cellNumber: (schema) =>
     schema.trim().refine((check) => isCellnumber(check), "Invalid cell number"),
   defaultRate: (schema) =>
-    schema.min(0.01, "Rate must be atleast 0.01 or greater"),
+    schema.refine((check) => check > 0, "Rate must not be 0 or below"),
+  defaultLadder: (schema) => schema.min(1, "Ladder must not be 0 or below"),
 }).refine(
   async (check) => !(await doesWalletAlreadyExist({ ...check, id: -1 })),
   {
@@ -65,6 +72,7 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
       cellNumber: "",
       type: "g-cash",
       defaultRate: 0,
+      defaultLadder: 0,
       userId: userId,
     },
   });
@@ -151,28 +159,61 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="defaultRate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Default rate (in decimals)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0.02"
-                    {...field}
-                    onChange={({ target }) => {
-                      const value = parseFloat(target.value);
-                      field.onChange(isNaN(value) ? "" : value);
-                    }}
-                    onFocus={(e) => e.target.select()}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="flex gap-2">
+            <FormField
+              control={form.control}
+              name="defaultRate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default rate</FormLabel>
+                  <FormControl>
+                    <InputGroup>
+                      <InputGroupInput
+                        type="number"
+                        {...field}
+                        onChange={({ target }) => {
+                          const value = parseFloat(target.value);
+                          field.onChange(isNaN(value) ? "" : value);
+                        }}
+                        onFocus={(e) => e.target.select()}
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupText>PHP</InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="mb-2 self-end">per</div>
+            <FormField
+              control={form.control}
+              name="defaultLadder"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default ladder</FormLabel>
+                  <FormControl>
+                    <InputGroup>
+                      <InputGroupInput
+                        type="number"
+                        {...field}
+                        onChange={({ target }) => {
+                          const value = parseFloat(target.value);
+                          field.onChange(isNaN(value) ? "" : value);
+                        }}
+                        onFocus={(e) => e.target.select()}
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupText>PHP</InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         <FormField
           control={form.control}

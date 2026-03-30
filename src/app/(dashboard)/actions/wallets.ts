@@ -167,14 +167,10 @@ export async function doesWalletAlreadyExist(
 }
 
 export async function getDefaultRate(id: number) {
-  // just in case, there is no default rate set, which should NOT happen
-  // also to satisfy typescript
-  const defaultRate = 0.02;
-
   if (typeof id !== "number")
     return {
       success: false as const,
-      data: defaultRate,
+      data: null,
       error: "ID should be a number",
     };
 
@@ -183,7 +179,7 @@ export async function getDefaultRate(id: number) {
   if (!isAuthorized)
     return {
       success: false as const,
-      data: defaultRate,
+      data: null,
       error: "Unauthorized",
     };
 
@@ -192,9 +188,52 @@ export async function getDefaultRate(id: number) {
     columns: { defaultRate: true },
   });
 
+  if (!result)
+    return {
+      success: false as const,
+      data: null,
+      error: "Wallet not found",
+    };
+
   return {
     success: true as const,
-    data: result ? result.defaultRate : defaultRate,
+    data: result.defaultRate,
+    error: null,
+  };
+}
+
+export async function getDefaultLadder(id: number) {
+  if (typeof id !== "number")
+    return {
+      success: false as const,
+      data: null,
+      error: "ID should be a number",
+    };
+
+  const isAuthorized = await canAccessWallet(id);
+
+  if (!isAuthorized)
+    return {
+      success: false as const,
+      data: null,
+      error: "Unauthorized",
+    };
+
+  const result = await db.query.eWalletsTable.findFirst({
+    where: (table, { eq }) => eq(table.id, id),
+    columns: { defaultLadder: true },
+  });
+
+  if (!result)
+    return {
+      success: false as const,
+      data: null,
+      error: "Wallet not found",
+    };
+
+  return {
+    success: true as const,
+    data: result.defaultLadder,
     error: null,
   };
 }

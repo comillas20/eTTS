@@ -76,6 +76,7 @@ export const eWalletsTable = pgTable(
     cellNumber: varchar({ length: 13 }).notNull(),
     type: eWalletTypeEnum().notNull(),
     defaultRate: real().notNull(),
+    defaultLadder: integer().notNull(),
     userId: text()
       .notNull()
       .references(() => user.id),

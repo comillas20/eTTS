@@ -32,8 +32,14 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { DeleteWalletButton } from "./delete-wallet-button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
 import { useRouter } from "next/navigation";
+import { DeleteWalletButton } from "./delete-wallet-button";
 
 const formSchema = createSelectSchema(eWalletsTable, {
   name: (schema) =>
@@ -74,7 +80,7 @@ export function UpdateWallet({ initialData }: UpdateWalletProps) {
       else {
         toast("Wallet has been updated successfully");
       }
-      
+
       router.replace("/e-wallets");
     },
   });
@@ -147,33 +153,71 @@ export function UpdateWallet({ initialData }: UpdateWalletProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="defaultRate"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel
-                  className={cn({
-                    "text-primary": fieldState.isDirty,
-                  })}>
-                  Default rate (in decimals)
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0.02"
-                    {...field}
-                    onChange={({ target }) => {
-                      const value = parseFloat(target.value);
-                      field.onChange(isNaN(value) ? "" : value);
-                    }}
-                    onFocus={(e) => e.target.select()}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="flex gap-2">
+            <FormField
+              control={form.control}
+              name="defaultRate"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel
+                    className={cn({
+                      "text-primary": fieldState.isDirty,
+                    })}>
+                    Default rate
+                  </FormLabel>
+                  <FormControl>
+                    <InputGroup>
+                      <InputGroupInput
+                        type="number"
+                        {...field}
+                        onChange={({ target }) => {
+                          const value = parseFloat(target.value);
+                          field.onChange(isNaN(value) ? "" : value);
+                        }}
+                        onFocus={(e) => e.target.select()}
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupText>PHP</InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="mb-2 self-end">per</div>
+            <FormField
+              control={form.control}
+              name="defaultLadder"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel
+                    className={cn({
+                      "text-primary": fieldState.isDirty,
+                    })}>
+                    Default ladder
+                  </FormLabel>
+                  <FormControl>
+                    <InputGroup>
+                      <InputGroupInput
+                        type="number"
+                        {...field}
+                        onChange={({ target }) => {
+                          const value = parseFloat(target.value);
+                          field.onChange(isNaN(value) ? "" : value);
+                        }}
+                        onFocus={(e) => e.target.select()}
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupText>PHP</InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         <FormField
           control={form.control}

@@ -94,19 +94,21 @@ export function RecordForm({ wallet }: RecordFormProps) {
 
   useEffect(() => {
     const T = setTimeout(async () => {
-      if (!form.getFieldState("fee").isDirty && amount > 0) {
-        form.setValue(
-          "fee",
-          await getSuggestedFee({
-            amount,
-            type,
-            walletId: wallet.id,
-            transactionDate: date,
-          }),
-          {
-            shouldValidate: true,
-          },
-        );
+      const suggestedFee = await getSuggestedFee({
+        amount,
+        type,
+        walletId: wallet.id,
+        transactionDate: date,
+      });
+
+      if (
+        !form.getFieldState("fee").isDirty &&
+        amount > 0 &&
+        suggestedFee !== null
+      ) {
+        form.setValue("fee", suggestedFee, {
+          shouldValidate: true,
+        });
       }
     }, 1000);
 

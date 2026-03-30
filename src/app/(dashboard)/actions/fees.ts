@@ -6,7 +6,7 @@ import { canAccessWallet } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { updateRecord } from "./records";
-import { getDefaultRate } from "./wallets";
+import { getDefaultLadder, getDefaultRate } from "./wallets";
 
 type InsertFeeRange = typeof feesTable.$inferInsert;
 type SelectFeeRange = typeof feesTable.$inferSelect;
@@ -135,32 +135,25 @@ export async function getSuggestedFee({
     if (matchedRange) return matchedRange.fee;
   }
 
-  // second attempt is to use the default rate if no custom fee range matched
-  // which has a default ladder of 500
+  // second attempt is to use the default rate and ladder if no custom fee range matched
   const { data: rate } = await getDefaultRate(walletId);
+  const { data: ladder } = await getDefaultLadder(walletId);
 
-  const ladder = 500;
-  const amountRate = ladder * rate;
+  if (!rate || !ladder) return null;
 
   if (type === "cash-out") {
-    const expectedFee = Math.ceil(amount / ladder) * amountRate;
-    const baseAmount = amount - expectedFee;
+    const multiplier = Math.floor(amount / ladder);
+    const lowestLadderPossible = ladder * multiplier;
+    const lowestLadderFee = rate * multiplier;
+    const excess = amount - lowestLadderPossible;
 
-    // Verifying the fee calculation on @baseAmount.
-    // If the fee on the baseAmount < expectedFee, use the lower fee and the initial calculation was too high.
-
-    const trueFee = Math.ceil(baseAmount / ladder) * amountRate;
-
-    // The highest fee that could be correct is the expectedFee.
-    // The lowest correct fee is trueFee. If they are different,
-    // it means the baseAmount crossed into a lower tier.
-
-    return trueFee > expectedFee ? expectedFee : trueFee;
-  } else return Math.ceil(amount / ladder) * amountRate;
+    if (excess > lowestLadderFee) {
+      return lowestLadderFee + rate; // next ladder fee
+    } else return lowestLadderFee; // current ladder fee
+  } else return Math.ceil(amount / ladder) * rate;
 }
 
 /**
- *
  * @param currentFeeRange the current fee range, needs to be existing in the db
  * @param revert should be set to true if record.fee should be reverted to currentFeeRange's previous fee range (or default rate)
  */
@@ -235,8 +228,11 @@ async function adjustRecordFees(
     let prevFee = 0;
     if (!prevFeeRange) {
       const { data: rate } = await getDefaultRate(record.eWalletId);
+      const { data: ladder } = await getDefaultLadder(record.eWalletId);
 
-      const ladder = 500;
+      // if default rate or ladder is not set which should NOT happen,
+      // just skip the fee adjustment for this record to avoid messing up fees
+      if (!rate || !ladder) return;
 
       if (record.type === "cash-out") {
         // round up to nearest ladder
@@ -249,12 +245,15 @@ async function adjustRecordFees(
       } else prevFee = Math.ceil(record.amount / ladder) * ladder * rate;
     } else prevFee = prevFeeRange.fee;
 
+    // when adding new fee range
     if (record.fee === prevFee) {
       await updateRecord({
         ...record,
         fee: currentFeeRange.fee,
       });
-    } else if (record.fee === currentFeeRange.fee && revert) {
+    }
+    // when deleting existing fee range
+    else if (record.fee === currentFeeRange.fee && revert) {
       await updateRecord({
         ...record,
         fee: prevFee,
