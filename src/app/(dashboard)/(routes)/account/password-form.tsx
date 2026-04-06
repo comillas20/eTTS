@@ -51,6 +51,8 @@ export function PasswordForm() {
     },
     onSuccess: (response) => {
       const { data, error } = response;
+
+      form.reset();
       if (error && error.message) toast.error(error.message);
       else toast("Password has been updated successfully");
     },
