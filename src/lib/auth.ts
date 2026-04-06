@@ -22,6 +22,12 @@ export const auth = betterAuth({
       userId: "userId",
     },
   },
+  user: {
+    changeEmail: {
+      enabled: true,
+      updateEmailWithoutVerification: true,
+    },
+  },
 });
 
 export async function getAuthentication() {

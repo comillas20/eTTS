@@ -11,7 +11,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
-import { ChevronDownCircleIcon, Loader2Icon, LogOutIcon } from "lucide-react";
+import {
+  ChevronDownCircleIcon,
+  Loader2Icon,
+  LogOutIcon,
+  UserRoundCogIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function NavUser() {
@@ -74,6 +79,10 @@ export function NavUser() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => router.push("/account")}>
+            <UserRoundCogIcon />
+            Account
+          </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() =>
               authClient.signOut({
