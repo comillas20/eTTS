@@ -68,9 +68,12 @@ export function OverviewHeader({ walletId, month, year }: OverviewHeaderProps) {
   const validYear = years.find((y) => y === year) || years[0];
 
   // available months based on selected year (validYear)
-  const availableMonths = monthYearsQuery.data
-    ?.filter((y) => y.year === validYear)
-    .map((y) => y.month) || [getMonth(now)];
+  const availableMonths =
+    monthYearsQuery.data && monthYearsQuery.data.length > 0
+      ? monthYearsQuery.data
+          .filter((y) => y.year === validYear)
+          .map((y) => y.month)
+      : [getMonth(now)];
 
   const validMonth =
     typeof month === "number"
