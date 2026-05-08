@@ -1,5 +1,6 @@
 "use client";
 
+import { InputPassword } from "@/app/(dashboard)/components/input-password";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { signUp } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -129,10 +131,11 @@ export function RegisterForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Password — atleast 8 characters"
-                      {...field}
+                    <InputPassword
+                      inputProps={{
+                        ...field,
+                        placeholder: "Password — atleast 8 characters",
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -146,10 +149,11 @@ export function RegisterForm() {
                 <FormItem>
                   <FormLabel>Confirm password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Must be the same password"
-                      {...field}
+                    <InputPassword
+                      inputProps={{
+                        ...field,
+                        placeholder: "Must be the same password",
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -165,6 +169,15 @@ export function RegisterForm() {
               )}
               Register
             </Button>
+            <div className="space-x-1 text-center text-xs">
+              <span>Already have an account? Login</span>
+              <Link
+                href="/login"
+                className="text-primary/90 font-bold hover:underline">
+                here
+              </Link>
+              <span>instead</span>
+            </div>
           </form>
         </Form>
       </CardContent>

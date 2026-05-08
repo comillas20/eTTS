@@ -1,5 +1,6 @@
 "use client";
 
+import { InputPassword } from "@/app/(dashboard)/components/input-password";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -33,7 +35,7 @@ const formSchema = z.object({
 
 type LoginForm = z.infer<typeof formSchema>;
 
-export function LoginForm() {
+export function LoginForm({ withRegister }: { withRegister: boolean }) {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -95,10 +97,11 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Password — atleast 8 characters"
-                      {...field}
+                    <InputPassword
+                      inputProps={{
+                        ...field,
+                        placeholder: "Password — atleast 8 characters",
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -129,6 +132,16 @@ export function LoginForm() {
               )}
               Login
             </Button>
+            {withRegister && (
+              <div className="space-x-1 text-center text-xs">
+                <span>No account yet? Register</span>
+                <Link
+                  href="/register"
+                  className="text-primary/90 font-bold hover:underline">
+                  here
+                </Link>
+              </div>
+            )}
           </form>
         </Form>
       </CardContent>

@@ -11,10 +11,12 @@ export default async function Page() {
 
   if (session) redirect("/");
 
+  const withRegister = process.env.DISABLE_SIGN_UP === "false";
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <LoginForm />
+        <LoginForm withRegister={withRegister} />
       </div>
     </div>
   );
