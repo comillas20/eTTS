@@ -49,6 +49,7 @@ export function CustomFee({
 }: CustomFeeProps) {
   const schema = createSelectSchema(feesTable, {
     id: (schema) => schema.optional(),
+    eWalletId: (schema) => schema.min(1, "Select the target wallet first"),
     amountStart: (schema) =>
       schema.min(1, "Amount (start) should be atleast 1"),
     amountEnd: (schema) => schema.min(1, "Amount (end) should be atleast 1"),

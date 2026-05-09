@@ -28,7 +28,7 @@ export function CustomFees() {
   return (
     <div className="space-y-8">
       <Select
-        value={walletId !== 0 ? walletId.toString() : undefined}
+        value={walletId !== 0 ? walletId.toString() : ""}
         onValueChange={(value) => setWalletId(parseInt(value, 10))}>
         <div className="relative w-fit">
           <SelectTrigger>
