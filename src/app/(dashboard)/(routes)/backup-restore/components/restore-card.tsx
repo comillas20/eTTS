@@ -220,6 +220,7 @@ export function RestoreCard() {
                               className="border-0"
                               onClick={() => {
                                 if (fileRef.current) fileRef.current.value = "";
+                                if (field.value) form.resetField("file");
                               }}>
                               <XIcon className="text-destructive" />
                             </Button>
