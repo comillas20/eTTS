@@ -42,6 +42,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { RecordInsertionTable } from "./record-insertion-table";
+import { Input } from "@/components/ui/input";
 
 export function RestoreCard() {
   const wallets = useQuery({
@@ -58,6 +59,9 @@ export function RestoreCard() {
         "Invalid file",
       ),
     walletId: z.number().min(1),
+    password: z
+      .string()
+      .min(1, "Please input the backup password of this specific file"),
   });
 
   type RestoreFormData = z.infer<typeof schema>;
@@ -66,6 +70,7 @@ export function RestoreCard() {
     resolver: zodResolver(schema),
     defaultValues: {
       walletId: -1,
+      password: "",
     },
   });
 
@@ -194,8 +199,8 @@ export function RestoreCard() {
                 control={form.control}
                 name="file"
                 render={({ field }) => (
-                  <FormItem className="mb-4 gap-1">
-                    <FormLabel className="sr-only">Backup file</FormLabel>
+                  <FormItem className="mb-4">
+                    <FormLabel>Backup file</FormLabel>
                     <FormControl>
                       <InputGroup className="h-12">
                         <InputGroupInput
@@ -227,6 +232,20 @@ export function RestoreCard() {
                           </InputGroupAddon>
                         )}
                       </InputGroup>
+                    </FormControl>
+                    <FormMessage className="ml-3" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Backup encryption password</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage className="ml-3" />
                   </FormItem>

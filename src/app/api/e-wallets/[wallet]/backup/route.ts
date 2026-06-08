@@ -2,19 +2,17 @@
 
 import db from "@/db/drizzle";
 import { getAuthentication } from "@/lib/auth";
-import { runScript } from "./script";
+import crypto from "crypto";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
-import { Readable, PassThrough } from "stream";
+import { PassThrough, Readable } from "stream";
 import { createGzip } from "zlib";
-import crypto from "crypto";
-import z from "zod";
 
 type RouteProps = {
   params: Promise<{ wallet: string }>;
 };
 
-export async function GET(request: Request, { params }: RouteProps) {
+export async function POST(request: Request, { params }: RouteProps) {
   const auth = await getAuthentication();
   if (!auth) redirect("/login");
 
@@ -101,96 +99,5 @@ export async function GET(request: Request, { params }: RouteProps) {
     return new NextResponse(webStream, { headers });
   } catch (error) {
     return new NextResponse("Internal Server Error", { status: 500 });
-  }
-}
-
-const ACCEPTED_EXTENSIONS = ["pdf"];
-
-export async function POST(request: Request, { params }: RouteProps) {
-  const auth = await getAuthentication();
-  if (!auth) redirect("/login");
-
-  const { wallet: walletUrl } = await params;
-
-  const wallet = await db.query.eWalletsTable.findFirst({
-    where: (wallets, { and, eq }) =>
-      and(eq(wallets.url, walletUrl), eq(wallets.userId, auth.user.id)),
-  });
-
-  if (!wallet)
-    return NextResponse.json(
-      { success: false, error: "Wallet not found" },
-      { status: 404 },
-    );
-
-  try {
-    const formData = await request.formData();
-
-    const formDataSchema = z.object({
-      file: z.instanceof(File).refine((file) => {
-        const ext = file.name.split(".").pop()?.toLowerCase() || "";
-        return ACCEPTED_EXTENSIONS.includes(ext);
-      }, "Invalid file type"),
-      password: z.string().optional(),
-    });
-
-    const file = formData.get("file");
-    const password = formData.get("password");
-    const parsedFormData = formDataSchema.safeParse({ file, password });
-
-    if (!parsedFormData.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Something went wrong, please refresh and try again",
-        },
-        { status: 400 },
-      );
-    }
-
-    // wallets that requires file password
-    const walletsNeedPass: (typeof wallet.type)[] = ["g-cash"];
-    if (walletsNeedPass.includes(wallet.type) && !parsedFormData.data.password)
-      return NextResponse.json(
-        { success: false, error: "Password required for this specific file" },
-        { status: 400 },
-      );
-
-    const uploadedFile = parsedFormData.data.file;
-
-    const arrayBuffer = await uploadedFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    switch (wallet.type) {
-      case "g-cash":
-        // repeated check, purely to satisfy typescript
-        if (!parsedFormData.data.password)
-          return NextResponse.json(
-            {
-              success: false,
-              error: "Password required for this specific file",
-            },
-            { status: 400 },
-          );
-
-        const records = await runScript({
-          wallet: wallet,
-          buffer: buffer,
-          filePassword: parsedFormData.data.password,
-        });
-
-        return NextResponse.json({ success: true, records }, { status: 200 });
-      default:
-        return NextResponse.json(
-          { success: false, error: "How?" },
-          { status: 400 },
-        );
-    }
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { success: false, error: "Internal Server Error" },
-      { status: 500 },
-    );
   }
 }
