@@ -10,13 +10,17 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 
 type InputPasswordProps = {
+  inputGroupProps?: React.ComponentProps<typeof InputGroup>;
   inputProps?: React.ComponentProps<typeof InputGroupInput>;
 };
-export function InputPassword({ inputProps }: InputPasswordProps) {
+export function InputPassword({
+  inputGroupProps,
+  inputProps,
+}: InputPasswordProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <InputGroup>
+    <InputGroup {...inputGroupProps}>
       <InputGroupInput
         type={showPassword ? "text" : "password"}
         {...inputProps}
