@@ -52,10 +52,7 @@ export async function POST(request: Request, { params }: RouteProps) {
 
     switch (requestType) {
       case "preview":
-        return NextResponse.json({
-          success: true,
-          records: parsed.data,
-        });
+        return NextResponse.json({ data: parsed.data }, { status: 200 });
       case "save":
         const { wallet: walletUrl } = await params;
 
@@ -74,7 +71,7 @@ export async function POST(request: Request, { params }: RouteProps) {
         const hasAccess = await canAccessWallet(wallet.id);
 
         if (!hasAccess)
-          return { success: false as const, data: null, error: "Unauthorized" };
+          return new NextResponse("Unauthorized", { status: 403 });
 
         const finalData = parsed.data.map((record) => ({
           ...record,
@@ -97,7 +94,7 @@ export async function POST(request: Request, { params }: RouteProps) {
             },
           });
 
-        return NextResponse.json({ success: true, count: finalData.length });
+        return NextResponse.json({ data: finalData.length }, { status: 200 });
     }
   } catch (error) {
     console.error("Decryption failed:", error);

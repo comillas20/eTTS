@@ -95,8 +95,13 @@ export function RestoreCard() {
       method: "POST",
     });
 
-    if (!response || !response.ok) {
-      toast("Something went wrong, please try again.");
+    if (!response) {
+      toast("Something went wrong in the server, please try again.");
+      return;
+    }
+
+    if (!response.ok) {
+      toast.error(response.text);
       return;
     }
 
@@ -109,8 +114,7 @@ export function RestoreCard() {
       .array();
 
     const responseSchema = z.object({
-      success: z.boolean(),
-      records: recordSchema,
+      data: recordSchema,
     });
 
     const responseJson = await response.json();
@@ -122,9 +126,7 @@ export function RestoreCard() {
       return;
     }
 
-    const { records } = parsedResponse.data;
-
-    const finalParsedRecords = records.map((record) => ({
+    const finalParsedRecords = parsedResponse.data.data.map((record) => ({
       ...record,
       date: new Date(record.date),
       claimedAt: record.claimedAt ? new Date(record.claimedAt) : null,
@@ -149,14 +151,34 @@ export function RestoreCard() {
         method: "POST",
       });
 
-      // meesage subject to change
-      if (!response || !response.ok)
-        return { message: "Something went wrong, please try again." };
+      if (!response) {
+        return {
+          message: "Something went wrong in the server, please try again.",
+        };
+      }
+
+      if (!response.ok) {
+        return {
+          message: toast.error(response.text),
+        };
+      }
+
+      const responseJson = await response.json();
+      const responseSchema = z.object({
+        data: z.number(),
+      });
+      const parsedResponse = responseSchema.safeParse(responseJson);
+
+      let message = "";
+      if (parsedResponse.success)
+        message =
+          parsedResponse.data.data + " records has been restored successfully";
+      else message = "Records has been restored successfully";
 
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
       queryClient.invalidateQueries({ queryKey: ["records"] });
 
-      return { message: "Records has been restored successfully" };
+      return { message: message };
     },
 
     onSuccess: async (data) => toast(data.message),
