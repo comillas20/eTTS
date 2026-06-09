@@ -29,6 +29,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { RecordInsertionTable } from "./record-insertion-table";
+import { InputPassword } from "@/app/(dashboard)/components/input-password";
 
 type RecordsProps = {
   wallet: typeof eWalletsTable.$inferSelect;
@@ -250,11 +251,15 @@ export function ImportForm({ wallet }: RecordsProps) {
                     name="filePassword"
                     render={({ field }) => (
                       <FormControl>
-                        <Input
-                          className="border-primary mt-2 -ml-1 border"
-                          type="password"
-                          placeholder="If file is encrypted, enter password here"
-                          {...field}
+                        <InputPassword
+                          inputGroupProps={{
+                            className: "border-primary mt-2 -ml-1 border",
+                          }}
+                          inputProps={{
+                            ...field,
+                            placeholder:
+                              "If file is encrypted, enter password here",
+                          }}
                         />
                       </FormControl>
                     )}
