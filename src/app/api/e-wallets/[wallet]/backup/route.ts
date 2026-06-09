@@ -16,8 +16,14 @@ export async function POST(request: Request, { params }: RouteProps) {
   const auth = await getAuthentication();
   if (!auth) redirect("/login");
 
-  const backupPassword = request.headers.get("X-Backup-Password");
-  if (!backupPassword || backupPassword.length < 8) {
+  const formData = await request.formData();
+
+  const backupPassword = formData.get("password");
+  if (
+    !backupPassword ||
+    typeof backupPassword !== "string" ||
+    backupPassword.length < 8
+  ) {
     return new NextResponse(
       "A valid backup password (min 8 chars) is required.",
       { status: 400 },

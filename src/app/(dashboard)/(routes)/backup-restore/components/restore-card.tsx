@@ -50,15 +50,13 @@ export function RestoreCard() {
     select: (data) => data.map((w) => ({ id: w.id, name: w.name, url: w.url })),
   });
 
-  const ACCEPTED_EXTENSIONS = ["application/json"];
+  const ACCEPTED_EXTENSIONS = [".enc"];
   const schema = z.object({
-    file: z
-      .instanceof(File, { message: "No file found" })
-      .refine(
-        (file) => ACCEPTED_EXTENSIONS.includes(file.type),
-        "Invalid file",
-      ),
-    walletId: z.number().min(1),
+    file: z.instanceof(File, { message: "No file found" }).refine((file) => {
+      const extension = file.name.split(".").pop()?.toLowerCase();
+      return extension && ACCEPTED_EXTENSIONS.includes("." + extension);
+    }, "Invalid file"),
+    walletUrl: z.string().min(1, "Select a wallet"),
     password: z
       .string()
       .min(1, "Please input the backup password of this specific file"),
@@ -69,22 +67,38 @@ export function RestoreCard() {
   const form = useForm<RestoreFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      walletId: -1,
+      walletUrl: "",
       password: "",
     },
   });
 
   // solely for removing texts in the file input when reseting the form
   const fileRef = useRef<HTMLInputElement>(null);
-  const walletId = form.watch("walletId");
+
+  const file = form.watch("file");
+  const password = form.watch("password");
+  const walletUrl = form.watch("walletUrl");
 
   type InsertRecord = Omit<typeof recordsTable.$inferInsert, "eWalletId">[];
   const [records, setRecords] = useState<InsertRecord>([]);
   const [openModal, setOpenModal] = useState(false);
-  const onSubmit = async (data: RestoreFormData) => {
-    const { data: records, error } = await parseFile(data.file);
 
-    if (typeof error === "string") return { message: error };
+  const onSubmit = async (data: RestoreFormData) => {
+    const { file, password, walletUrl } = data;
+    const formbody = new FormData();
+    formbody.append("file", file);
+    formbody.append("password", password);
+    formbody.append("requestType", "preview");
+
+    const response = await fetch(`/api/e-wallets/${walletUrl}/restore`, {
+      body: formbody,
+      method: "POST",
+    });
+
+    if (!response || !response.ok) {
+      toast("Something went wrong, please try again.");
+      return;
+    }
 
     const recordSchema = createInsertSchema(recordsTable, {
       date: z.string(),
@@ -94,11 +108,23 @@ export function RestoreCard() {
       .omit({ eWalletId: true })
       .array();
 
-    const parsedRecords = recordSchema.safeParse(records);
+    const responseSchema = z.object({
+      success: z.boolean(),
+      records: recordSchema,
+    });
 
-    if (!parsedRecords.success) return { message: "Invalid file format" };
+    const responseJson = await response.json();
 
-    const finalParsedRecords = parsedRecords.data.map((record) => ({
+    const parsedResponse = responseSchema.safeParse(responseJson);
+
+    if (!parsedResponse.success) {
+      toast("Invalid server response");
+      return;
+    }
+
+    const { records } = parsedResponse.data;
+
+    const finalParsedRecords = records.map((record) => ({
       ...record,
       date: new Date(record.date),
       claimedAt: record.claimedAt ? new Date(record.claimedAt) : null,
@@ -111,17 +137,20 @@ export function RestoreCard() {
 
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async (walletId: number) => {
-      const finalParsedRecords = records.map((record) => ({
-        ...record,
-        date: new Date(record.date),
-        claimedAt: record.claimedAt ? new Date(record.claimedAt) : null,
-        createdAt: record.createdAt ? new Date(record.createdAt) : undefined,
-      }));
+    mutationFn: async (data: RestoreFormData) => {
+      const { file, password, walletUrl } = data;
+      const formbody = new FormData();
+      formbody.append("file", file);
+      formbody.append("password", password);
+      formbody.append("requestType", "save");
 
-      const result = await restoreRecords(finalParsedRecords, walletId);
+      const response = await fetch(`/api/e-wallets/${walletUrl}/restore`, {
+        body: formbody,
+        method: "POST",
+      });
 
-      if (!result.success)
+      // meesage subject to change
+      if (!response || !response.ok)
         return { message: "Something went wrong, please try again." };
 
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
@@ -148,13 +177,9 @@ export function RestoreCard() {
               <CardAction>
                 <FormField
                   control={form.control}
-                  name="walletId"
+                  name="walletUrl"
                   render={({ field, fieldState }) => (
-                    <Select
-                      value={field.value > 0 ? String(field.value) : ""}
-                      onValueChange={(value) =>
-                        field.onChange(parseInt(value, 10))
-                      }>
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <div className="relative">
                         <SelectTrigger
                           className={cn({
@@ -169,8 +194,8 @@ export function RestoreCard() {
                           className={cn({
                             "absolute top-0 right-0 -mt-1 -mr-1 flex size-3":
                               true,
-                            hidden: field.value > 0,
-                            show: field.value <= 0,
+                            hidden: field.value.length > 0,
+                            show: field.value.length == 0,
                           })}>
                           <span className="bg-secondary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
                           <span className="bg-secondary relative inline-flex size-3 rounded-full" />
@@ -179,7 +204,7 @@ export function RestoreCard() {
 
                       <SelectContent>
                         {wallets.data?.map((w) => (
-                          <SelectItem key={w.id} value={w.id.toString()}>
+                          <SelectItem key={w.id} value={w.url}>
                             {w.name}
                           </SelectItem>
                         ))}
@@ -279,20 +304,23 @@ export function RestoreCard() {
           </Card>
         </form>
       </Form>
-      {wallets && wallets.data && wallets.data.length > 0 && walletId > 0 && (
-        <RecordInsertionTable
-          records={records}
-          setRecord={(data, index) => {
-            const r = records;
-            r[index] = data;
-            setRecords(r);
-          }}
-          isModalOpen={openModal}
-          setIsModalOpen={setOpenModal}
-          wallet={wallets.data?.find((w) => w.id === walletId)!}
-          onSave={() => mutation.mutate(walletId)}
-        />
-      )}
+      {wallets &&
+        wallets.data &&
+        wallets.data.length > 0 &&
+        walletUrl != "" && (
+          <RecordInsertionTable
+            records={records}
+            setRecord={(data, index) => {
+              const r = records;
+              r[index] = data;
+              setRecords(r);
+            }}
+            isModalOpen={openModal}
+            setIsModalOpen={setOpenModal}
+            wallet={wallets.data?.find((w) => w.url === walletUrl)!}
+            onSave={() => mutation.mutate({ file, password, walletUrl })}
+          />
+        )}
     </>
   );
 }
