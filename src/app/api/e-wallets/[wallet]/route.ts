@@ -2,12 +2,12 @@
 
 import db from "@/db/drizzle";
 import { getAuthentication } from "@/lib/auth";
-import { runScript } from "./script";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { Readable } from "stream";
 import { createGzip } from "zlib";
 import z from "zod";
+import { parseFile, PASS_PROTECTED_WALLETS } from "./utils";
 
 type RouteProps = {
   params: Promise<{ wallet: string }>;
@@ -113,9 +113,10 @@ export async function POST(request: Request, { params }: RouteProps) {
       );
     }
 
-    // wallets that requires file password
-    const walletsNeedPass: (typeof wallet.type)[] = ["g-cash"];
-    if (walletsNeedPass.includes(wallet.type) && !parsedFormData.data.password)
+    if (
+      PASS_PROTECTED_WALLETS.includes(wallet.type) &&
+      !parsedFormData.data.password
+    )
       return NextResponse.json(
         { success: false, error: "Password required for this specific file" },
         { status: 400 },
@@ -123,33 +124,23 @@ export async function POST(request: Request, { params }: RouteProps) {
 
     const uploadedFile = parsedFormData.data.file;
 
-    const arrayBuffer = await uploadedFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const parsingRecords = await parseFile(
+      uploadedFile,
+      wallet,
+      parsedFormData.data.password,
+    );
 
-    switch (wallet.type) {
-      case "g-cash":
-        // repeated check, purely to satisfy typescript
-        if (!parsedFormData.data.password)
-          return NextResponse.json(
-            {
-              success: false,
-              error: "Password required for this specific file",
-            },
-            { status: 400 },
-          );
-
-        const records = await runScript({
-          wallet: wallet,
-          buffer: buffer,
-          filePassword: parsedFormData.data.password,
-        });
-
-        return NextResponse.json({ success: true, records }, { status: 200 });
-      default:
-        return NextResponse.json(
-          { success: false, error: "How?" },
-          { status: 400 },
-        );
+    if (parsingRecords.success)
+      return NextResponse.json(
+        { success: true, records: parsingRecords.data },
+        { status: 200 },
+      );
+    else {
+      console.error(parsingRecords.error);
+      return NextResponse.json(
+        { success: false, error: "Internal Server Error" },
+        { status: 500 },
+      );
     }
   } catch (error) {
     console.error(error);
