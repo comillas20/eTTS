@@ -139,7 +139,7 @@ export async function getSuggestedFee({
   const { data: rate } = await getDefaultRate(walletId);
   const { data: ladder } = await getDefaultLadder(walletId);
 
-  if (!rate || !ladder) return null;
+  if (!rate || !ladder) return 0;
 
   if (type === "cash-out") {
     const multiplier = Math.floor(amount / ladder);

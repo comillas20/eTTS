@@ -101,11 +101,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
         transactionDate: date,
       });
 
-      if (
-        !form.getFieldState("fee").isDirty &&
-        amount > 0 &&
-        suggestedFee !== null
-      ) {
+      if (!form.getFieldState("fee").isDirty && amount > 0) {
         form.setValue("fee", suggestedFee, {
           shouldValidate: true,
         });
