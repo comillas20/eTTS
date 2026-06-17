@@ -85,7 +85,7 @@ export function ImportForm({ wallet }: RecordsProps) {
 
     let recordResult: RecordResult;
 
-    const result = await fetch(`/api/e-wallets/${wallet.url}`, {
+    const result = await fetch(`/api/e-wallets/${wallet.url}/import`, {
       method: "POST",
       body: formData,
     });
