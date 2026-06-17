@@ -9,6 +9,8 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import z from "zod";
+import { Readable } from "stream";
+import { finished } from "stream/promises";
 
 type WalletType = (typeof eWalletTypeEnum.enumValues)[number];
 
@@ -52,7 +54,12 @@ export async function parseFile(
 
   const fullPath = path.join(tempDir, uniqueFileName);
 
-  await fs.promises.writeFile(fullPath, file.stream());
+  const nodeStream = Readable.fromWeb(file.stream() as any);
+  const writeStream = fs.createWriteStream(fullPath);
+  nodeStream.pipe(writeStream);
+
+  // Wait for the file to finish writing completely before sending
+  await finished(writeStream);
 
   const pythonBaseUrl = process.env.PYTHON_API_URL;
 
