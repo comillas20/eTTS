@@ -20,11 +20,11 @@ import {
 import { useRouter } from "next/navigation";
 
 export function NavUser() {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending, isRefetching } = authClient.useSession();
 
   const router = useRouter();
 
-  if (isPending)
+  if (isPending || isRefetching)
     return (
       <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm">
         <Loader2Icon className="size-4 animate-spin" />
