@@ -1,7 +1,9 @@
 import { getWalletUrls } from "@/app/(dashboard)/actions/wallets";
 import db from "@/db/drizzle";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { RecordForm } from "./components/record-form";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function generateStaticParams() {
   const wallets = await getWalletUrls();
@@ -18,8 +20,15 @@ type PageProps = {
 export default async function Page({ params }: PageProps) {
   const { wallet } = await params;
 
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) redirect("/login");
+
   const eWallet = await db.query.eWalletsTable.findFirst({
-    where: (wallets, { eq }) => eq(wallets.url, wallet),
+    where: (wallets, { eq, and }) =>
+      and(eq(wallets.url, wallet), eq(wallets.userId, session.user.id)),
   });
 
   if (!eWallet) return notFound();
