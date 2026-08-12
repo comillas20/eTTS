@@ -211,7 +211,7 @@ async function adjustRecordFees(
       orderBy: (recordsTable, { desc }) => [desc(recordsTable.dateImplemented)],
     });
 
-    // skip if not the latest fee range and is not updating
+    // skip if this is not the latest fee range, which means system should not touch this record
     if (!!otherLatestRange) return;
 
     const prevFeeRange = await db.query.feesTable.findFirst({
@@ -226,6 +226,8 @@ async function adjustRecordFees(
     });
 
     let prevFee = 0;
+
+    // if there is no previous fee range, then use the defaults
     if (!prevFeeRange) {
       const { data: rate } = await getDefaultRate(record.eWalletId);
       const { data: ladder } = await getDefaultLadder(record.eWalletId);
@@ -235,14 +237,14 @@ async function adjustRecordFees(
       if (!rate || !ladder) return;
 
       if (record.type === "cash-out") {
-        // round up to nearest ladder
+        // round down to nearest ladder
         const nearestMaxLadder = Math.floor(record.amount / ladder) * ladder;
-        const initialFee = nearestMaxLadder * rate;
+        const initialFee = (nearestMaxLadder * rate) / ladder;
         const diff = record.amount - nearestMaxLadder;
         const belowInitialFee = initialFee >= diff;
 
-        prevFee = belowInitialFee ? initialFee : initialFee + ladder * rate;
-      } else prevFee = Math.ceil(record.amount / ladder) * ladder * rate;
+        prevFee = belowInitialFee ? initialFee : initialFee + rate;
+      } else prevFee = Math.ceil(record.amount / ladder) * rate;
     } else prevFee = prevFeeRange.fee;
 
     // when adding new fee range
