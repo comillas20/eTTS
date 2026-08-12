@@ -55,7 +55,7 @@ type RecordFormProps = {
   wallet: typeof eWalletsTable.$inferSelect;
 };
 
-export function RecordForm({ wallet }: RecordFormProps) {
+export function RecordCreateForm({ wallet }: RecordFormProps) {
   const form = useForm<RecordForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -192,6 +192,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
                     type="number"
                     placeholder="Amount"
                     {...field}
+                    value={field.value > 0 ? field.value : ""}
                     onChange={({ target }) => {
                       const value = parseFloat(target.value);
                       field.onChange(isNaN(value) ? "" : value);
@@ -213,6 +214,7 @@ export function RecordForm({ wallet }: RecordFormProps) {
                     type="number"
                     placeholder="Fee"
                     {...field}
+                    value={field.value > 0 ? field.value : ""}
                     onChange={({ target }) => {
                       const value = parseFloat(target.value);
                       field.onChange(isNaN(value) ? "" : value);
@@ -291,7 +293,9 @@ export function RecordForm({ wallet }: RecordFormProps) {
           name="claimedAt"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Claimed at</FormLabel>
+              <FormLabel className={cn({ "opacity-50": type === "cash-in" })}>
+                Claimed at
+              </FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>

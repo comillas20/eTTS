@@ -1,7 +1,7 @@
 import { getWalletUrls } from "@/app/(dashboard)/actions/wallets";
 import db from "@/db/drizzle";
 import { notFound, redirect } from "next/navigation";
-import { RecordForm } from "./components/record-form";
+import { RecordCreateForm } from "./components/record-create-form";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
@@ -43,7 +43,7 @@ export default async function Page({ params }: PageProps) {
             <strong className="text-secondary">{eWallet.name}</strong> record
           </p>
         </div>
-        <RecordForm wallet={eWallet} />
+        <RecordCreateForm wallet={eWallet} />
       </div>
     </div>
   );
