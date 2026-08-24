@@ -5,7 +5,8 @@ import { getAuthentication } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import z from "zod";
-import { parseFile, PASS_PROTECTED_WALLETS } from "../utils";
+import gcash from "./parse/g-cash";
+import { parseFile } from "./parse/utils";
 
 type RouteProps = {
   params: Promise<{ wallet: string }>;
@@ -55,8 +56,10 @@ export async function POST(request: Request, { params }: RouteProps) {
       );
     }
 
+    const passProtectedWallets = process.env.PASS_PROTECTED_WALLETS?.split(",");
     if (
-      PASS_PROTECTED_WALLETS.includes(wallet.type) &&
+      !!passProtectedWallets &&
+      passProtectedWallets.includes(wallet.type) &&
       !parsedFormData.data.password
     )
       return NextResponse.json(
@@ -66,23 +69,31 @@ export async function POST(request: Request, { params }: RouteProps) {
 
     const uploadedFile = parsedFormData.data.file;
 
-    const parsingRecords = await parseFile(
+    const rawParsedData = await parseFile(
       uploadedFile,
       wallet,
       parsedFormData.data.password,
     );
 
-    if (parsingRecords.success)
-      return NextResponse.json(
-        { success: true, records: parsingRecords.data },
-        { status: 200 },
-      );
-    else {
-      console.error(parsingRecords.error);
+    if (!rawParsedData.success) {
+      console.error(rawParsedData.error);
       return NextResponse.json(
         { success: false, error: "Internal Server Error" },
         { status: 500 },
       );
+    }
+
+    switch (wallet.type) {
+      case "g-cash":
+        const cleanData = await gcash.refineFileData(
+          rawParsedData.data,
+          wallet,
+        );
+
+        return NextResponse.json(
+          { success: true, records: cleanData },
+          { status: 200 },
+        );
     }
   } catch (error) {
     console.error(error);
