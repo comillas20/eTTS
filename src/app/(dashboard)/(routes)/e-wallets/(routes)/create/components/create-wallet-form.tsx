@@ -90,7 +90,7 @@ export function CreateWalletForm({ userId }: CreateWalletFormProps) {
         toast("Wallet has been created successfully", {
           action: {
             label: "View",
-            onClick: () => router.push(`/e-wallets/${data.url}/settings`),
+            onClick: () => router.push(`/e-wallets/${data.url}`),
           },
         });
       else toast.error(error);
