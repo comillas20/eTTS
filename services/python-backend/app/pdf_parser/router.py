@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, status
-import app.pdf_parser.lib.utilities as utilities
 import app.pdf_parser.wallets.gcash as gcash
 from pydantic import BaseModel
 from pathlib import Path
@@ -22,15 +21,16 @@ def parse_pdf_file(pdf_file: PDFFile):
     if not pdf_path.exists():
         raise HTTPException(status_code=400, detail="File not found on server disk.")
     
-    try:
-        dataframes = utilities.get_dataframes_from_pdf(pdf_path, pdf_file.password)
-    except (ValueError, RuntimeError) as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
-    
     match pdf_file.wallet:
         case "g-cash":
+            try:
+                dataframes = gcash.get_dataframes(pdf_path, pdf_file.password)
+            except (ValueError, RuntimeError) as e:
+                logger.warning(e)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+                )
+
             # If mutation fails, let it throw a 500 automatically so logs will capture the real bug
             mutated_df = gcash.mutate(dataframes)
             mutated_df = mutated_df.replace({pd.NA: None, float('nan'): None})
