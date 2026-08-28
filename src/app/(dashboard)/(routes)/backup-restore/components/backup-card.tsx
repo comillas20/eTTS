@@ -180,7 +180,7 @@ export function BackupCard() {
               <AlertCircleIcon className="text-warning" />
               <p className="text-sm">
                 <strong>Warning:</strong> We do not store this password. If you
-                lose it, your backup files can never be recovered.
+                lose it, your backup files cannot ever be recovered.
               </p>
             </Alert>
           </CardContent>
