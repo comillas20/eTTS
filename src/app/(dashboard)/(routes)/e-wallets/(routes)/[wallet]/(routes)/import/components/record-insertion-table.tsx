@@ -1,11 +1,7 @@
 "use client";
 
-import { deleteRecord } from "@/app/(dashboard)/actions/records";
-import { DatatableColumnFilterHeader } from "@/app/(dashboard)/components/datatable-column-filter-header";
-import { DataTableColumnSortHeader } from "@/app/(dashboard)/components/datatable-column-sort-header";
 import { DatatableFrame } from "@/app/(dashboard)/components/datatable-frame";
 import { DatatablePagination } from "@/app/(dashboard)/components/datatable-pagination";
-import { RangedDateFilter } from "@/app/(dashboard)/components/ranged-date-filter";
 import { SearchBar } from "@/components/search-bar";
 import {
   AlertDialog,
@@ -17,24 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { eWalletsTable, recordsTable } from "@/db/schema";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  ColumnDef,
   getCoreRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
@@ -42,36 +22,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   PaginationState,
-  Table,
   useReactTable,
 } from "@tanstack/react-table";
-import { format } from "date-fns";
-import {
-  BanknoteArrowDownIcon,
-  BanknoteArrowUpIcon,
-  BanknoteXIcon,
-  BracketsIcon,
-  ChevronDownIcon,
-  ColumnsIcon,
-  FolderUpIcon,
-  MoreHorizontalIcon,
-  NotebookIcon,
-  NotebookPenIcon,
-  PenIcon,
-  PhoneIcon,
-  PhoneMissedIcon,
-  PlusIcon,
-  SlidersHorizontalIcon,
-  Trash2Icon,
-  XIcon,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { DateRange } from "react-day-picker";
-import { toast } from "sonner";
 import { recordInsertionColumns } from "./record-insertion-columns";
-import { set } from "better-auth";
 
 type RecordsProps = {
   wallet: typeof eWalletsTable.$inferSelect;

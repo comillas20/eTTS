@@ -27,7 +27,7 @@ export function DataTableColumnSortHeader<TData, TValue>({
   const sortStatus = column.getIsSorted();
   return (
     <div className={cn("flex items-center space-x-2", className)}>
-      <DropdownMenu>
+      <DropdownMenu modal>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"

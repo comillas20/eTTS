@@ -29,7 +29,7 @@ export function DatatableColumnFilterHeader({
 }: DatatableColumnFilterHeaderProps) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <DropdownMenu>
+      <DropdownMenu modal>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
