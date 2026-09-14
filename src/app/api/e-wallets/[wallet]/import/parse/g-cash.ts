@@ -23,7 +23,20 @@ async function refineFileData(
     debit: z.number().nullable(),
     credit: z.number().nullable(),
     date: z.string(),
-    description: z.string(),
+    description: z.string().refine((desc) => {
+      const ignoreList = [
+        "Cash-out to null",
+        "Deposit to GSave",
+        "Withdraw from GSave",
+      ];
+      let isIgnored = false;
+
+      ignoreList.forEach((i) => {
+        if (desc.includes(i)) isIgnored = true;
+      });
+
+      return !isIgnored;
+    }),
   });
 
   const validatedRecords = data
