@@ -39,13 +39,15 @@ export async function POST(request: Request, { params }: RouteProps) {
   const parsedForm = formDataSchema.safeParse({ file, password, requestType });
 
   if (!parsedForm.success)
-    return new NextResponse(parsedForm.error.message, { status: 400 });
+    return new NextResponse(parsedForm.error.issues[0].message, {
+      status: 400,
+    });
 
   try {
     const { file, password, requestType } = parsedForm.data;
     const decrypted = await decryptFile(file, password);
     if (!decrypted.data)
-      return new NextResponse("Decryption failed", { status: 400 });
+      return new NextResponse(decrypted.error, { status: 400 });
 
     const parsed = await parseRecords(decrypted.data);
     if (!parsed.data) return new NextResponse(parsed.error, { status: 400 });
@@ -142,7 +144,7 @@ async function decryptFile(file: File, backupPassword: string) {
 
     return { data: rawJson, error: null };
   } catch (error) {
-    return { data: null, error: "Something went wrong" };
+    return { data: null, error: "Incorrect backup password" };
   }
 }
 

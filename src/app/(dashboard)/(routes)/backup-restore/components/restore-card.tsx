@@ -101,7 +101,8 @@ export function RestoreCard() {
     }
 
     if (!response.ok) {
-      toast.error(response.text);
+      const msg = await response.text();
+      toast.error(msg);
       return;
     }
 
@@ -151,16 +152,11 @@ export function RestoreCard() {
         method: "POST",
       });
 
-      if (!response) {
-        return {
-          message: "Something went wrong in the server, please try again.",
-        };
-      }
+      if (!response) throw new Error("Something went wrong, please try again.");
 
       if (!response.ok) {
-        return {
-          message: toast.error(response.text),
-        };
+        const msg = await response.text();
+        throw new Error(msg);
       }
 
       const responseJson = await response.json();
@@ -182,6 +178,7 @@ export function RestoreCard() {
     },
 
     onSuccess: async (data) => toast(data.message),
+    onError: async (data) => toast.error(data.message),
   });
 
   return (
