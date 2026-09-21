@@ -78,7 +78,7 @@ export async function POST(request: Request, { params }: RouteProps) {
     if (!rawParsedData.success) {
       console.error(rawParsedData.error);
       return NextResponse.json(
-        { success: false, error: "Internal Server Error" },
+        { success: false, error: "Incorrect back-up password" },
         { status: 500 },
       );
     }
