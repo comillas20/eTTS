@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  FileIcon,
-  Loader2Icon,
-  RefreshCwIcon,
-  UploadIcon,
-  XIcon,
-} from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
-
-import { createRecords } from "@/app/(dashboard)/actions/records";
+import { InputPassword } from "@/app/(dashboard)/components/input-password";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -21,15 +11,22 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { eWalletsTable, recordsTable } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createInsertSchema } from "drizzle-zod";
+import {
+  FileIcon,
+  Loader2Icon,
+  RefreshCwIcon,
+  UploadIcon,
+  XIcon,
+} from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 import { RecordInsertionTable } from "./record-insertion-table";
-import { InputPassword } from "@/app/(dashboard)/components/input-password";
 
 type RecordsProps = {
   wallet: typeof eWalletsTable.$inferSelect;
@@ -85,7 +82,7 @@ export function ImportForm({ wallet }: RecordsProps) {
 
     let recordResult: RecordResult;
 
-    const result = await fetch(`/api/e-wallets/${wallet.url}/import`, {
+    const result = await fetch(`/api/e-wallets/${wallet.url}/import/parse`, {
       method: "POST",
       body: formData,
     });
@@ -144,10 +141,37 @@ export function ImportForm({ wallet }: RecordsProps) {
 
   const walletM = useMutation({
     mutationFn: async () => {
-      const result = await createRecords(records, wallet.id);
+      const response = await fetch(`/api/e-wallets/${wallet.url}/import`, {
+        method: "POST",
+        body: JSON.stringify({
+          records,
+          walletId: wallet.id,
+        }),
+      });
 
-      if (!result.success)
+      const responseSchema = z.discriminatedUnion("success", [
+        z.object({
+          success: z.literal(true),
+          data: z.object({ id: z.number() }).array(),
+          error: z.null(),
+        }),
+        z.object({
+          success: z.literal(false),
+          data: z.null(),
+          error: z.string(),
+        }),
+      ]);
+
+      const result = await response.json();
+
+      const parsedResult = responseSchema.safeParse(result);
+
+      if (!parsedResult.success)
         return { message: "Something went wrong, please try again." };
+
+      const parsedData = parsedResult.data;
+
+      if (!parsedData.success) return { message: parsedData.error };
 
       setRecords([]);
       form.reset();
@@ -155,7 +179,10 @@ export function ImportForm({ wallet }: RecordsProps) {
       queryClient.invalidateQueries({ queryKey: ["e-wallets"] });
       queryClient.invalidateQueries({ queryKey: ["records"] });
 
-      return { message: "Records has been imported successfully" };
+      return {
+        message:
+          parsedData.data.length + " records has been imported successfully",
+      };
     },
 
     onSuccess: async (data) => toast(data.message),

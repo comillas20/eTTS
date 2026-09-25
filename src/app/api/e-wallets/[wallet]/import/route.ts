@@ -1,18 +1,17 @@
 "use server";
 
 import db from "@/db/drizzle";
-import { getAuthentication } from "@/lib/auth";
+import { recordsTable } from "@/db/schema";
+import { canAccessWallet, getAuthentication } from "@/lib/auth";
+import { createInsertSchema } from "drizzle-zod";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import z from "zod";
-import gcash from "./parse/g-cash";
-import { parseFile } from "./parse/utils";
 
 type RouteProps = {
   params: Promise<{ wallet: string }>;
 };
-
-const ACCEPTED_EXTENSIONS = ["pdf"];
 
 export async function POST(request: Request, { params }: RouteProps) {
   const auth = await getAuthentication();
@@ -27,78 +26,85 @@ export async function POST(request: Request, { params }: RouteProps) {
 
   if (!wallet)
     return NextResponse.json(
-      { success: false, error: "Wallet not found" },
+      { success: false, data: null, error: "Wallet not found" },
       { status: 404 },
     );
 
   try {
-    const formData = await request.formData();
+    const requestData = await request.json();
 
-    const formDataSchema = z.object({
-      file: z.instanceof(File).refine((file) => {
-        const ext = file.name.split(".").pop()?.toLowerCase() || "";
-        return ACCEPTED_EXTENSIONS.includes(ext);
-      }, "Invalid file type"),
-      password: z.string().optional(),
+    const requestDataSchema = z.object({
+      records: createInsertSchema(recordsTable, {
+        date: z
+          .string()
+          .datetime()
+          .transform((s) => new Date(s)),
+        claimedAt: z
+          .string()
+          .datetime()
+          .nullable()
+          .transform((s) => (s === null ? null : new Date(s))),
+      })
+        .omit({ eWalletId: true })
+        .array(),
+      walletId: z.number(),
     });
 
-    const file = formData.get("file");
-    const password = formData.get("password");
-    const parsedFormData = formDataSchema.safeParse({ file, password });
+    const parsedRequestData = requestDataSchema.safeParse(requestData);
 
-    if (!parsedFormData.success) {
+    if (parsedRequestData.error) {
+      console.error(parsedRequestData.error);
       return NextResponse.json(
         {
           success: false,
-          error: "Something went wrong, please refresh and try again",
+          data: null,
+          error: "Parsing file error",
         },
         { status: 400 },
       );
     }
 
-    const passProtectedWallets = process.env.PASS_PROTECTED_WALLETS?.split(",");
-    if (
-      !!passProtectedWallets &&
-      passProtectedWallets.includes(wallet.type) &&
-      !parsedFormData.data.password
-    )
+    parsedRequestData.data.records.forEach((record) => {
+      if (record.type === "cash-in") record.claimedAt = null;
+    });
+
+    const hasAccess = await canAccessWallet(parsedRequestData.data.walletId);
+
+    if (!hasAccess)
       return NextResponse.json(
-        { success: false, error: "Password required for this specific file" },
-        { status: 400 },
+        {
+          success: false,
+          data: null,
+          error: "Unauthorized",
+        },
+        { status: 401 },
       );
 
-    const uploadedFile = parsedFormData.data.file;
+    const finalData = parsedRequestData.data.records.map((record) => ({
+      ...record,
+      eWalletId: parsedRequestData.data.walletId,
+    }));
 
-    const rawParsedData = await parseFile(
-      uploadedFile,
-      wallet,
-      parsedFormData.data.password,
+    const result = await db
+      .insert(recordsTable)
+      .values(finalData)
+      .returning({ id: recordsTable.id })
+      .onConflictDoNothing();
+
+    revalidatePath("/e-wallets");
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: result,
+        error: null,
+      },
+      { status: 200 },
     );
-
-    if (!rawParsedData.success) {
-      console.error(rawParsedData.error);
-      return NextResponse.json(
-        { success: false, error: "Incorrect back-up password" },
-        { status: 500 },
-      );
-    }
-
-    switch (wallet.type) {
-      case "g-cash":
-        const cleanData = await gcash.refineFileData(
-          rawParsedData.data,
-          wallet,
-        );
-
-        return NextResponse.json(
-          { success: true, records: cleanData },
-          { status: 200 },
-        );
-    }
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { success: false, error: "Internal Server Error" },
+      { success: false, data: null, error: "Internal Server Error" },
       { status: 500 },
     );
   }

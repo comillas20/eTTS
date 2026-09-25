@@ -41,51 +41,6 @@ export async function createRecord(values: InsertRecord) {
   };
 }
 
-export async function createRecords(
-  values: Omit<InsertRecord, "eWalletId">[],
-  walletId: number,
-) {
-  const schema = createInsertSchema(recordsTable)
-    .omit({ eWalletId: true })
-    .array();
-  const parsedValues = schema.safeParse(values);
-
-  if (parsedValues.error)
-    return {
-      success: false as const,
-      data: null,
-      error: parsedValues.error.message,
-    };
-
-  parsedValues.data.forEach((record) => {
-    if (record.type === "cash-in") record.claimedAt = null;
-  });
-
-  const hasAccess = await canAccessWallet(walletId);
-
-  if (!hasAccess)
-    return { success: false as const, data: null, error: "Unauthorized" };
-
-  const finalData = parsedValues.data.map((record) => ({
-    ...record,
-    eWalletId: walletId,
-  }));
-
-  const result = await db
-    .insert(recordsTable)
-    .values(finalData)
-    .returning({ id: recordsTable.id })
-    .onConflictDoNothing();
-
-  revalidatePath("/e-wallets");
-
-  return {
-    success: true as const,
-    data: result,
-    error: null,
-  };
-}
-
 export async function restoreRecords(
   values: Omit<InsertRecord, "eWalletId">[],
   walletId: number,
