@@ -56,13 +56,15 @@ type RecordFormProps = {
 };
 
 export function RecordCreateForm({ wallet }: RecordFormProps) {
+  const DEFAULT_AMOUNT = 0;
+  const DEFAULT_FEE = -1;
   const form = useForm<RecordForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       referenceNumber: "",
       cellNumber: "",
-      amount: 0,
-      fee: 0,
+      amount: DEFAULT_AMOUNT,
+      fee: DEFAULT_FEE,
       type: "cash-in",
       date: new Date(),
       claimedAt: null,
@@ -195,7 +197,9 @@ export function RecordCreateForm({ wallet }: RecordFormProps) {
                     value={field.value > 0 ? field.value : ""}
                     onChange={({ target }) => {
                       const value = parseFloat(target.value);
-                      field.onChange(isNaN(value) ? "" : value);
+                      field.onChange(
+                        isNaN(value) || value < 1 ? DEFAULT_AMOUNT : value,
+                      );
                     }}
                   />
                 </FormControl>
@@ -214,10 +218,12 @@ export function RecordCreateForm({ wallet }: RecordFormProps) {
                     type="number"
                     placeholder="Fee"
                     {...field}
-                    value={field.value > 0 ? field.value : ""}
+                    value={field.value >= 0 ? field.value : ""}
                     onChange={({ target }) => {
                       const value = parseFloat(target.value);
-                      field.onChange(isNaN(value) ? "" : value);
+                      field.onChange(
+                        isNaN(value) || value < 0 ? DEFAULT_FEE : value,
+                      );
                     }}
                   />
                 </FormControl>
@@ -389,7 +395,9 @@ export function RecordCreateForm({ wallet }: RecordFormProps) {
           <Button
             type="submit"
             variant="secondary"
-            disabled={!form.formState.isDirty || form.formState.isSubmitting}>
+            disabled={
+              !form.formState.dirtyFields.amount || form.formState.isSubmitting
+            }>
             {form.formState.isSubmitting ? (
               <Loader2Icon className="animate-spin" />
             ) : (

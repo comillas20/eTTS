@@ -164,7 +164,7 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
                     type="number"
                     placeholder="Amount"
                     {...field}
-                    value={field.value > 0 ? field.value : ""}
+                    value={field.value >= 0 ? field.value : ""}
                     onChange={({ target }) => {
                       const value = parseFloat(target.value);
                       field.onChange(isNaN(value) ? "" : value);
@@ -191,7 +191,7 @@ export function RecordUpdateForm({ record, onSave }: RecordUpdateFormProps) {
                     type="number"
                     placeholder="Fee"
                     {...field}
-                    value={field.value > 0 ? field.value : ""}
+                    value={field.value >= 0 ? field.value : ""}
                     onChange={({ target }) => {
                       const value = parseFloat(target.value);
                       field.onChange(isNaN(value) ? "" : value);
