@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:push": "npx drizzle-kit push",
-    "py-start": "cd services\\python-backend && .venv\\scripts\\activate && fastapi run"
+    "py-start": "cd services\\python-backend && .venv\\scripts\\activate && fastapi run",
+    "py-start-linux": "cd services/python-backend && fastapi run"
   },
   "dependencies": {
     "@date-fns/tz": "^1.4.1",
