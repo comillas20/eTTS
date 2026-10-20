@@ -29,7 +29,14 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { recordsTable } from "@/db/schema";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { compareAsc, format, getYear, lastDayOfMonth, max } from "date-fns";
+import {
+  compareAsc,
+  format,
+  getYear,
+  isSameDay,
+  lastDayOfMonth,
+  max,
+} from "date-fns";
 import { useSearchParams } from "next/navigation";
 
 const chartConfig = {
@@ -97,6 +104,19 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
     if (!isNaN(parsedM) && !isNaN(parsedY))
       lastDayOfSelectedMonth = lastDayOfMonth(new Date(parsedY, parsedM));
   }
+
+  const getTotalInFees = (date: Date) => {
+    const chartData = filteredData.find((data) => isSameDay(data.date, date));
+    const formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "PHP",
+      currencyDisplay: "symbol",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    });
+
+    return chartData ? formatter.format(chartData.totalInFees) : "";
+  };
 
   return (
     <Card className="@container/card">
@@ -171,10 +191,17 @@ export function OverviewChartArea({ data }: OverviewChartAreaProps) {
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    });
+                    return (
+                      <div className="flex justify-between">
+                        <span>
+                          {new Date(value).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                        <span>{getTotalInFees(new Date(value))}</span>
+                      </div>
+                    );
                   }}
                   indicator="line"
                 />
@@ -194,6 +221,7 @@ type ChartData = {
   date: string;
   cashIn: number;
   cashOut: number;
+  totalInFees: number;
 };
 
 function aggregateRecords(
@@ -209,6 +237,7 @@ function aggregateRecords(
         date: dateString,
         cashIn: 0,
         cashOut: 0,
+        totalInFees: 0,
       };
     }
 
@@ -217,6 +246,8 @@ function aggregateRecords(
     } else if (record.type === "cash-out") {
       dailyData[dateString].cashOut += 1;
     }
+
+    dailyData[dateString].totalInFees += record.fee;
   }
 
   // Convert the object into an array of values
